@@ -14,7 +14,7 @@ namespace KRKN
         bool_t vsync{ false };
     };
 
-    class KRAKEN_API Window
+    class Window
     {
     public:
 

@@ -4,7 +4,7 @@
 
 namespace KRKN::WINDOWS
 {
-    class KRAKEN_API WindowsWindow : public KRKN::Window
+    class WindowsWindow : public KRKN::Window
     {
     public:
         WindowsWindow(const KRKN::WindowData& windowData);
@@ -26,9 +26,6 @@ namespace KRKN::WINDOWS
 
         virtual void setVsync(const bool_t vsync) override;
         virtual bool_t isVsync() const override;
-
-    private:
-        LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
     private:
         HWND hwnd;

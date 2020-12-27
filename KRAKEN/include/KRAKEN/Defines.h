@@ -31,6 +31,3 @@
 #endif
 
 #define KRAKEN_UNUSED_VARIABLE(x) x
-
-/// Possible use of DLL here, if wanted
-#define KRAKEN_API

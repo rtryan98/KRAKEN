@@ -1,5 +1,4 @@
 #include "platform/windows/core/window/WindowsWindow.h"
-#include <Windows.h>
 
 namespace KRKN::WINDOWS
 {

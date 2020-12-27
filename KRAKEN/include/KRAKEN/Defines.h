@@ -7,6 +7,7 @@
     #error "Android is not supported."
 #elif __APPLE__
     #error "Apple is not supported."
+    #define KRAKEN_PLATFORM_APPLE 1
     #include <TargetConditionals.h>
     #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
         #error "Iphone is not supported!"
@@ -31,3 +32,57 @@
 #endif
 
 #define KRAKEN_UNUSED_VARIABLE(x) x
+
+#if KRAKEN_PLATFORM_WINDOWS
+    #define FORCE_INLINE __forceinline
+    #define FORCE_NO_INLINE _declspec(noinline)
+#else
+    #define FORCE_INLINE inline
+    #define FORCE_NO_INLINE
+#endif
+
+#if _MSC_VER
+    #include <intrin.h>
+    #define debugBreak() __debugbreak()
+    #elif KRAKEN_PLATFORM_ANDROID || KRAKEN_PLATFORM_APPLE || KRAKEN_PLATFORM_LINUX
+    #include <unistd.h>
+    #if _POSIX_VERSION
+        #include <signal.h>
+        #define debugBreak() raise(SIGTRAP)
+    #else
+        #define debugBreak()
+    #endif
+#endif
+
+#define KRAKEN_USE_ASSERTS 1
+
+#if !defined(NDEBUG) || KRAKEN_USE_ASSERTS
+    #include <iostream>
+    FORCE_INLINE void logAssertionFailure(const char* expression, const char* file, int32_t line)
+    {
+        std::cerr
+            << "Assert Failed"
+            << "\n\texpression: '" << expression << "'"
+            << "\n\tfile: '" << file << "'"
+            << "\n\tline: '" << line << "'\n";
+    }
+
+    #define KRAKEN_ASSERT(x) {                                      \
+        if(x) {}                                                    \
+        else {                                                      \
+            logAssertionFailure(#x, __FILE__, __LINE__);            \
+            debugBreak();                                           \
+        }                                                           \
+    }
+    
+    #define KRAKEN_ASSERT_VALUE(x) {                                \
+        if(x) {}                                                    \
+        else {                                                      \
+            logAssertionFailure(#x, __FILE__, __LINE__);            \
+            debugBreak();                                           \
+        }                                                           \
+    }
+#else
+    #define KRAKEN_ASSERT(x, message) x
+    #define KRAKEN_ASSERT_VALUE(x, message)
+#endif

@@ -56,7 +56,7 @@ namespace KRKN::WINDOWS
             CW_USEDEFAULT, CW_USEDEFAULT, this->windowData.width, this->windowData.height,
             NULL, NULL, NULL, NULL);
 
-        // TODO: assert hwnd
+        KRAKEN_ASSERT_VALUE(hwnd);
 
         ShowWindow(hwnd, SW_SHOW);
         UpdateWindow(hwnd);

@@ -81,4 +81,5 @@ target_include_directories(${KRAKEN_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/K
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_compile_options(${KRAKEN_SANDBOX_NAME} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
+    # target_link_options(${KRAKEN_SANDBOX_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 endif()

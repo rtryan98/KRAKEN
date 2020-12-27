@@ -8,7 +8,11 @@
 #elif __APPLE__
     #error "Apple is not supported."
     #include <TargetConditionals.h>
-    #if TARGET_OS_MAC
+    #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
+        #error "Iphone is not supported!"
+    #elif TARGET_OS_IPHONE
+        #error "Iphone is not supported!"
+    #elif TARGET_OS_MAC
         #define KRAKEN_PLATFORM_OSX 1
     #else
         #error "Unsupported Apple platform"
@@ -25,3 +29,8 @@
 #else
     #error "Unknown platform."
 #endif
+
+#define KRAKEN_UNUSED_VARIABLE(x) x
+
+/// Possible use of DLL here, if wanted
+#define KRAKEN_API

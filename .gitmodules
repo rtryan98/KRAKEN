@@ -4,3 +4,9 @@
 [submodule "vendor/glm"]
 	path = vendor/glm
 	url = https://github.com/g-truc/glm
+[submodule "vendor/glslang"]
+	path = vendor/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "vendor/spdlog"]
+	path = vendor/spdlog
+	url = https://github.com/gabime/spdlog

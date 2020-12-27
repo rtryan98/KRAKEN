@@ -7,14 +7,20 @@ project(${KRAKEN_NAME})
 # Header only dependencies are added via target_include_dirs
 # All dependencies are located in /vendor unless they are
 # Models or other resource data
-# Add GLFW to build
 set(GLFW_BUILD_DOCS OFF)
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 add_subdirectory("vendor/glfw")
+add_subdirectory("vendor/spdlog")
+add_subdirectory("vendor/glslang")
 
 # Clean project up a little
-set_target_properties(glfw uninstall PROPERTIES FOLDER Vendor)
+set_target_properties(uninstall PROPERTIES FOLDER vendor/other)
+set_target_properties(HLSL GenericCodeGen glslang-default-resource-limits MachineIndependent
+    OGLCompiler OSDependent SPIRV SPVRemapper spirv-remap glslangValidator glslang 
+    glslang-build-info PROPERTIES FOLDER vendor/glslang)
+set_target_properties(glfw PROPERTIES FOLDER vendor/glfw)
+set_target_properties(spdlog PROPERTIES FOLDER vendor/spdlog)
 
 # KRAKEN library
 file(GLOB_RECURSE "KRAKEN_LIB_SOURCE" "${CMAKE_SOURCE_DIR}/KRAKEN/src/*.cpp")

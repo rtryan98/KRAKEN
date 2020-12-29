@@ -7,7 +7,7 @@ namespace KRKN
     {
     public:
         Layer(const std::string& debugName);
-        ~Layer() = default;
+        virtual ~Layer() = default;
 
         virtual void onAttach() = 0;
         virtual void onDetach() = 0;

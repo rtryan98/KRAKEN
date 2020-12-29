@@ -52,7 +52,7 @@ if(NOT Vulkan_FOUND)
 endif()
 
 # Include Libraries to KRAKEN
-target_link_libraries(${KRAKEN_LIB_NAME} PUBLIC glslang spirv-tools glfw Vulkan::Vulkan)
+target_link_libraries(${KRAKEN_LIB_NAME} PUBLIC glslang glfw Vulkan::Vulkan)
 target_include_directories(${KRAKEN_LIB_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/" )
 
 # Compile Options

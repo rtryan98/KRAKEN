@@ -7,4 +7,9 @@ namespace KRKN
     {
 
     }
+
+    const std::string& Layer::getDebugName() const
+    {
+        return debugName;
+    }
 }

@@ -12,6 +12,8 @@ namespace KRKN
         virtual void onAttach() = 0;
         virtual void onDetach() = 0;
         virtual void onUpdate() = 0;
+
+        const std::string& getDebugName() const;
     private:
         std::string debugName{};
     };

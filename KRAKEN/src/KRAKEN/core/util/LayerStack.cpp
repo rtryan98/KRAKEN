@@ -1,6 +1,6 @@
 #include "KRAKEN/core/util/LayerStack.h"
 
-namespace KRKN
+namespace kraken
 {
     LayerStack::~LayerStack()
     {

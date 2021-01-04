@@ -2,7 +2,7 @@
 #include <string>
 #include "KRAKEN/core/event/Event.h"
 
-namespace KRKN
+namespace kraken
 {
     class Layer
     {

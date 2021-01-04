@@ -3,12 +3,12 @@
 #include "platform/windows/core/window/WindowsWindow.h"
 #endif
 
-namespace KRKN
+namespace kraken
 {
     Window* Window::createWindow(const WindowData& windowData)
     {
 #if KRAKEN_PLATFORM_WINDOWS
-        return new WINDOWS::WindowsWindow(windowData);
+        return new kraken::windows::WindowsWindow(windowData);
 #else
     #error "Non-Windows Window not yet impletmented!"
         return nullptr;

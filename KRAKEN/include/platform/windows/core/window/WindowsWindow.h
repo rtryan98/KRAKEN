@@ -2,12 +2,12 @@
 #include "KRAKEN/core/window/Window.h"
 #include <Windows.h>
 
-namespace KRKN::WINDOWS
+namespace kraken::windows
 {
-    class WindowsWindow : public KRKN::Window
+    class WindowsWindow : public kraken::Window
     {
     public:
-        WindowsWindow(const KRKN::WindowData& windowData);
+        WindowsWindow(const kraken::WindowData& windowData);
         virtual ~WindowsWindow() override;
 
 

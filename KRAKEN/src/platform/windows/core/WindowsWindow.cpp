@@ -1,6 +1,6 @@
 #include "platform/windows/core/window/WindowsWindow.h"
 
-namespace KRKN::WINDOWS
+namespace kraken::windows
 {
     Window* window{ nullptr };
 
@@ -33,7 +33,7 @@ namespace KRKN::WINDOWS
         }
     }
 
-    WindowsWindow::WindowsWindow(const KRKN::WindowData& windowData)
+    WindowsWindow::WindowsWindow(const kraken::WindowData& windowData)
         : Window{ windowData }, hInstance{ GetModuleHandle( NULL ) }
     {
         WNDCLASSEX wc{};
@@ -47,7 +47,7 @@ namespace KRKN::WINDOWS
         wc.hInstance = NULL;
         wc.lpszClassName = this->windowData.title.c_str();
         wc.lpszMenuName = NULL;
-        wc.lpfnWndProc = KRKN::WINDOWS::WndProc;
+        wc.lpfnWndProc = kraken::windows::WndProc;
         wc.style = NULL;
 
         RegisterClassEx(&wc);

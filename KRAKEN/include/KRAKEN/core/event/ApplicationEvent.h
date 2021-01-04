@@ -1,7 +1,7 @@
 #pragma once
 #include "KRAKEN/core/event/Event.h"
 
-namespace KRKN
+namespace kraken
 {
     class AppUpdateEvent : public Event
     {

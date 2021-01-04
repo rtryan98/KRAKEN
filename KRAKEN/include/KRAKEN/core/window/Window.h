@@ -3,7 +3,7 @@
 #include "KRAKEN/Types.h"
 #include <string>
 
-namespace KRKN
+namespace kraken
 {
     struct WindowData
     {

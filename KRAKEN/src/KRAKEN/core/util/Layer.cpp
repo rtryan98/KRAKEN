@@ -1,6 +1,6 @@
 #include "KRAKEN/core/util/Layer.h"
 
-namespace KRKN
+namespace kraken
 {
     Layer::Layer(const std::string& debugName)
         : debugName( debugName )

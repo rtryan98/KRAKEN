@@ -2,7 +2,7 @@
 #include "KRAKEN/core/event/Event.h"
 #include "KRAKEN/Types.h"
 
-namespace KRKN
+namespace kraken
 {
     class WindowResizeEvent : public Event
     {

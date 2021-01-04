@@ -2,7 +2,7 @@
 #include <vector>
 #include "KRAKEN/core/util/Layer.h"
 
-namespace KRKN
+namespace kraken
 {
     class LayerStack
     {

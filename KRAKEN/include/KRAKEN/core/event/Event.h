@@ -1,6 +1,6 @@
 #pragma once
 
-namespace KRKN
+namespace kraken
 {
     enum EventCategory
     {

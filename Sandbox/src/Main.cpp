@@ -2,8 +2,8 @@
 
 int32_t main()
 {
-    KRKN::WindowData windowData{};
-    KRKN::Window* window{ KRKN::Window::createWindow(windowData) };
+    kraken::WindowData windowData{};
+    kraken::Window* window{ kraken::Window::createWindow(windowData) };
     while (window->isRunning())
     {
         window->onUpdate();

@@ -2,6 +2,10 @@
 #include "KRAKEN/Defines.h"
 #include "KRAKEN/Types.h"
 #include <string>
+#include "KRAKEN/core/event/Event.h"
+#include <functional>
+
+struct GLFWwindow;
 
 namespace kraken
 {
@@ -12,6 +16,7 @@ namespace kraken
         std::string title{ "KRAKEN Engine" };
         bool_t fullscreen{ false };
         bool_t vsync{ false };
+        std::function<void(Event&)> function;
     };
 
     class Window
@@ -37,6 +42,8 @@ namespace kraken
         virtual void setVsync(const bool_t vsync) = 0;
         virtual bool_t isVsync() const = 0;
 
+        virtual GLFWwindow* getNativeWindow() const = 0;
+
         bool_t isRunning() const;
 
         /// <summary>
@@ -51,5 +58,6 @@ namespace kraken
     protected:
         WindowData windowData;
         bool_t isRun{ false };
+        GLFWwindow* glfwWindow{ nullptr };
     };
 }

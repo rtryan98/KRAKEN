@@ -29,6 +29,8 @@ namespace kraken::windows
         virtual void setVsync(const bool_t vsync) override;
         virtual bool_t isVsync() const override;
 
+        virtual GLFWwindow* getNativeWindow() const override;
+
     private:
         HWND hwnd;
         HINSTANCE hInstance;

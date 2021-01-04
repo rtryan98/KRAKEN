@@ -1,89 +1,114 @@
 #include "platform/windows/core/window/WindowsWindow.h"
 #if KRAKEN_PLATFORM_WINDOWS
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include "KRAKEN/core/event/WindowEvent.h"
+#include "KRAKEN/core/event/MouseEvent.h"
+#include "KRAKEN/core/event/KeyboardEvent.h"
 
 namespace kraken::windows
 {
-    Window* window{ nullptr };
-
-    /// Event dispatching
-    LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
-    {
-        switch (uMsg)
-        {
-        case WM_CREATE:
-        {
-            return 0;
-        }
-        case WM_QUIT:
-        {
-            return 0;
-        }
-        case WM_CLOSE:
-        {
-            window->close();
-            return 0;
-        }
-        case WM_DESTROY:
-        {
-            return 0;
-        }
-        default:
-        {
-            return DefWindowProc(hWnd, uMsg, wParam, lParam);
-        }
-        }
-    }
-
     WindowsWindow::WindowsWindow(const kraken::WindowData& windowData)
         : Window{ windowData }, hInstance{ GetModuleHandle( NULL ) }
     {
-        WNDCLASSEX wc{};
-        wc.cbClsExtra = NULL;
-        wc.cbSize = sizeof(WNDCLASSEX);
-        wc.cbWndExtra = NULL;
-        wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW);
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-        wc.hInstance = NULL;
-        wc.lpszClassName = this->windowData.title.c_str();
-        wc.lpszMenuName = NULL;
-        wc.lpfnWndProc = kraken::windows::WndProc;
-        wc.style = NULL;
+        KRAKEN_ASSERT(glfwInit());
+        KRAKEN_ASSERT_VALUE(this->windowData.function != nullptr);
 
-        RegisterClassEx(&wc);
+        glfwWindow = glfwCreateWindow(this->windowData.width, this->windowData.height, this->windowData.title.c_str(), nullptr, nullptr);
+        KRAKEN_ASSERT_VALUE(glfwWindow);
+        glfwSetWindowUserPointer(glfwWindow, &this->windowData);
 
-        hwnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, this->windowData.title.c_str(), this->windowData.title.c_str(), WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT, CW_USEDEFAULT, this->windowData.width, this->windowData.height,
-            NULL, NULL, NULL, NULL);
+        glfwSetWindowCloseCallback(glfwWindow,
+            [](GLFWwindow* pWindow){
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                WindowCloseEvent evt{};
+                data->function(evt);
+            });
+        glfwSetKeyCallback(glfwWindow, 
+            [](GLFWwindow* pWindow, int32_t key, int32_t scancode, int32_t action, int32_t mods) {
+                KRAKEN_UNUSED_VARIABLE(scancode);
+                KRAKEN_UNUSED_VARIABLE(mods);
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                switch (action)
+                {
+                case GLFW_PRESS:
+                {
+                    KeyPressEvent evt{ static_cast<uint32_t>(key) };
+                    data->function(evt);
+                    break;
+                }
+                case GLFW_RELEASE:
+                {
+                    KeyReleaseEvent evt{ static_cast<uint32_t>(key) };
+                    data->function(evt);
+                    break;
+                }
+                case GLFW_REPEAT:
+                {
+                    KeyRepeatEvent evt{ static_cast<uint32_t>(key), 1 }; // HACK: hardcoded.
+                    data->function(evt);
+                    break;
+                }
+                }
+            });
+        glfwSetMouseButtonCallback(glfwWindow, 
+            [](GLFWwindow* pWindow, int32_t button, int32_t action, int32_t mods) {
+                KRAKEN_UNUSED_VARIABLE(mods);
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                switch (action)
+                {
+                case GLFW_PRESS:
+                {
+                    MouseButtonPressEvent evt{ static_cast<uint32_t>(button) };
+                    data->function(evt);
+                    break;
+                }
+                case GLFW_RELEASE:
+                {
+                    MouseButtonReleaseEvent evt{ static_cast<uint32_t>(button) };
+                    data->function(evt);
+                    break;
+                }
+                }
+            });
+        glfwSetWindowSizeCallback(glfwWindow,
+            [](GLFWwindow* pWindow, int32_t width, int32_t height) {
+                KRAKEN_ASSERT_VALUE(width > 0);
+                KRAKEN_ASSERT_VALUE(height > 0);
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                WindowResizeEvent evt{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+                data->function(evt);
+            });
+        glfwSetCursorPosCallback(glfwWindow,
+            [](GLFWwindow* pWindow, double_t xPos, double_t yPos) {
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                MouseMoveEvent evt{ xPos, yPos };
+                data->function(evt);
+            });
+        glfwSetScrollCallback(glfwWindow,
+            [](GLFWwindow* pWindow, double_t xOffset, double_t yOffset) {
+                WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                MouseScrollEvent evt{ xOffset, yOffset };
+                data->function(evt);
+            });
 
-        KRAKEN_ASSERT_VALUE(hwnd);
-
-        ShowWindow(hwnd, SW_SHOW);
-        UpdateWindow(hwnd);
-        SetFocus(hwnd);
-        SetForegroundWindow(hwnd);
-
+        glfwShowWindow(glfwWindow);
+        glfwFocusWindow(glfwWindow);
+        hwnd = glfwGetWin32Window(glfwWindow);
         isRun = true;
-        window = this; // HACK: potential memory leak if multiple windows are active. Should never happen.
     }
 
     WindowsWindow::~WindowsWindow()
     {
-        DestroyWindow(hwnd);
+        glfwDestroyWindow(glfwWindow);
+        glfwTerminate();
     }
 
 
     void WindowsWindow::onUpdate()
     {
-        MSG message;
-        ZeroMemory(&message, sizeof(MSG));
-
-        if (PeekMessage(&message, NULL, 0u, 0u, PM_REMOVE))
-        {
-            TranslateMessage(&message);
-            DispatchMessage(&message);
-        }
+        glfwPollEvents();
     }
 
     void WindowsWindow::onResize(uint32_t width, uint32_t height)
@@ -95,7 +120,6 @@ namespace kraken::windows
     void WindowsWindow::close()
     {
         this->isRun = false;
-        CloseWindow(hwnd);
     }
 
     /// Getters and Setters
@@ -143,5 +167,9 @@ namespace kraken::windows
         return this->windowData.vsync;
     }
 
+    GLFWwindow* WindowsWindow::getNativeWindow() const
+    {
+        return glfwWindow;
+    }
 }
 #endif

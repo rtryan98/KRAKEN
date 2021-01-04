@@ -52,6 +52,8 @@
     #else
         #define debugBreak()
     #endif
+#else
+    #define debugBreak()
 #endif
 
 #define KRAKEN_USE_ASSERTS 1

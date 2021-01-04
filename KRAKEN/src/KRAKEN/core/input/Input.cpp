@@ -16,5 +16,12 @@ namespace kraken
         {
             return glfwGetMouseButton(kraken::globals::APPLICATION->getWindow()->getNativeWindow(), mouseButton);
         }
+
+        glm::vec2 getMousePosition()
+        {
+            glm::dvec2 result{};
+            glfwGetCursorPos(kraken::globals::APPLICATION->getWindow()->getNativeWindow(), &result.x, &result.y);
+            return glm::vec2{ static_cast<float>(result.x), static_cast<float>(result.y) };
+        }
     }
 }

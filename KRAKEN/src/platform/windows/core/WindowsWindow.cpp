@@ -1,4 +1,5 @@
 #include "platform/windows/core/window/WindowsWindow.h"
+#if KRAKEN_PLATFORM_WINDOWS
 
 namespace kraken::windows
 {
@@ -143,3 +144,4 @@ namespace kraken::windows
     }
 
 }
+#endif

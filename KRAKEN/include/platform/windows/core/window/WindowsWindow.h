@@ -1,4 +1,6 @@
 #pragma once
+#include "KRAKEN/Defines.h"
+#if KRAKEN_PLATFORM_WINDOWS
 #include "KRAKEN/core/window/Window.h"
 #include <Windows.h>
 
@@ -32,3 +34,4 @@ namespace kraken::windows
         HINSTANCE hInstance;
     };
 }
+#endif

@@ -53,7 +53,7 @@ endif()
 
 # Include Libraries to KRAKEN
 target_link_libraries(${KRAKEN_LIB_NAME} PUBLIC glslang glfw Vulkan::Vulkan)
-target_include_directories(${KRAKEN_LIB_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/" )
+target_include_directories(${KRAKEN_LIB_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -82,7 +82,7 @@ set_target_properties(${KRAKEN_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
 
 # Include Libraries to KRAKEN-Sandbox
 target_link_libraries(${KRAKEN_SANDBOX_NAME} PRIVATE ${KRAKEN_LIB_NAME})
-target_include_directories(${KRAKEN_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/" )
+target_include_directories(${KRAKEN_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

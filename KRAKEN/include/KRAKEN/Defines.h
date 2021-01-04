@@ -57,14 +57,11 @@
 #define KRAKEN_USE_ASSERTS 1
 
 #if !defined(NDEBUG) || KRAKEN_USE_ASSERTS
-    #include <iostream>
+    #include "KRAKEN/core/util/Log.h"
+
     FORCE_INLINE void logAssertionFailure(const char* expression, const char* file, int32_t line)
     {
-        std::cerr
-            << "Assert Failed"
-            << "\n\texpression: '" << expression << "'"
-            << "\n\tfile: '" << file << "'"
-            << "\n\tline: '" << line << "'\n";
+        KRAKEN_CORE_CRITICAL(expression, file, line);
     }
 
     #define KRAKEN_ASSERT(x) {                                      \

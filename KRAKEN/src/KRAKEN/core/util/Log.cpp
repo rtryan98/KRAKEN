@@ -5,6 +5,7 @@ namespace kraken
 {
     std::shared_ptr<spdlog::logger> Logger::coreLogger;
     std::shared_ptr<spdlog::logger> Logger::clientLogger;
+    std::shared_ptr<spdlog::logger> Logger::validationErrorLogger;
 
     void Logger::init()
     {
@@ -13,6 +14,8 @@ namespace kraken
         coreLogger->set_level(spdlog::level::trace);
         clientLogger = spdlog::stdout_color_mt("APPLICATION");
         clientLogger->set_level(spdlog::level::trace);
+        validationErrorLogger = spdlog::stdout_color_mt("KRAKEN Vulkan Validation");
+        validationErrorLogger->set_level(spdlog::level::trace);
     }
 
     void Logger::free()
@@ -22,5 +25,7 @@ namespace kraken
         coreLogger = nullptr;
         clientLogger.reset();
         clientLogger = nullptr;
+        validationErrorLogger.reset();
+        validationErrorLogger = nullptr;
     }
 }

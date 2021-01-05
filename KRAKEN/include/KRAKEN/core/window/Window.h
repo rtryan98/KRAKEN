@@ -4,6 +4,7 @@
 #include <string>
 #include "KRAKEN/core/event/Event.h"
 #include <functional>
+#include <vulkan/vulkan.h>
 
 struct GLFWwindow;
 
@@ -44,6 +45,8 @@ namespace kraken
 
         virtual GLFWwindow* getNativeWindow() const = 0;
         virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const = 0;
+
+        virtual VkSurfaceKHR getSurface() const = 0;
 
         bool_t isRunning() const;
 

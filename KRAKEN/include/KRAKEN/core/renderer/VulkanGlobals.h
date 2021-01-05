@@ -15,4 +15,8 @@ namespace kraken::vulkan
     extern VkQueue GRAPHICS_QUEUE;
     extern VkQueue PRESENT_QUEUE;
     extern VkQueue COMPUTE_QUEUE;
+
+    extern uint32_t GRAPHICS_QUEUE_INDEX;
+    extern uint32_t PRESENT_QUEUE_INDEX;
+    extern uint32_t COMPUTE_QUEUE_INDEX;
 }

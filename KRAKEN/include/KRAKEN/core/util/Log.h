@@ -12,15 +12,16 @@ namespace kraken
 
         inline static std::shared_ptr<spdlog::logger>& getCoreLogger() { return coreLogger; }
         inline static std::shared_ptr<spdlog::logger>& getClientLogger() { return clientLogger; }
+        inline static std::shared_ptr<spdlog::logger>& getValidationErrorLogger() { return validationErrorLogger; }
 
     private:
         Logger() = default;
         ~Logger() = default;
-
     private:
         // TODO: find a better way to do that
         static std::shared_ptr<spdlog::logger> coreLogger;
         static std::shared_ptr<spdlog::logger> clientLogger;
+        static std::shared_ptr<spdlog::logger> validationErrorLogger;
     };
 }
 

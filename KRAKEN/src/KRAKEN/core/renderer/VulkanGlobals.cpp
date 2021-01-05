@@ -14,4 +14,8 @@ namespace kraken::vulkan
     VkQueue GRAPHICS_QUEUE{ 0 };
     VkQueue PRESENT_QUEUE{ 0 };
     VkQueue COMPUTE_QUEUE{ 0 };
+
+    uint32_t GRAPHICS_QUEUE_INDEX{ 0 };
+    uint32_t PRESENT_QUEUE_INDEX{ 0 };
+    uint32_t COMPUTE_QUEUE_INDEX{ 0 };
 }

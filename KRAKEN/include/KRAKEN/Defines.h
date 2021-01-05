@@ -63,7 +63,7 @@
 
     FORCE_INLINE void logAssertionFailure(const char* expression, const char* file, int32_t line)
     {
-        KRAKEN_CORE_CRITICAL(expression, file, line);
+        KRAKEN_CORE_CRITICAL("ASSERT: {0} {1} {2}", expression, file, line);
     }
 
     #define KRAKEN_ASSERT(x) {                                      \

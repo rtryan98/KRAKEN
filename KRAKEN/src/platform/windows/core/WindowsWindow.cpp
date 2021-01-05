@@ -7,6 +7,8 @@
 #include "KRAKEN/core/event/MouseEvent.h"
 #include "KRAKEN/core/event/KeyboardEvent.h"
 #include "KRAKEN/core/Globals.h"
+#include "KRAKEN/core/renderer/Renderer.h"
+#include <vulkan/vulkan_win32.h>
 
 namespace kraken::windows
 {
@@ -78,6 +80,8 @@ namespace kraken::windows
                 KRAKEN_ASSERT_VALUE(width > 0);
                 KRAKEN_ASSERT_VALUE(height > 0);
                 WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
+                data->width = width;
+                data->height = height;
                 WindowResizeEvent evt{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
                 data->function(evt);
             });
@@ -179,6 +183,17 @@ namespace kraken::windows
     void WindowsWindow::getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const
     {
         *platformExtensions = glfwGetRequiredInstanceExtensions(count);
+    }
+
+    VkSurfaceKHR WindowsWindow::getSurface() const
+    {
+        VkSurfaceKHR result{ 0 };
+        VkWin32SurfaceCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+        createInfo.hwnd = hwnd;
+        createInfo.hinstance = hInstance;
+        vkCreateWin32SurfaceKHR(vulkan::INSTANCE, &createInfo, vulkan::VK_CPU_ALLOCATOR, &result);
+        KRAKEN_ASSERT_VALUE(result != VK_NULL_HANDLE);
+        return result;
     }
 }
 #endif

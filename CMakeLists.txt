@@ -57,7 +57,7 @@ target_include_directories(${KRAKEN_LIB_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKE
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    target_compile_options(${KRAKEN_LIB_NAME} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
+    target_compile_options(${KRAKEN_LIB_NAME} PRIVATE "/W4" "/MP" "/std:c++17" "/WX" "/wd26812")
 endif()
 
 # KRAKEN Sandbox

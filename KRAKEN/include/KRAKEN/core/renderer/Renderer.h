@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 #include "KRAKEN/core/renderer/VulkanGlobals.h"
 #include "KRAKEN/Defines.h"
+#include <functional>
+#include "KRAKEN/core/util/Log.h"
 
 #if KRAKEN_USE_ASSERTS
     #define VK_CHECK(fun)                               \
@@ -26,5 +28,13 @@ namespace kraken
 
     private:
         void createInstance();
+        void setupDebugMessenger();
+        void selectPhysicalDevice();
+        void createSurface();
+        void findQueueFamilies();
+
+    private:
+        VkDebugUtilsMessengerEXT debugMessenger{};
+        VkSurfaceKHR surface{};
     };
 }

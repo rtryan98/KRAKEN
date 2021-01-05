@@ -43,6 +43,7 @@ namespace kraken
         virtual bool_t isVsync() const = 0;
 
         virtual GLFWwindow* getNativeWindow() const = 0;
+        virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const = 0;
 
         bool_t isRunning() const;
 

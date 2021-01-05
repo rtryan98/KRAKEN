@@ -175,5 +175,10 @@ namespace kraken::windows
     {
         return glfwWindow;
     }
+
+    void WindowsWindow::getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const
+    {
+        *platformExtensions = glfwGetRequiredInstanceExtensions(count);
+    }
 }
 #endif

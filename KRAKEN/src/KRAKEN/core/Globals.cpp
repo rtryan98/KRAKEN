@@ -9,7 +9,4 @@ namespace kraken::globals
     float_t DELTA_FRAME_TIME{ 0.0f };
     float_t LAST_FRAME_TIME{ 0.0f };
     float_t CURRENT_FRAME_TIME{ 0.0f };
-
-    /// Vulkan Globals
-    VkAllocationCallbacks* VK_CPU_ALLOCATOR{ nullptr };
 }

@@ -27,10 +27,12 @@ namespace kraken
             };
         window = Window::createWindow( windowData );
         globals::RENDERER = new Renderer();
+        globals::RENDERER->init();
     }
 
     Application::~Application()
     {
+        globals::RENDERER->free();
         delete globals::RENDERER;
         delete window;
         Logger::free();

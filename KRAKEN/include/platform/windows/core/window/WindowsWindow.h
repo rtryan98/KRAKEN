@@ -30,6 +30,7 @@ namespace kraken::windows
         virtual bool_t isVsync() const override;
 
         virtual GLFWwindow* getNativeWindow() const override;
+        virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const override;
 
     private:
         HWND hwnd;

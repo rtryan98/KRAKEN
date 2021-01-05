@@ -2,6 +2,7 @@
 #include "KRAKEN/core/Globals.h"
 #include "KRAKEN/core/event/WindowEvent.h"
 #include "KRAKEN/core/input/Input.h"
+#include "KRAKEN/core/renderer/Renderer.h"
 
 namespace kraken
 {
@@ -25,10 +26,13 @@ namespace kraken
             return this->onEvent(std::forward<decltype(args)>(args)...);
             };
         window = Window::createWindow( windowData );
+        globals::RENDERER = new Renderer();
     }
 
     Application::~Application()
     {
+        delete globals::RENDERER;
+        delete window;
         Logger::free();
     }
 

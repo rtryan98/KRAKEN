@@ -6,6 +6,7 @@
 #include "KRAKEN/core/event/WindowEvent.h"
 #include "KRAKEN/core/event/MouseEvent.h"
 #include "KRAKEN/core/event/KeyboardEvent.h"
+#include "KRAKEN/core/Globals.h"
 
 namespace kraken::windows
 {
@@ -108,6 +109,9 @@ namespace kraken::windows
 
     void WindowsWindow::onUpdate()
     {
+        globals::CURRENT_FRAME_TIME = static_cast<float>(glfwGetTime());
+        globals::DELTA_FRAME_TIME = globals::CURRENT_FRAME_TIME - globals::LAST_FRAME_TIME;
+        globals::LAST_FRAME_TIME = globals::CURRENT_FRAME_TIME;
         glfwPollEvents();
     }
 

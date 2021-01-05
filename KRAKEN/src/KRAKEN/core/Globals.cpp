@@ -1,11 +1,15 @@
 #include "KRAKEN/core/Globals.h"
 
-namespace kraken
+namespace kraken::globals
 {
-    namespace globals
-    {
-        kraken::Application* APPLICATION{ nullptr };
+    /// Engine Globals
+    kraken::Application* APPLICATION{ nullptr };
+    kraken::Renderer* RENDERER{ nullptr };
 
-        VkAllocationCallbacks* VK_CPU_ALLOCATOR{ nullptr };
-    }
+    float_t DELTA_FRAME_TIME{ 0.0f };
+    float_t LAST_FRAME_TIME{ 0.0f };
+    float_t CURRENT_FRAME_TIME{ 0.0f };
+
+    /// Vulkan Globals
+    VkAllocationCallbacks* VK_CPU_ALLOCATOR{ nullptr };
 }

@@ -1,6 +1,6 @@
 BSD 2-Clause License
 
-Copyright (c) 2020, Robert Ryan
+Copyright (c) 2021, Robert Ryan
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

@@ -32,6 +32,8 @@ namespace kraken
         void selectPhysicalDevice();
         void createSurface();
         void findQueueFamilies();
+        void createDevice();
+        void logPhysicalDeviceInfo();
 
     private:
         VkDebugUtilsMessengerEXT debugMessenger{};

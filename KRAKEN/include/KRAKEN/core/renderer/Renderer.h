@@ -4,16 +4,7 @@
 #include "KRAKEN/Defines.h"
 #include <functional>
 #include "KRAKEN/core/util/Log.h"
-
-#if KRAKEN_USE_ASSERTS
-    #define VK_CHECK(fun)                               \
-    do {                                                \
-        VkResult vkCheckResult{ fun };                  \
-        KRAKEN_ASSERT( vkCheckResult == VK_SUCCESS );   \
-    } while( 0 )
-#else
-    #define VK_CHECK(fun) fun
-#endif
+#include "KRAKEN/core/renderer/VulkanUtils.h"
 
 namespace kraken
 {

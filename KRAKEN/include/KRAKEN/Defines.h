@@ -63,13 +63,26 @@
 
     FORCE_INLINE void logAssertionFailure(const char* expression, const char* file, int32_t line)
     {
-        KRAKEN_CORE_CRITICAL("ASSERT: {0} {1} {2}", expression, file, line);
+        KRAKEN_CORE_CRITICAL("ASSERT: expression: {0}, file: {1}, line: {2}", expression, file, line);
+    }
+
+    FORCE_INLINE void logAssertionFailure(const char* msg, const char* expression, const char* file, int32_t line)
+    {
+        KRAKEN_CORE_CRITICAL("ASSERT: message: {0}, expression: {1},  file: {2}, line: {3}", msg, expression, file, line);
     }
 
     #define KRAKEN_ASSERT(x) {                                      \
         if(x) {}                                                    \
         else {                                                      \
             logAssertionFailure(#x, __FILE__, __LINE__);            \
+            debugBreak();                                           \
+        }                                                           \
+    }
+    
+    #define KRAKEN_ASSERT_MSG(x, msg) {                             \
+        if(x) {}                                                    \
+        else {                                                      \
+            logAssertionFailure(msg, #x, __FILE__, __LINE__);       \
             debugBreak();                                           \
         }                                                           \
     }
@@ -81,7 +94,17 @@
             debugBreak();                                           \
         }                                                           \
     }
+
+    #define KRAKEN_ASSERT_VALUE_MSG(x, msg) {                       \
+        if(x) {}                                                    \
+        else {                                                      \
+            logAssertionFailure(msg, #x, __FILE__, __LINE__);       \
+            debugBreak();                                           \
+        }                                                           \
+    }
 #else
-    #define KRAKEN_ASSERT(x, message) x
-    #define KRAKEN_ASSERT_VALUE(x, message)
+    #define KRAKEN_ASSERT(x) x
+    #define KRAKEN_ASSERT_MSG(x, msg) x
+    #define KRAKEN_ASSERT_VALUE(x)
+    #define KRAKEN_ASSERT_VALUE_MSG(x, message)
 #endif

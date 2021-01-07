@@ -2,6 +2,7 @@
 #include <vector>
 #include "KRAKEN/Defines.h"
 #include "KRAKEN/core/graphics/vulkan/VulkanGlobals.h"
+#include "KRAKEN/core/graphics/vulkan/VulkanUtils.h"
 
 namespace kraken::vulkan
 {
@@ -129,18 +130,49 @@ namespace kraken::vulkan
 
     void Device::createDevice()
     {
-        VkDeviceQueueCreateInfo graphicsQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        graphicsQueueCreateInfo.queueFamilyIndex = this->graphicsQueueIndex;
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+        float_t queuePriority{ 1.0f };
 
-        VkDeviceQueueCreateInfo computeQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        computeQueueCreateInfo.queueFamilyIndex = this->computeQueueIndex;
+        {
+            VkDeviceQueueCreateInfo graphicsQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+            graphicsQueueCreateInfo.queueFamilyIndex = this->graphicsQueueIndex;
+            graphicsQueueCreateInfo.queueCount = 1;
+            graphicsQueueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(graphicsQueueCreateInfo);
+        }
 
-        VkDeviceQueueCreateInfo presentationQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        presentationQueueCreateInfo.queueFamilyIndex = this->presentQueueIndex;
+        // TODO: Query device features based on required features for the engine
+
+        // {
+        //     VkDeviceQueueCreateInfo computeQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+        //     computeQueueCreateInfo.queueFamilyIndex = this->computeQueueIndex;
+        //     computeQueueCreateInfo.queueCount = 1;
+        //     computeQueueCreateInfo.pQueuePriorities = &queuePriority;
+        //     queueCreateInfos.push_back(computeQueueCreateInfo);
+        // }
+        // 
+        // {
+        //     VkDeviceQueueCreateInfo presentationQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+        //     presentationQueueCreateInfo.queueFamilyIndex = this->presentQueueIndex;
+        //     presentationQueueCreateInfo.queueCount = 1;
+        //     presentationQueueCreateInfo.pQueuePriorities = &queuePriority;
+        //     queueCreateInfos.push_back(presentationQueueCreateInfo);
+        // }
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        // VkPhysicalDeviceVulkan12Features deviceFeaturesVulkan12{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+
+
 
         VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-        vkCreateDevice(this->physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &this->device);
+        VK_CHECK(vkCreateDevice(this->physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &this->device));
+
+        vkGetDeviceQueue(this->device, this->graphicsQueueIndex, 0, &this->graphicsQueue);
     }
 
     VkPhysicalDevice Device::getPhysicalDevice() const

@@ -2,7 +2,7 @@
 #include "KRAKEN/core/Globals.h"
 #include "KRAKEN/core/event/WindowEvent.h"
 #include "KRAKEN/core/input/Input.h"
-#include "KRAKEN/core/renderer/Renderer.h"
+#include "KRAKEN/core/graphics/Renderer.h"
 
 namespace kraken
 {

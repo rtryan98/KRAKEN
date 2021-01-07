@@ -1,10 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "KRAKEN/core/renderer/VulkanGlobals.h"
+#include "KRAKEN/core/graphics/VulkanGlobals.h"
 #include "KRAKEN/Defines.h"
 #include <functional>
 #include "KRAKEN/core/util/Log.h"
-#include "KRAKEN/core/renderer/VulkanUtils.h"
+#include "KRAKEN/core/graphics/VulkanUtils.h"
 
 namespace kraken
 {

@@ -7,7 +7,7 @@
 #include "KRAKEN/core/event/MouseEvent.h"
 #include "KRAKEN/core/event/KeyboardEvent.h"
 #include "KRAKEN/core/Globals.h"
-#include "KRAKEN/core/renderer/Renderer.h"
+#include "KRAKEN/core/graphics/Renderer.h"
 #include <vulkan/vulkan_win32.h>
 
 namespace kraken::windows

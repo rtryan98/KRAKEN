@@ -1,4 +1,4 @@
-#include "KRAKEN/core/renderer/Renderer.h"
+#include "KRAKEN/core/graphics/Renderer.h"
 #include "KRAKEN/core/Globals.h"
 #include <vector>
 #include "KRAKEN/core/Application.h"

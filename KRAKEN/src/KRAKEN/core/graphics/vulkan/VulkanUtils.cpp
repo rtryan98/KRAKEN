@@ -1,4 +1,4 @@
-#include "KRAKEN/core/graphics/VulkanUtils.h"
+#include "KRAKEN/core/graphics/vulkan/VulkanUtils.h"
 
 namespace kraken::vulkan::util
 {

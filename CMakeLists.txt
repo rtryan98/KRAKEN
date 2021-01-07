@@ -24,7 +24,7 @@ set_target_properties(spdlog PROPERTIES FOLDER vendor/spdlog)
 
 # KRAKEN library
 file(GLOB_RECURSE "KRAKEN_LIB_SOURCE" "${CMAKE_SOURCE_DIR}/KRAKEN/src/*.cpp")
-file(GLOB_RECURSE "KRAKEN_LIB_HEADER" "${CMAKE_SOURCE_DIR}/KRAKEN/include/*.h")
+file(GLOB_RECURSE "KRAKEN_LIB_HEADER" "${CMAKE_SOURCE_DIR}/KRAKEN/src/*.h")
 
 # Group files together. May look better in some IDEs
 foreach(item IN ITEMS ${KRAKEN_LIB_SOURCE} ${KRAKEN_LIB_HEADER})
@@ -53,7 +53,7 @@ endif()
 
 # Include Libraries to KRAKEN
 target_link_libraries(${KRAKEN_LIB_NAME} PUBLIC glslang glfw Vulkan::Vulkan spdlog)
-target_include_directories(${KRAKEN_LIB_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/")
+target_include_directories(${KRAKEN_LIB_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/KRAKEN/src/" "vendor/glm/")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -82,7 +82,6 @@ set_target_properties(${KRAKEN_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
 
 # Include Libraries to KRAKEN-Sandbox
 target_link_libraries(${KRAKEN_SANDBOX_NAME} PRIVATE ${KRAKEN_LIB_NAME})
-target_include_directories(${KRAKEN_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/KRAKEN/include/" "vendor/glm/")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

@@ -32,7 +32,7 @@ namespace kraken::windows
         virtual GLFWwindow* getNativeWindow() const override;
         virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const override;
 
-        virtual VkSurfaceKHR getSurface() const override;
+        virtual VkSurfaceKHR getSurface(VkInstance instance) const override;
 
     private:
         HWND hwnd;

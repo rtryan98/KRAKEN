@@ -45,8 +45,7 @@ namespace kraken
 
         virtual GLFWwindow* getNativeWindow() const = 0;
         virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const = 0;
-
-        virtual VkSurfaceKHR getSurface() const = 0;
+        virtual VkSurfaceKHR getSurface(VkInstance instance) const = 0;
 
         bool_t isRunning() const;
 

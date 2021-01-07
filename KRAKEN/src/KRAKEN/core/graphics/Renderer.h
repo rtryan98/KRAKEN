@@ -5,6 +5,7 @@
 #include <functional>
 #include "KRAKEN/core/util/Log.h"
 #include "KRAKEN/core/graphics/vulkan/VulkanUtils.h"
+#include "KRAKEN/core/graphics/vulkan/VulkanDevice.h"
 
 namespace kraken
 {
@@ -17,17 +18,17 @@ namespace kraken
         void init();
         void free();
 
+        VkInstance getInstance() const;
+
     private:
         void createInstance();
         void setupDebugMessenger();
-        void selectPhysicalDevice();
         void createSurface();
-        void findQueueFamilies();
-        void createDevice();
-        void logPhysicalDeviceInfo();
 
     private:
-        VkDebugUtilsMessengerEXT debugMessenger{};
-        VkSurfaceKHR surface{};
+        VkInstance instance{ VK_NULL_HANDLE };
+        vulkan::Device device{};
+        VkDebugUtilsMessengerEXT debugMessenger{ VK_NULL_HANDLE };
+        VkSurfaceKHR surface{ VK_NULL_HANDLE };
     };
 }

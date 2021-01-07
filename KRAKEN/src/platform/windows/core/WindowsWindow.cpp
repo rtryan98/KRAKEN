@@ -185,13 +185,13 @@ namespace kraken::windows
         *platformExtensions = glfwGetRequiredInstanceExtensions(count);
     }
 
-    VkSurfaceKHR WindowsWindow::getSurface() const
+    VkSurfaceKHR WindowsWindow::getSurface(VkInstance instance) const
     {
         VkSurfaceKHR result{ 0 };
         VkWin32SurfaceCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
         createInfo.hwnd = hwnd;
         createInfo.hinstance = hInstance;
-        vkCreateWin32SurfaceKHR(vulkan::INSTANCE, &createInfo, vulkan::VK_CPU_ALLOCATOR, &result);
+        vkCreateWin32SurfaceKHR(instance, &createInfo, vulkan::VK_CPU_ALLOCATOR, &result);
         KRAKEN_ASSERT_VALUE(result != VK_NULL_HANDLE);
         return result;
     }

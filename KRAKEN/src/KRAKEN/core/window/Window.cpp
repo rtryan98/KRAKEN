@@ -94,4 +94,11 @@ namespace kraken
     {
         return this->glfwWindow;
     }
+
+    VkExtent2D Window::getFramebufferSize() const
+    {
+        int32_t width{}, height{};
+        glfwGetFramebufferSize(this->glfwWindow, &width, &height);
+        return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+    }
 }

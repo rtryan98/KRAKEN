@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "KRAKEN/Types.h"
 
 namespace kraken::vulkan
 {

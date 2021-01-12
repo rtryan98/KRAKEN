@@ -27,7 +27,7 @@ namespace kraken
             };
         window = Window::createWindow( windowData );
         globals::RENDERER = new Renderer();
-        globals::RENDERER->init();
+        globals::RENDERER->init(*this->window);
     }
 
     Application::~Application()

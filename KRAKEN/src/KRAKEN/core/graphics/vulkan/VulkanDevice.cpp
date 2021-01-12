@@ -3,11 +3,14 @@
 #include "KRAKEN/Defines.h"
 #include "KRAKEN/core/graphics/vulkan/VulkanGlobals.h"
 #include "KRAKEN/core/graphics/vulkan/VulkanUtils.h"
+#include "KRAKEN/Types.h"
+#include <set>
 
 namespace kraken::vulkan
 {
     void Device::free()
     {
+        vkDeviceWaitIdle(this->device);
         vkDestroyDevice(this->device, VK_CPU_ALLOCATOR);
     }
 
@@ -44,6 +47,7 @@ namespace kraken::vulkan
             }
         }
         physicalDevice = selectedDevice;
+        KRAKEN_ASSERT_VALUE(this->physicalDevice);
     }
 
     void Device::logPhysicalDeviceInfo()
@@ -163,14 +167,19 @@ namespace kraken::vulkan
 
         // VkPhysicalDeviceVulkan12Features deviceFeaturesVulkan12{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
 
-
+        // TODO: this should be checked, especially when optional extensions like VK_KHR_raytracing are wanted
+        std::vector<const char*> enabledDeviceExtensions{};
+        enabledDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
         VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+        deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledDeviceExtensions.size());
+        deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
 
         VK_CHECK(vkCreateDevice(this->physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &this->device));
+        KRAKEN_ASSERT_VALUE(this->device);
 
         vkGetDeviceQueue(this->device, this->graphicsQueueIndex, 0, &this->graphicsQueue);
     }

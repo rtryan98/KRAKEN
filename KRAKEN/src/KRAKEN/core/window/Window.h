@@ -47,6 +47,8 @@ namespace kraken
         virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const = 0;
         virtual VkSurfaceKHR getSurface(VkInstance instance) const = 0;
 
+        VkExtent2D getFramebufferSize() const;
+
         bool_t isRunning() const;
 
         /// <summary>

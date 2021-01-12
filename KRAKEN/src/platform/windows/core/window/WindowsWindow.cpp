@@ -18,6 +18,8 @@ namespace kraken::windows
         KRAKEN_ASSERT(glfwInit());
         KRAKEN_ASSERT_VALUE(this->windowData.function != nullptr);
 
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
         glfwWindow = glfwCreateWindow(this->windowData.width, this->windowData.height, this->windowData.title.c_str(), nullptr, nullptr);
         KRAKEN_ASSERT_VALUE(glfwWindow);
         glfwSetWindowUserPointer(glfwWindow, &this->windowData);

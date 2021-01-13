@@ -159,10 +159,10 @@ namespace kraken
 
         if (this->device.getPresentQueueIndex() != this->device.getGraphicsQueueIndex())
         {
-            std::vector<uint32_t> familyIndices{ this->device.getPresentQueueIndex(), this->device.getGraphicsQueueIndex() };
+            uint32_t queueFamilyIndices[2]{ this->device.getPresentQueueIndex(), this->device.getGraphicsQueueIndex() };
             swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
-            swapchainCreateInfo.pQueueFamilyIndices = familyIndices.data();
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
         }
         else
         {
@@ -234,10 +234,9 @@ namespace kraken
         VK_CHECK(vkCreateSwapchainKHR(this->device.getDevice(), &swapchainCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->swapchain));
         KRAKEN_ASSERT_VALUE(this->swapchain);
 
-        // uint32_t swapchainImageCount{ 0 };
-        // vkGetSwapchainImagesKHR(this->device.getDevice(), this->swapchain, &swapchainImageCount, nullptr);
-        // this->swapchainImages.reserve(swapchainImageCount);
-        // vkGetSwapchainImagesKHR(this->device.getDevice(), this->swapchain, &swapchainImageCount, nullptr);
+        uint32_t swapchainImageCount{ swapchainCreateInfo.minImageCount };
+        this->swapchainImages.reserve(swapchainImageCount);
+        VK_CHECK(vkGetSwapchainImagesKHR(this->device.getDevice(), this->swapchain, &swapchainImageCount, this->swapchainImages.data()));
     }
 
     void Renderer::init(const Window& window)

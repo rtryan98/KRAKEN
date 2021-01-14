@@ -1,8 +1,8 @@
-#include "KRAKEN/core/graphics/vulkan/VulkanDevice.h"
+#include "KRAKEN/core/graphics/vulkan/Device.h"
 #include <vector>
 #include "KRAKEN/Defines.h"
-#include "KRAKEN/core/graphics/vulkan/VulkanGlobals.h"
-#include "KRAKEN/core/graphics/vulkan/VulkanUtils.h"
+#include "KRAKEN/core/graphics/vulkan/Globals.h"
+#include "KRAKEN/core/graphics/vulkan/Util.h"
 #include "KRAKEN/Types.h"
 #include <set>
 

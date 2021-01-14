@@ -120,125 +120,6 @@ namespace kraken
         this->surface = globals::APPLICATION->getWindow()->getSurface(this->instance);
     }
 
-    // TODO: cache for recreation
-    void Renderer::createSwapchain(const Window& window)
-    {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device.getPhysicalDevice(), this->surface, &surfaceCapabilities);
-
-        VkSwapchainCreateInfoKHR swapchainCreateInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-        swapchainCreateInfo.surface = this->surface;
-
-        // Triple buffer if possible, double buffer elsewise, otherwise single buffer
-        if (surfaceCapabilities.minImageCount >= 3)
-        {
-            swapchainCreateInfo.minImageCount = 3;
-        }
-        else if (surfaceCapabilities.minImageCount == 2)
-        {
-            swapchainCreateInfo.minImageCount = 2;
-        }
-        else
-        {
-            swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
-        }
-
-        // TODO: add support for HDR and other displays here
-        swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-        swapchainCreateInfo.imageExtent = window.getFramebufferSize();
-
-        // TODO: we might want to write directly to the image later on
-        if (surfaceCapabilities.supportedUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-        {
-            swapchainCreateInfo.imageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        }
-        else
-        {
-            KRAKEN_CORE_CRITICAL("Swapchain does not support being written to.");
-        }
-
-        if (this->device.getPresentQueueIndex() != this->device.getGraphicsQueueIndex())
-        {
-            uint32_t queueFamilyIndices[2]{ this->device.getPresentQueueIndex(), this->device.getGraphicsQueueIndex() };
-            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            swapchainCreateInfo.queueFamilyIndexCount = 2;
-            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-        }
-        else
-        {
-            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        }
-
-        swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-        uint32_t presentModeCount{ 0 };
-        vkGetPhysicalDeviceSurfacePresentModesKHR(this->device.getPhysicalDevice(), this->surface, &presentModeCount, nullptr);
-        std::vector<VkPresentModeKHR> presentModes( presentModeCount );
-        vkGetPhysicalDeviceSurfacePresentModesKHR(this->device.getPhysicalDevice(), this->surface, &presentModeCount, presentModes.data());
-
-        bool_t mailboxAvailable{ false };
-        for (VkPresentModeKHR presentMode : presentModes)
-        {
-            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            {
-                mailboxAvailable = true;
-                break;
-            }
-        }
-
-        if (mailboxAvailable)
-        {
-            swapchainCreateInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        }
-        else
-        {
-            swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-        }
-
-        swapchainCreateInfo.clipped = VK_TRUE;
-        swapchainCreateInfo.imageArrayLayers = 1;
-
-        uint32_t surfaceFormatCount{ 0 };
-        vkGetPhysicalDeviceSurfaceFormatsKHR(this->device.getPhysicalDevice(), this->surface, &surfaceFormatCount, nullptr);
-        std::vector<VkSurfaceFormatKHR> availableFormats(surfaceFormatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(this->device.getPhysicalDevice(), this->surface, &surfaceFormatCount, availableFormats.data());
-
-        bool bgraFound{ false };
-        bool rgbaFound{ false };
-        for (uint32_t i{ 0 }; i < surfaceFormatCount; i++)
-        {
-            if (availableFormats[i].format == VK_FORMAT_B8G8R8A8_UNORM)
-            {
-                bgraFound = true;
-            }
-            else if (availableFormats[i].format == VK_FORMAT_R8G8B8A8_UNORM)
-            {
-                rgbaFound = true;
-            }
-        }
-
-        if (bgraFound)
-        {
-            swapchainCreateInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-        }
-        else if (rgbaFound)
-        {
-            swapchainCreateInfo.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
-        }
-        else
-        {
-            KRAKEN_CORE_CRITICAL("No viable surface format found");
-        }
-
-        VK_CHECK(vkCreateSwapchainKHR(this->device.getDevice(), &swapchainCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->swapchain));
-        KRAKEN_ASSERT_VALUE(this->swapchain);
-
-        uint32_t swapchainImageCount{ swapchainCreateInfo.minImageCount };
-        this->swapchainImages.reserve(swapchainImageCount);
-        VK_CHECK(vkGetSwapchainImagesKHR(this->device.getDevice(), this->swapchain, &swapchainImageCount, this->swapchainImages.data()));
-    }
-
     void Renderer::init(const Window& window)
     {
         createInstance();
@@ -247,12 +128,12 @@ namespace kraken
 #endif
         createSurface();
         device.init(this->instance, this->surface);
-        createSwapchain(window);
+        swapchain.init(this->surface, window, this->device);
     }
 
     void Renderer::free()
     {
-        vkDestroySwapchainKHR(this->device.getDevice(), this->swapchain, vulkan::VK_CPU_ALLOCATOR);
+        swapchain.free(this->device);
         device.free();
         vkDestroySurfaceKHR(this->instance, this->surface, vulkan::VK_CPU_ALLOCATOR);
 #if KRAKEN_USE_ASSERTS

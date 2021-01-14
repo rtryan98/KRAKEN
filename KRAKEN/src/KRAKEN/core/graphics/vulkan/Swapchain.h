@@ -16,9 +16,15 @@ namespace kraken::vulkan
         void free(const Device& device);
 
         VkSwapchainKHR getSwapchain() const;
-    private:
 
+    private:
+        void getSwapchainImages(uint32_t imageCount, const Device& device);
+        void createImageViews(const Device& device);
+
+    private:
         VkSwapchainKHR swapchain{ VK_NULL_HANDLE };
+        VkFormat format{};
         std::vector<VkImage> swapchainImages{};
+        std::vector<VkImageView> swapchainImageViews{};
     };
 }

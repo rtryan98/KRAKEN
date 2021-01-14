@@ -4,6 +4,38 @@
 
 namespace kraken::vulkan
 {
+    void Swapchain::getSwapchainImages(uint32_t imageCount, const Device& device)
+    {
+        uint32_t swapchainImageCount{ imageCount };
+        VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, nullptr));
+        this->swapchainImages.reserve(swapchainImageCount);
+        VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, this->swapchainImages.data()));
+    }
+
+    void Swapchain::createImageViews(const Device& device)
+    {
+        this->swapchainImageViews.reserve(this->swapchainImages.size());
+
+        VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = this->format;
+        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        for (uint32_t i{ 0 }; i < this->swapchainImages.size(); i++)
+        {
+            imageViewCreateInfo.image = this->swapchainImages[i];
+            VK_CHECK(vkCreateImageView(device.getDevice(), &imageViewCreateInfo, VK_CPU_ALLOCATOR, &this->swapchainImageViews[i]));
+        }
+    }
+
     void Swapchain::init(VkSurfaceKHR surface, const Window& window, const Device& device)
     {
         VkSurfaceCapabilitiesKHR surfaceCapabilities{};
@@ -114,17 +146,21 @@ namespace kraken::vulkan
             KRAKEN_CORE_CRITICAL("No viable surface format found");
         }
 
+        this->format = swapchainCreateInfo.imageFormat;
+
         VK_CHECK(vkCreateSwapchainKHR(device.getDevice(), &swapchainCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->swapchain));
         KRAKEN_ASSERT_VALUE(this->swapchain);
 
-        uint32_t swapchainImageCount{ swapchainCreateInfo.minImageCount };
-        VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, nullptr));
-        this->swapchainImages.reserve(swapchainImageCount);
-        VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, this->swapchainImages.data()));
+        getSwapchainImages(swapchainCreateInfo.minImageCount, device);
+        createImageViews(device);
     }
 
     void Swapchain::free(const Device& device)
     {
+        for (uint32_t i{ 0 }; i < this->swapchainImageViews.size(); i++)
+        {
+            vkDestroyImageView(device.getDevice(), this->swapchainImageViews[i], VK_CPU_ALLOCATOR);
+        }
         vkDestroySwapchainKHR(device.getDevice(), this->swapchain, vulkan::VK_CPU_ALLOCATOR);
     }
 

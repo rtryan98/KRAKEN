@@ -186,7 +186,6 @@ namespace kraken::vulkan
                 j++;
             }
         }
-
     }
 
     VkPhysicalDevice Device::getPhysicalDevice() const

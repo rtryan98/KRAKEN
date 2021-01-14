@@ -25,8 +25,7 @@ namespace kraken::vulkan
     private:
         void selectPhysicalDevice(VkInstance instance);
         void logPhysicalDeviceInfo();
-        void findQueueFamilies(VkSurfaceKHR surface);
-        void createDevice();
+        void createDevice(VkSurfaceKHR surface);
 
     private:
         VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };

@@ -133,6 +133,7 @@ namespace kraken
 
     void Renderer::free()
     {
+        vkDeviceWaitIdle(this->device.getDevice());
         swapchain.free(this->device);
         device.free();
         vkDestroySurfaceKHR(this->instance, this->surface, vulkan::VK_CPU_ALLOCATOR);

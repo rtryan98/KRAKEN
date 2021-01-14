@@ -18,8 +18,7 @@ namespace kraken::vulkan
     {
         selectPhysicalDevice(instance);
         logPhysicalDeviceInfo();
-        findQueueFamilies(surface);
-        createDevice();
+        createDevice(surface);
     }
 
     void Device::selectPhysicalDevice(VkInstance instance)
@@ -107,61 +106,48 @@ namespace kraken::vulkan
         }
     }
 
-    void Device::findQueueFamilies(VkSurfaceKHR surface)
+    void Device::createDevice(VkSurfaceKHR surface)
     {
         uint32_t queueFamilyCount{ 0 };
         vkGetPhysicalDeviceQueueFamilyProperties(this->physicalDevice, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(this->physicalDevice, &queueFamilyCount, queueFamilies.data());
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+        float_t queuePriority{ 1.0f };
+
         for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
         {
+            VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+            queueCreateInfo.queueFamilyIndex = i;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            bool_t queueFound{ false };
+
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                 this->graphicsQueueIndex = i;
+                queueCreateInfo.queueCount++;
+                queueFound = true;
             }
             if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
             {
                 this->computeQueueIndex = i;
+                queueCreateInfo.queueCount++;
+                queueFound = true;
             }
             VkBool32 presentationSupport{ 0 };
             vkGetPhysicalDeviceSurfaceSupportKHR(this->physicalDevice, i, surface, &presentationSupport);
             if (presentationSupport)
             {
                 this->presentQueueIndex = i;
+                queueCreateInfo.queueCount++;
+                queueFound = true;
+            }
+            if (queueFound)
+            {
+                queueCreateInfos.push_back(queueCreateInfo);
             }
         }
-    }
-
-    void Device::createDevice()
-    {
-        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
-        float_t queuePriority{ 1.0f };
-
-        {
-            VkDeviceQueueCreateInfo graphicsQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-            graphicsQueueCreateInfo.queueFamilyIndex = this->graphicsQueueIndex;
-            graphicsQueueCreateInfo.queueCount = 1;
-            graphicsQueueCreateInfo.pQueuePriorities = &queuePriority;
-            queueCreateInfos.push_back(graphicsQueueCreateInfo);
-        }
-
-        // TODO: Query device features based on required features for the engine
-
-        // {
-        //     VkDeviceQueueCreateInfo computeQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        //     computeQueueCreateInfo.queueFamilyIndex = this->computeQueueIndex;
-        //     computeQueueCreateInfo.queueCount = 1;
-        //     computeQueueCreateInfo.pQueuePriorities = &queuePriority;
-        //     queueCreateInfos.push_back(computeQueueCreateInfo);
-        // }
-        // 
-        // {
-        //     VkDeviceQueueCreateInfo presentationQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        //     presentationQueueCreateInfo.queueFamilyIndex = this->presentQueueIndex;
-        //     presentationQueueCreateInfo.queueCount = 1;
-        //     presentationQueueCreateInfo.pQueuePriorities = &queuePriority;
-        //     queueCreateInfos.push_back(presentationQueueCreateInfo);
-        // }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -181,7 +167,26 @@ namespace kraken::vulkan
         VK_CHECK(vkCreateDevice(this->physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &this->device));
         KRAKEN_ASSERT_VALUE(this->device);
 
-        vkGetDeviceQueue(this->device, this->graphicsQueueIndex, 0, &this->graphicsQueue);
+        for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
+        {
+            uint32_t j{ 0 };
+            if (i == this->graphicsQueueIndex)
+            {
+                vkGetDeviceQueue(this->device, this->graphicsQueueIndex, j, &this->graphicsQueue);
+                j++;
+            }
+            if (i == this->computeQueueIndex)
+            {
+                vkGetDeviceQueue(this->device, this->computeQueueIndex, j, &this->computeQueue);
+                j++;
+            }
+            if (i == this->presentQueueIndex)
+            {
+                vkGetDeviceQueue(this->device, this->presentQueueIndex, j, &this->presentQueue);
+                j++;
+            }
+        }
+
     }
 
     VkPhysicalDevice Device::getPhysicalDevice() const

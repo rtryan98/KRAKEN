@@ -15,8 +15,7 @@ namespace kraken::vulkan
 
         VkPhysicalDevice getPhysicalDevice() const;
         VkDevice getDevice() const;
-        VkQueue getGraphicsQueue() const;
-        VkQueue getComputeQueue() const;
+        VkQueue getGraphicsComputeQueue() const;
         VkQueue getPresentQueue() const;
         uint32_t getGraphicsQueueIndex() const;
         uint32_t getComputeQueueIndex() const;
@@ -31,8 +30,7 @@ namespace kraken::vulkan
         VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
         VkDevice device{ VK_NULL_HANDLE };
 
-        VkQueue graphicsQueue{ VK_NULL_HANDLE };
-        VkQueue computeQueue{ VK_NULL_HANDLE };
+        VkQueue graphicsComputeQueue{ VK_NULL_HANDLE };
         VkQueue presentQueue{ VK_NULL_HANDLE };
 
         uint32_t graphicsQueueIndex{ 0 };

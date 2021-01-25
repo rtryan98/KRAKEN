@@ -123,14 +123,9 @@ namespace kraken::vulkan
             queueCreateInfo.pQueuePriorities = &queuePriority;
             bool_t queueFound{ false };
 
-            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            if (queueFamilies[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT))
             {
                 this->graphicsQueueIndex = i;
-                queueCreateInfo.queueCount++;
-                queueFound = true;
-            }
-            if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
-            {
                 this->computeQueueIndex = i;
                 queueCreateInfo.queueCount++;
                 queueFound = true;
@@ -170,61 +165,54 @@ namespace kraken::vulkan
         for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
         {
             uint32_t j{ 0 };
-            if (i == this->graphicsQueueIndex)
+            if (i == this->graphicsQueueIndex && i == this->computeQueueIndex)
             {
-                vkGetDeviceQueue(this->device, this->graphicsQueueIndex, j, &this->graphicsQueue);
-                j++;
-            }
-            if (i == this->computeQueueIndex)
-            {
-                vkGetDeviceQueue(this->device, this->computeQueueIndex, j, &this->computeQueue);
+                vkGetDeviceQueue(this->device, this->graphicsQueueIndex, 0, &this->graphicsComputeQueue);
                 j++;
             }
             if (i == this->presentQueueIndex)
             {
-                vkGetDeviceQueue(this->device, this->presentQueueIndex, j, &this->presentQueue);
+                vkGetDeviceQueue(this->device, this->presentQueueIndex, 0, &this->presentQueue);
                 j++;
             }
         }
+
+        KRAKEN_ASSERT_VALUE(this->graphicsComputeQueue);
+        KRAKEN_ASSERT_VALUE(this->presentQueue);
     }
 
     VkPhysicalDevice Device::getPhysicalDevice() const
     {
-        return physicalDevice;
+        return this->physicalDevice;
     }
 
     VkDevice Device::getDevice() const
     {
-        return device;
+        return this->device;
     }
 
-    VkQueue Device::getGraphicsQueue() const
+    VkQueue Device::getGraphicsComputeQueue() const
     {
-        return graphicsQueue;
-    }
-
-    VkQueue Device::getComputeQueue() const
-    {
-        return computeQueue;
+        return this->graphicsComputeQueue;
     }
 
     VkQueue Device::getPresentQueue() const
     {
-        return presentQueue;
+        return this->presentQueue;
     }
 
     uint32_t Device::getGraphicsQueueIndex() const
     {
-        return graphicsQueueIndex;
+        return this->graphicsQueueIndex;
     }
 
     uint32_t Device::getComputeQueueIndex() const
     {
-        return computeQueueIndex;
+        return this->computeQueueIndex;
     }
 
     uint32_t Device::getPresentQueueIndex() const
     {
-        return presentQueueIndex;
+        return this->presentQueueIndex;
     }
 }

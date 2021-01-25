@@ -5,9 +5,9 @@ namespace kraken
 {
     struct ApplicationCreateInfo
     {
-        uint32_t width;
-        uint32_t height;
-        std::string title;
+        uint32_t width{ 1920 };
+        uint32_t height{ 1080 };
+        std::string title{ "KRAKEN Engine" };
     };
 
     class Application

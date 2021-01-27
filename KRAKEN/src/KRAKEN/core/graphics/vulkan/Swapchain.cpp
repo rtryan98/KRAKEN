@@ -7,14 +7,13 @@ namespace kraken::vulkan
     void Swapchain::getSwapchainImages(uint32_t imageCount, const Device& device)
     {
         uint32_t swapchainImageCount{ imageCount };
-        VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, nullptr));
-        this->swapchainImages.reserve(swapchainImageCount);
+        this->swapchainImages.resize(swapchainImageCount);
         VK_CHECK(vkGetSwapchainImagesKHR(device.getDevice(), this->swapchain, &swapchainImageCount, this->swapchainImages.data()));
     }
 
     void Swapchain::createImageViews(const Device& device)
     {
-        this->swapchainImageViews.reserve(this->swapchainImages.size());
+        this->swapchainImageViews.resize(this->swapchainImages.size());
 
         VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
         imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -44,18 +43,13 @@ namespace kraken::vulkan
         VkSwapchainCreateInfoKHR swapchainCreateInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
         swapchainCreateInfo.surface = surface;
 
-        // Triple buffer if possible, double buffer elsewise, otherwise single buffer
-        if (surfaceCapabilities.minImageCount >= 3)
-        {
-            swapchainCreateInfo.minImageCount = 3;
-        }
-        else if (surfaceCapabilities.minImageCount == 2)
+        if (surfaceCapabilities.minImageCount <= 2 && surfaceCapabilities.maxImageCount >= 2)
         {
             swapchainCreateInfo.minImageCount = 2;
         }
         else
         {
-            swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
+            KRAKEN_CORE_CRITICAL("Double buffering not available.");
         }
 
         // TODO: add support for HDR and other displays here
@@ -92,25 +86,7 @@ namespace kraken::vulkan
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(device.getPhysicalDevice(), surface, &presentModeCount, presentModes.data());
 
-        bool_t mailboxAvailable{ false };
-        for (VkPresentModeKHR presentMode : presentModes)
-        {
-            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            {
-                mailboxAvailable = true;
-                break;
-            }
-        }
-
-        if (mailboxAvailable)
-        {
-            swapchainCreateInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        }
-        else
-        {
-            swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-        }
-
+        swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         swapchainCreateInfo.clipped = VK_TRUE;
         swapchainCreateInfo.imageArrayLayers = 1;
 

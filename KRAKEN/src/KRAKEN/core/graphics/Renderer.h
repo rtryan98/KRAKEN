@@ -5,8 +5,7 @@
 #include <functional>
 #include "KRAKEN/core/util/Log.h"
 #include "KRAKEN/core/graphics/vulkan/Util.h"
-#include "KRAKEN/core/graphics/vulkan/Device.h"
-#include "KRAKEN/core/graphics/vulkan/Swapchain.h"
+#include "KRAKEN/core/graphics/vulkan/Context.h"
 
 namespace kraken
 {
@@ -25,17 +24,12 @@ namespace kraken
         VkInstance getInstance() const;
 
     private:
-        void createInstance();
         void setupDebugMessenger();
-        void createSurface();
         void createCommandPool();
 
     private:
-        VkInstance instance{ VK_NULL_HANDLE };
-        vulkan::Device device{};
-        VkDebugUtilsMessengerEXT debugMessenger{ VK_NULL_HANDLE };
-        VkSurfaceKHR surface{ VK_NULL_HANDLE };
-        vulkan::Swapchain swapchain{};
+        vulkan::Context context{};
+
         VkSemaphore acquireSemaphore{};
         VkSemaphore releaseSemaphore{};
         VkCommandPool commandPool{};

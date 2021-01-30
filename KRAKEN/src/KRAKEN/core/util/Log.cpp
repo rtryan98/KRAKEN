@@ -14,7 +14,7 @@ namespace kraken
         coreLogger->set_level(spdlog::level::trace);
         clientLogger = spdlog::stdout_color_mt("APPLICATION");
         clientLogger->set_level(spdlog::level::trace);
-        validationErrorLogger = spdlog::stdout_color_mt("KRAKEN Vulkan Validation");
+        validationErrorLogger = spdlog::stdout_color_mt("Vulkan");
         validationErrorLogger->set_level(spdlog::level::trace);
     }
 

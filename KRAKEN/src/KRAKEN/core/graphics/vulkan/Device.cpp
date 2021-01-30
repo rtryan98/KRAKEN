@@ -10,7 +10,7 @@ namespace kraken::vulkan
 {
     void Device::free()
     {
-        vkDeviceWaitIdle(this->device);
+        VK_CHECK(vkDeviceWaitIdle(this->device));
         vkDestroyDevice(this->device, VK_CPU_ALLOCATOR);
     }
 
@@ -24,9 +24,9 @@ namespace kraken::vulkan
     void Device::selectPhysicalDevice(VkInstance instance)
     {
         uint32_t deviceCount{ 0 };
-        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+        VK_CHECK(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
         std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
+        VK_CHECK(vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data()));
         KRAKEN_ASSERT_VALUE(physicalDevices.size() > 0);
 
         VkPhysicalDevice fallbackDevice{ physicalDevices[0] };
@@ -131,7 +131,7 @@ namespace kraken::vulkan
                 queueFound = true;
             }
             VkBool32 presentationSupport{ 0 };
-            vkGetPhysicalDeviceSurfaceSupportKHR(this->physicalDevice, i, surface, &presentationSupport);
+            VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(this->physicalDevice, i, surface, &presentationSupport));
             if (presentationSupport)
             {
                 this->presentQueueIndex = i;

@@ -58,8 +58,9 @@ namespace kraken
     {
         while (window->isRunning())
         {
-            onUpdate();
             window->onUpdate();
+            onUpdate();
+            globals::RENDERER->onUpdate();
         }
     }
 

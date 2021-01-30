@@ -1,4 +1,5 @@
 #include "KRAKEN/core/graphics/vulkan/Util.h"
+#include "KRAKEN/core/graphics/vulkan/Globals.h"
 
 namespace kraken::vulkan::util
 {
@@ -46,5 +47,23 @@ namespace kraken::vulkan::util
         case VK_PIPELINE_COMPILE_REQUIRED_EXT:                      return "VK_PIPELINE_COMPILE_REQUIRED_EXT | VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT";
         default:                                                    return "UNKNOWN VULKAN ERROR";
         }
+    }
+
+    VkSemaphore createSemaphore(VkDevice device)
+    {
+        VkSemaphore result{};
+        VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+        VK_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, VK_CPU_ALLOCATOR, &result));
+        KRAKEN_ASSERT_VALUE(result);
+        return result;
+    }
+
+    VkFence createFence(VkDevice device)
+    {
+        VkFence result{};
+        VkFenceCreateInfo fenceCreateInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+        VK_CHECK(vkCreateFence(device, &fenceCreateInfo, VK_CPU_ALLOCATOR, &result));
+        KRAKEN_ASSERT_VALUE(result);
+        return result;
     }
 }

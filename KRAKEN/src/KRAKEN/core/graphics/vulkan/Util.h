@@ -5,6 +5,10 @@
 namespace kraken::vulkan::util
 {
     const char* toString(VkResult result);
+
+    VkSemaphore createSemaphore(VkDevice device);
+
+    VkFence createFence(VkDevice device);
 }
 
 #if KRAKEN_USE_ASSERTS

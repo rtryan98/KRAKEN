@@ -20,6 +20,7 @@ namespace kraken
 
         void init(const Window& window);
         void free();
+        void onUpdate();
 
         VkInstance getInstance() const;
 
@@ -27,6 +28,7 @@ namespace kraken
         void createInstance();
         void setupDebugMessenger();
         void createSurface();
+        void createCommandPool();
 
     private:
         VkInstance instance{ VK_NULL_HANDLE };
@@ -34,5 +36,10 @@ namespace kraken
         VkDebugUtilsMessengerEXT debugMessenger{ VK_NULL_HANDLE };
         VkSurfaceKHR surface{ VK_NULL_HANDLE };
         vulkan::Swapchain swapchain{};
+        VkSemaphore acquireSemaphore{};
+        VkSemaphore releaseSemaphore{};
+        VkCommandPool commandPool{};
+        VkCommandBuffer commandBuffer{};
+        VkFence submitFence{};
     };
 }

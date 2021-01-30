@@ -144,4 +144,20 @@ namespace kraken::vulkan
     {
         return this->swapchain;
     }
+
+    const VkSwapchainKHR* Swapchain::getSwapchainAddress() const
+    {
+        return &this->swapchain;
+    }
+
+    const std::vector<VkImage>& Swapchain::getSwapchainImages() const
+    {
+        return this->swapchainImages;
+    }
+
+    const std::vector<VkImageView>& Swapchain::getSwapchainImageViews() const
+    {
+        return this->swapchainImageViews;
+    }
+
 }

@@ -171,11 +171,7 @@ namespace kraken::vulkan
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(context.physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-        // std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
         float_t queuePriority{ 1.0f };
-
-        // bool_t graphicsComputeQueueCreateInfoPushed{ false };
-        // bool_t presentQueueCreateInfoPushed{ false };
 
         VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 
@@ -189,40 +185,6 @@ namespace kraken::vulkan
                 context.graphicsComputePresentQueueFamilyIndex = i;
                 break;
             }
-
-
-            //if (graphicsComputeQueueCreateInfoPushed && presentQueueCreateInfoPushed)
-            //{
-            //    break;
-            //}
-            //
-            //VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-            //queueCreateInfo.queueFamilyIndex = i;
-            //queueCreateInfo.pQueuePriorities = &queuePriority;
-            //bool_t queueFound{ false };
-            //
-            //if ((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            // && (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
-            // && !graphicsComputeQueueCreateInfoPushed)
-            //{
-            //    context.graphicsComputeQueueIndex = i;
-            //    queueCreateInfo.queueCount++;
-            //    queueFound = true;
-            //    graphicsComputeQueueCreateInfoPushed = true;
-            //}
-            //VkBool32 presentationSupport{ 0 };
-            //VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, i, context.surface, &presentationSupport));
-            //if (presentationSupport && !presentQueueCreateInfoPushed)
-            //{
-            //    context.presentQueueIndex = i;
-            //    queueCreateInfo.queueCount++;
-            //    queueFound = true;
-            //    presentQueueCreateInfoPushed = true;
-            //}
-            //if (queueFound)
-            //{
-            //    queueCreateInfos.push_back(queueCreateInfo);
-            //}
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
@@ -243,35 +205,9 @@ namespace kraken::vulkan
         VK_CHECK(vkCreateDevice(context.physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &context.device));
         KRAKEN_ASSERT_VALUE(context.device);
 
-        // bool_t graphicsComputeQueueCreated{ false };
-        // bool_t presentQueueCreated{ false };
-
-        // for (uint32_t i{ 0 }; i < queueCreateInfos.size(); i++)
-        // {
-        //     for (uint32_t j{ 0 }; j < queueCreateInfos[i].queueCount; j++)
-        //     {
-        //         if (!graphicsComputeQueueCreated && queueCreateInfos[i].queueFamilyIndex == context.graphicsComputeQueueIndex)
-        //         {
-        //             vkGetDeviceQueue(context.device, context.graphicsComputeQueueIndex, j, &context.graphicsComputeQueue);
-        //             graphicsComputeQueueCreated = true;
-        //             KRAKEN_CORE_TRACE("Created Graphics Compute Queue with Queueindex {0} and Queuefamily {1}", j, context.graphicsComputeQueueIndex);
-        //             continue;
-        //         }
-        //         if (!presentQueueCreated)
-        //         {
-        //             vkGetDeviceQueue(context.device, context.presentQueueIndex, j, &context.presentQueue);
-        //             presentQueueCreated = true;
-        //             KRAKEN_CORE_TRACE("Created Present Queue with Queueindex {0} and Queuefamily {1}", j, context.presentQueueIndex);
-        //             continue;
-        //         }
-        //     }
-        // }
-
         vkGetDeviceQueue(context.device, queueCreateInfo.queueFamilyIndex, 0, &context.graphicsComputePresentQueue);
 
         KRAKEN_ASSERT_VALUE(context.graphicsComputePresentQueue);
-        // KRAKEN_ASSERT_VALUE(context.graphicsComputeQueue);
-        // KRAKEN_ASSERT_VALUE(context.presentQueue);
     }
 
     void getSwapchainImages(Context& context)
@@ -338,18 +274,7 @@ namespace kraken::vulkan
             KRAKEN_CORE_CRITICAL("Swapchain does not support being written to.");
         }
 
-        // if (context.presentQueueIndex != context.graphicsComputeQueueIndex)
-        // {
-        //     uint32_t queueFamilyIndices[2]{ context.presentQueueIndex, context.graphicsComputeQueueIndex };
-        //     swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        //     swapchainCreateInfo.queueFamilyIndexCount = 2;
-        //     swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-        // }
-        // else
-        // {
-            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        // }
-
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
         swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 

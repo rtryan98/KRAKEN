@@ -16,8 +16,8 @@ namespace kraken
         attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentReference{};
         colorAttachmentReference.attachment = 0;
@@ -76,28 +76,10 @@ namespace kraken
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        // TODO: TEMPORARY
-        //VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        //barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        //barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        //barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        //barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        //barrier.image = this->context.swapchainImages[imageIndex];
-        //barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        //barrier.subresourceRange.baseMipLevel = 0;
-        //barrier.subresourceRange.levelCount = 1;
-        //barrier.subresourceRange.baseArrayLayer = 0;
-        //barrier.subresourceRange.layerCount = 1;
-        // TODO: TEMPORARY
-
         VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
-        // TODO: TEMPORARY
-        //vkCmdPipelineBarrier(this->commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-        // TODO: TEMPORARY
 
         VkClearValue clearValue{};
         clearValue.color = { 1.0f, 0.5f, 0.0f, 1.0f };
-        clearValue.depthStencil = {1.0f, 0};
 
         VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
         renderPassBeginInfo.framebuffer = this->framebuffers[imageIndex];
@@ -107,16 +89,12 @@ namespace kraken
         renderPassBeginInfo.renderArea.extent = this->context.swapchainImageExtent;
         renderPassBeginInfo.renderArea.offset = {0, 0};
 
+
         vkCmdBeginRenderPass(this->commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         vkCmdEndRenderPass(this->commandBuffer);
 
 
-        //VkImageSubresourceRange range{};
-        //range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        //range.levelCount = 1;
-        //range.layerCount = 1;
-        // vkCmdClearColorImage(this->commandBuffer, this->swapchain.getSwapchainImages()[imageIndex], VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1, &range);
         VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
 
         VkPipelineStageFlags submitStageMask{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

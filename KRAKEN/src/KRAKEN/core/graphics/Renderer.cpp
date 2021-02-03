@@ -108,7 +108,7 @@ namespace kraken
         submitInfo.pCommandBuffers = &this->commandBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
-        VK_CHECK(vkQueueSubmit(this->context.graphicsComputeQueue, 1, &submitInfo, VK_NULL_HANDLE));
+        VK_CHECK(vkQueueSubmit(this->context.graphicsComputePresentQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;
@@ -117,7 +117,7 @@ namespace kraken
         queuePresentInfo.pWaitSemaphores = &this->releaseSemaphore;
         queuePresentInfo.pImageIndices = &imageIndex;
 
-        VK_CHECK(vkQueuePresentKHR(this->context.graphicsComputeQueue, &queuePresentInfo));
+        VK_CHECK(vkQueuePresentKHR(this->context.graphicsComputePresentQueue, &queuePresentInfo));
     }
 
     void Renderer::init(const Window& window)

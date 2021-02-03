@@ -13,11 +13,13 @@ namespace kraken::vulkan
         VkPhysicalDevice physicalDevice;
         VkDevice device;
 
-        uint32_t presentQueueIndex;
-        uint32_t graphicsComputeQueueIndex;
+        // uint32_t presentQueueIndex;
+        // uint32_t graphicsComputeQueueIndex;
+        uint32_t graphicsComputePresentQueueFamilyIndex;
 
-        VkQueue graphicsComputeQueue;
-        VkQueue presentQueue;
+        // VkQueue graphicsComputeQueue;
+        // VkQueue presentQueue;
+        VkQueue graphicsComputePresentQueue;
 
         VkSurfaceKHR surface;
         VkSwapchainKHR swapchain;

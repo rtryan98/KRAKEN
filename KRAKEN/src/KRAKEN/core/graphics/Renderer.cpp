@@ -7,25 +7,68 @@
 
 namespace kraken
 {
-    void Renderer::createCommandPool()
+    void Renderer::createRenderPasses()
     {
-        VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-        createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-        createInfo.queueFamilyIndex = this->context.graphicsQueueIndex;
-        VK_CHECK(vkCreateCommandPool(this->context.device, &createInfo, vulkan::VK_CPU_ALLOCATOR, &this->commandPool));
+        VkAttachmentDescription attachmentDescription{};
+        attachmentDescription.format = this->context.swapchainImageFormat;
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorAttachmentReference{};
+        colorAttachmentReference.attachment = 0;
+        colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentReference;
+
+        VkRenderPassCreateInfo renderPassCreateInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+        renderPassCreateInfo.attachmentCount = 1;
+        renderPassCreateInfo.pAttachments = &attachmentDescription;
+        renderPassCreateInfo.subpassCount = 1;
+        renderPassCreateInfo.pSubpasses = &subpass;
+
+        VK_CHECK(vkCreateRenderPass(this->context.device, &renderPassCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->renderPass));
+    }
+
+    void Renderer::createFramebuffers()
+    {
+        this->framebuffers.resize(this->context.swapchainImageViews.size());
+
+        VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+        framebufferCreateInfo.renderPass = this->renderPass;
+        framebufferCreateInfo.attachmentCount = 1;
+        framebufferCreateInfo.width = this->context.swapchainImageExtent.width;
+        framebufferCreateInfo.height = this->context.swapchainImageExtent.height;
+        framebufferCreateInfo.layers = 1;
+
+        for (uint32_t i{0}; i < this->context.swapchainImageViews.size(); i++)
+        {
+            framebufferCreateInfo.pAttachments = &this->context.swapchainImageViews[i];
+            VK_CHECK(vkCreateFramebuffer(this->context.device, &framebufferCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->framebuffers[i]));
+        }
     }
 
     void Renderer::onUpdate()
     {
+        // TODO: TEMPORARY
         vkDeviceWaitIdle(this->context.device);
+        // TODO: TEMPORARY
+
         uint32_t imageIndex{};
         VK_CHECK(vkAcquireNextImageKHR(this->context.device, this->context.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
 
-        VK_CHECK(vkResetCommandPool(this->context.device, this->commandPool, 0x0));
+        VK_CHECK(vkResetCommandPool(this->context.device, this->context.commandPool, 0x0));
 
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = this->commandPool;
+        commandBufferAllocateInfo.commandPool = this->context.commandPool;
         commandBufferAllocateInfo.commandBufferCount = 1;
 
         VK_CHECK(vkAllocateCommandBuffers(this->context.device, &commandBufferAllocateInfo, &commandBuffer));
@@ -34,29 +77,45 @@ namespace kraken
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
         // TODO: TEMPORARY
-        VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = this->context.swapchainImages[imageIndex];
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = 1;
+        //VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        //barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        //barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        //barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        //barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        //barrier.image = this->context.swapchainImages[imageIndex];
+        //barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        //barrier.subresourceRange.baseMipLevel = 0;
+        //barrier.subresourceRange.levelCount = 1;
+        //barrier.subresourceRange.baseArrayLayer = 0;
+        //barrier.subresourceRange.layerCount = 1;
         // TODO: TEMPORARY
 
         VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
         // TODO: TEMPORARY
-        vkCmdPipelineBarrier(this->commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        //vkCmdPipelineBarrier(this->commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
         // TODO: TEMPORARY
 
-        VkClearColorValue clearColor{ 1.0f, 0.5f, 0.0f, 1.0f };
-        VkImageSubresourceRange range{};
-        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.levelCount = 1;
-        range.layerCount = 1;
+        VkClearValue clearValue{};
+        clearValue.color = { 1.0f, 0.5f, 0.0f, 1.0f };
+        clearValue.depthStencil = {1.0f, 0};
+
+        VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+        renderPassBeginInfo.framebuffer = this->framebuffers[imageIndex];
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+        renderPassBeginInfo.renderPass = this->renderPass;
+        renderPassBeginInfo.renderArea.extent = this->context.swapchainImageExtent;
+        renderPassBeginInfo.renderArea.offset = {0, 0};
+
+        vkCmdBeginRenderPass(this->commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdEndRenderPass(this->commandBuffer);
+
+
+        //VkImageSubresourceRange range{};
+        //range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        //range.levelCount = 1;
+        //range.layerCount = 1;
         // vkCmdClearColorImage(this->commandBuffer, this->swapchain.getSwapchainImages()[imageIndex], VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1, &range);
         VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
 
@@ -90,21 +149,27 @@ namespace kraken
         this->acquireSemaphore = vulkan::util::createSemaphore(this->context.device);
         this->releaseSemaphore = vulkan::util::createSemaphore(this->context.device);
         this->submitFence = vulkan::util::createFence(this->context.device);
-        createCommandPool();
+        createRenderPasses();
+        createFramebuffers();
     }
 
     void Renderer::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device));
-        vkDestroyCommandPool(this->context.device, this->commandPool, vulkan::VK_CPU_ALLOCATOR);
+
+        for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
+        {
+            vkDestroyFramebuffer(this->context.device, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
+        }
+        vkDestroyRenderPass(this->context.device, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
         vkDestroyFence(this->context.device, this->submitFence, vulkan::VK_CPU_ALLOCATOR);
         vkDestroySemaphore(this->context.device, this->releaseSemaphore, vulkan::VK_CPU_ALLOCATOR);
         vkDestroySemaphore(this->context.device, this->acquireSemaphore, vulkan::VK_CPU_ALLOCATOR);
         vulkan::freeContext(this->context);
     }
 
-    VkInstance Renderer::getInstance() const
+    const vulkan::Context& Renderer::getContext() const
     {
-        return this->context.instance;
+        return this->context;
     }
 }

@@ -161,27 +161,38 @@ namespace kraken::vulkan
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
         float_t queuePriority{ 1.0f };
 
+        bool_t graphicsComputeQueueCreateInfoPushed{ false };
+        bool_t presentQueueCreateInfoPushed{ false };
+
         for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
         {
+            if (graphicsComputeQueueCreateInfoPushed && presentQueueCreateInfoPushed)
+            {
+                break;
+            }
+
             VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
             queueCreateInfo.queueFamilyIndex = i;
             queueCreateInfo.pQueuePriorities = &queuePriority;
             bool_t queueFound{ false };
 
-            if (queueFamilies[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT))
+            if ((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+             && (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+             && !graphicsComputeQueueCreateInfoPushed)
             {
-                context.graphicsQueueIndex = i;
-                context.computeQueueIndex = i;
+                context.graphicsComputeQueueIndex = i;
                 queueCreateInfo.queueCount++;
                 queueFound = true;
+                graphicsComputeQueueCreateInfoPushed = true;
             }
             VkBool32 presentationSupport{ 0 };
             VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, i, context.surface, &presentationSupport));
-            if (presentationSupport)
+            if (presentationSupport && !presentQueueCreateInfoPushed)
             {
                 context.presentQueueIndex = i;
                 queueCreateInfo.queueCount++;
                 queueFound = true;
+                presentQueueCreateInfoPushed = true;
             }
             if (queueFound)
             {
@@ -207,18 +218,27 @@ namespace kraken::vulkan
         VK_CHECK(vkCreateDevice(context.physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &context.device));
         KRAKEN_ASSERT_VALUE(context.device);
 
-        for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
+        bool_t graphicsComputeQueueCreated{ false };
+        bool_t presentQueueCreated{ false };
+
+        for (uint32_t i{ 0 }; i < queueCreateInfos.size(); i++)
         {
-            uint32_t j{ 0 };
-            if (i == context.graphicsQueueIndex && i == context.computeQueueIndex)
+            for (uint32_t j{ 0 }; j < queueCreateInfos[i].queueCount; j++)
             {
-                vkGetDeviceQueue(context.device, context.graphicsQueueIndex, 0, &context.graphicsComputeQueue);
-                j++;
-            }
-            if (i == context.presentQueueIndex)
-            {
-                vkGetDeviceQueue(context.device, context.presentQueueIndex, 0, &context.presentQueue);
-                j++;
+                if (!graphicsComputeQueueCreated && queueCreateInfos[i].queueFamilyIndex == context.graphicsComputeQueueIndex)
+                {
+                    vkGetDeviceQueue(context.device, context.graphicsComputeQueueIndex, j, &context.graphicsComputeQueue);
+                    graphicsComputeQueueCreated = true;
+                    KRAKEN_CORE_TRACE("Created Graphics Compute Queue with Queueindex {0} and Queuefamily {1}", j, context.graphicsComputeQueueIndex);
+                    continue;
+                }
+                if (!presentQueueCreated)
+                {
+                    vkGetDeviceQueue(context.device, context.presentQueueIndex, j, &context.presentQueue);
+                    presentQueueCreated = true;
+                    KRAKEN_CORE_TRACE("Created Present Queue with Queueindex {0} and Queuefamily {1}", j, context.presentQueueIndex);
+                    continue;
+                }
             }
         }
 
@@ -226,14 +246,15 @@ namespace kraken::vulkan
         KRAKEN_ASSERT_VALUE(context.presentQueue);
     }
 
-    void getSwapchainImages(uint32_t imageCount, Context& context)
+    void getSwapchainImages(Context& context)
     {
-        uint32_t swapchainImageCount{ imageCount };
+        uint32_t swapchainImageCount{};
+        VK_CHECK(vkGetSwapchainImagesKHR(context.device, context.swapchain, &swapchainImageCount, nullptr));
         context.swapchainImages.resize(swapchainImageCount);
         VK_CHECK(vkGetSwapchainImagesKHR(context.device, context.swapchain, &swapchainImageCount, context.swapchainImages.data()));
     }
 
-    void createImageViews(Context& context)
+    void createSwapchainImageViews(Context& context)
     {
         context.swapchainImageViews.resize(context.swapchainImages.size());
 
@@ -277,6 +298,7 @@ namespace kraken::vulkan
         // TODO: add support for HDR and other displays here
         swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         swapchainCreateInfo.imageExtent = globals::APPLICATION->getWindow()->getFramebufferSize();
+        context.swapchainImageExtent = swapchainCreateInfo.imageExtent;
 
         // TODO: we might want to write directly to the image later on
         if (surfaceCapabilities.supportedUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -288,9 +310,9 @@ namespace kraken::vulkan
             KRAKEN_CORE_CRITICAL("Swapchain does not support being written to.");
         }
 
-        if (context.presentQueueIndex != context.graphicsQueueIndex)
+        if (context.presentQueueIndex != context.graphicsComputeQueueIndex)
         {
-            uint32_t queueFamilyIndices[2]{ context.presentQueueIndex, context.graphicsQueueIndex };
+            uint32_t queueFamilyIndices[2]{ context.presentQueueIndex, context.graphicsComputeQueueIndex };
             swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
             swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -349,8 +371,16 @@ namespace kraken::vulkan
         VK_CHECK(vkCreateSwapchainKHR(context.device, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.swapchain));
         KRAKEN_ASSERT_VALUE(context.swapchain);
 
-        getSwapchainImages(swapchainCreateInfo.minImageCount, context);
-        createImageViews(context);
+        getSwapchainImages(context);
+        createSwapchainImageViews(context);
+    }
+
+    void createCommandPool(Context& context)
+    {
+        VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+        createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        createInfo.queueFamilyIndex = context.graphicsComputeQueueIndex;
+        VK_CHECK(vkCreateCommandPool(context.device, &createInfo, VK_CPU_ALLOCATOR, &context.commandPool));
     }
 
     void printGpuMemoryInfo(Context& context)
@@ -419,13 +449,16 @@ namespace kraken::vulkan
         createSurface(context);
         createDevice(context);
         createSwapchain(context);
+        createCommandPool(context);
 
         printGpuMemoryInfo(context);
     }
     
     void freeContext(Context& context)
     {
-        vkDeviceWaitIdle(context.device);
+        VK_CHECK(vkDeviceWaitIdle(context.device));
+
+        vkDestroyCommandPool(context.device, context.commandPool, VK_CPU_ALLOCATOR);
 
         for (uint32_t i{ 0 }; i < context.swapchainImageViews.size(); i++)
         {

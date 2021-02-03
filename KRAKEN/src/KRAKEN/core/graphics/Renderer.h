@@ -21,19 +21,20 @@ namespace kraken
         void free();
         void onUpdate();
 
-        VkInstance getInstance() const;
+        const vulkan::Context& getContext() const;
 
     private:
-        void setupDebugMessenger();
-        void createCommandPool();
+        void createRenderPasses();
+        void createFramebuffers();
 
     private:
         vulkan::Context context{};
 
         VkSemaphore acquireSemaphore{};
         VkSemaphore releaseSemaphore{};
-        VkCommandPool commandPool{};
         VkCommandBuffer commandBuffer{};
         VkFence submitFence{};
+        VkRenderPass renderPass{};
+        std::vector<VkFramebuffer> framebuffers{};
     };
 }

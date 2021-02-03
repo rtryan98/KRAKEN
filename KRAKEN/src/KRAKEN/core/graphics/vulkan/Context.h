@@ -14,8 +14,7 @@ namespace kraken::vulkan
         VkDevice device;
 
         uint32_t presentQueueIndex;
-        uint32_t computeQueueIndex;
-        uint32_t graphicsQueueIndex;
+        uint32_t graphicsComputeQueueIndex;
 
         VkQueue graphicsComputeQueue;
         VkQueue presentQueue;
@@ -25,6 +24,9 @@ namespace kraken::vulkan
         std::vector<VkImage> swapchainImages;
         std::vector<VkImageView> swapchainImageViews;
         VkFormat swapchainImageFormat;
+        VkExtent2D swapchainImageExtent;
+
+        VkCommandPool commandPool;
     };
 
     void initContext(Context& context);

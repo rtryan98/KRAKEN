@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/graphics/Renderer.h"
 #include "KRAKEN/core/Globals.h"
 #include <vector>

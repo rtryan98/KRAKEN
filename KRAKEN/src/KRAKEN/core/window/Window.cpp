@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/window/Window.h"
 #include "KRAKEN/core/Globals.h"
 #if KRAKEN_PLATFORM_WINDOWS

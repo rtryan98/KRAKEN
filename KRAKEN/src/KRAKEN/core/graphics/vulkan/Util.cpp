@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/graphics/vulkan/Util.h"
 #include "KRAKEN/core/graphics/vulkan/Globals.h"
 

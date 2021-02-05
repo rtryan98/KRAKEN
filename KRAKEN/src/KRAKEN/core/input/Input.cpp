@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/input/Input.h"
 #include "KRAKEN/core/Globals.h"
 #include "KRAKEN/core/Application.h"

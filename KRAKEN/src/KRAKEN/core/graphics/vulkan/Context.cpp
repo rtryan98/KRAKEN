@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/graphics/vulkan/Context.h"
 #include "KRAKEN/core/graphics/vulkan/Globals.h"
 #include "KRAKEN/core/graphics/vulkan/Util.h"
@@ -6,6 +8,7 @@
 #include "KRAKEN/core/Globals.h"
 #include "KRAKEN/core/Application.h"
 #include <sstream>
+#include <set>
 
 namespace kraken::vulkan
 {

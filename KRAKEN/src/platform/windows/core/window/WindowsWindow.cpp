@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "platform/windows/core/window/WindowsWindow.h"
 #if KRAKEN_PLATFORM_WINDOWS
 #define GLFW_EXPOSE_NATIVE_WIN32

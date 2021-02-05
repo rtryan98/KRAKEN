@@ -34,8 +34,16 @@ foreach(item IN ITEMS ${KRAKEN_LIB_SOURCE} ${KRAKEN_LIB_HEADER})
     source_group("${group_path}" FILES "${item}")
 endforeach()
 
+
+# Add Library
 set(KRAKEN_LIB_NAME "KRAKEN")
 add_library(${KRAKEN_LIB_NAME} ${KRAKEN_LIB_SOURCE} ${KRAKEN_LIB_HEADER})
+
+# Add Precompiled Header
+if (MSVC)
+    set_target_properties(${KRAKEN_LIB_NAME} PROPERTIES COMPILE_FLAGS "/YuKRAKEN/pch.h")
+    set_source_files_properties(${CMAKE_SOURCE_DIR}/KRAKEN/src/KRAKEN/pch.cpp PROPERTIES COMPILE_FLAGS "/YcKRAKEN/pch.h")
+endif (MSVC)
 
 # Output Directories
 set_target_properties(${KRAKEN_LIB_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/${KRAKEN_LIB_NAME}/debug/")

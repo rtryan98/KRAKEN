@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/Application.h"
 #include "KRAKEN/core/Globals.h"
 #include "KRAKEN/core/event/WindowEvent.h"

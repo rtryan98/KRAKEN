@@ -1,3 +1,5 @@
+#include "KRAKEN/pch.h"
+
 #include "KRAKEN/core/util/Log.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
 

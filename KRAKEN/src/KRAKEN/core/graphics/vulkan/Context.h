@@ -16,6 +16,7 @@ namespace kraken::vulkan
         uint32_t graphicsComputePresentQueueFamilyIndex;
 
         VkQueue graphicsComputePresentQueue;
+        VkQueue presentQueue;
 
         VkSurfaceKHR surface;
         VkSwapchainKHR swapchain;

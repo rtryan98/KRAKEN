@@ -174,21 +174,87 @@ namespace kraken::vulkan
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(context.physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-        float_t queuePriority{ 1.0f };
+        bool_t directMemoryAccessQueueFamilyFound{ false };
+        bool_t asyncComputeQueueFamilyFound{ false };
+        bool_t mainQueueFamilyFound{ false };
+        bool_t presentQueueFamilyFound{ false };
 
-        VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-
-        for (uint32_t i{ 0 }; i < queueFamilyCount; i++)
+        for (uint32_t i{ 0 }; i < queueFamilies.size(); i++)
         {
-            if (queueFamilySupportsGraphicsAndCompute(queueFamilies[i]) && queueFamilySupportsPresentation(context, i))
+            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT &&
+                queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
+                queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
+                !mainQueueFamilyFound)
             {
-                queueCreateInfo.queueFamilyIndex = i;
-                queueCreateInfo.queueCount = 1;
-                queueCreateInfo.pQueuePriorities = &queuePriority;
-                context.graphicsComputePresentQueueFamilyIndex = i;
-                break;
+                context.queues.mainRasterizerQueueFamilyIndex = i;
+                mainQueueFamilyFound = true;
+                if (!presentQueueFamilyFound &&
+                    queueFamilySupportsPresentation(context, i) &&
+                    queueFamilies[i].queueCount >= 2)
+                {
+                    presentQueueFamilyFound = true;
+                    context.queues.presentQueueFamilyIndex = i;
+                }
+                else if (queueFamilySupportsPresentation(context, i))
+                {
+                    context.queues.presentQueueFamilyIndex = i;
+                }
+
+                KRAKEN_CORE_INFO("Found main rasterizer queue with family index {0}", i);
+            }
+            else if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
+                     queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
+                     !asyncComputeQueueFamilyFound)
+            {
+                context.queues.asyncComputeQueueFamilyIndex = i;
+                asyncComputeQueueFamilyFound = true;
+
+                KRAKEN_CORE_INFO("Found async compute queue with family index {0}", i);
+            }
+            else if(queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
+                   !directMemoryAccessQueueFamilyFound)
+            {
+                context.queues.directMemoryAccessQueueFamilyIndex = i;
+                directMemoryAccessQueueFamilyFound = true;
+
+                KRAKEN_CORE_INFO("Found direct memory access queue with family index {0}", i);
             }
         }
+
+        KRAKEN_ASSERT_VALUE_MSG(mainQueueFamilyFound, "No main queue family found. Aborting.");
+
+        std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfos{};
+
+        float_t queuePriorities[]{ 1.0f, 1.0f };
+        if (asyncComputeQueueFamilyFound)
+        {
+            VkDeviceQueueCreateInfo asyncComputeQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+            asyncComputeQueueCreateInfo.pQueuePriorities = queuePriorities;
+            asyncComputeQueueCreateInfo.queueFamilyIndex = context.queues.asyncComputeQueueFamilyIndex;
+            asyncComputeQueueCreateInfo.queueCount = 1;
+            deviceQueueCreateInfos.push_back(asyncComputeQueueCreateInfo);
+        }
+        if (directMemoryAccessQueueFamilyFound)
+        {
+            VkDeviceQueueCreateInfo dmaQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+            dmaQueueCreateInfo.pQueuePriorities = queuePriorities;
+            dmaQueueCreateInfo.queueFamilyIndex = context.queues.directMemoryAccessQueueFamilyIndex;
+            dmaQueueCreateInfo.queueCount = 1;
+            deviceQueueCreateInfos.push_back(dmaQueueCreateInfo);
+        }
+        VkDeviceQueueCreateInfo mainQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+        mainQueueCreateInfo.pQueuePriorities = queuePriorities;
+        mainQueueCreateInfo.queueFamilyIndex = context.queues.mainRasterizerQueueFamilyIndex;
+        if (presentQueueFamilyFound &&
+            context.queues.presentQueueFamilyIndex == context.queues.mainRasterizerQueueFamilyIndex)
+        {
+            mainQueueCreateInfo.queueCount = 2;
+        }
+        else
+        {
+            mainQueueCreateInfo.queueCount = 1;
+        }
+        deviceQueueCreateInfos.push_back(mainQueueCreateInfo);
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -200,17 +266,42 @@ namespace kraken::vulkan
 
         VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-        deviceCreateInfo.queueCreateInfoCount = 1;
-        deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
         deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledDeviceExtensions.size());
         deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
 
         VK_CHECK(vkCreateDevice(context.physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &context.device));
         KRAKEN_ASSERT_VALUE(context.device);
 
-        vkGetDeviceQueue(context.device, queueCreateInfo.queueFamilyIndex, 0, &context.graphicsComputePresentQueue);
+        vkGetDeviceQueue(context.device, context.queues.mainRasterizerQueueFamilyIndex, 0, &context.queues.mainRasterizerQueue);
+        if (!asyncComputeQueueFamilyFound)
+        {
+            context.queues.asyncComputeQueue = context.queues.mainRasterizerQueue;
+        }
+        else
+        {
+             vkGetDeviceQueue(context.device, context.queues.asyncComputeQueueFamilyIndex, 0, &context.queues.asyncComputeQueue);
+        }
+        if (!directMemoryAccessQueueFamilyFound)
+        {
+            context.queues.directMemoryAccessQueue = context.queues.mainRasterizerQueue;
+        }
+        else
+        {
+            vkGetDeviceQueue(context.device, context.queues.directMemoryAccessQueueFamilyIndex, 0, &context.queues.directMemoryAccessQueue);
+        }
+        if (!presentQueueFamilyFound)
+        {
+            context.queues.presentQueue = context.queues.mainRasterizerQueue;
+        }
+        else if(context.queues.presentQueueFamilyIndex == context.queues.mainRasterizerQueueFamilyIndex)
+        {
+            vkGetDeviceQueue(context.device, context.queues.presentQueueFamilyIndex, 1, &context.queues.presentQueue);
+        }
 
-        KRAKEN_ASSERT_VALUE(context.graphicsComputePresentQueue);
+        KRAKEN_ASSERT_VALUE(context.queues.mainRasterizerQueue);
+        KRAKEN_ASSERT_VALUE(context.queues.presentQueue);
     }
 
     void getSwapchainImages(Context& context)
@@ -335,7 +426,7 @@ namespace kraken::vulkan
     {
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
         createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-        createInfo.queueFamilyIndex = context.graphicsComputePresentQueueFamilyIndex;
+        createInfo.queueFamilyIndex = context.queues.mainRasterizerQueueFamilyIndex;
         VK_CHECK(vkCreateCommandPool(context.device, &createInfo, VK_CPU_ALLOCATOR, &context.commandPool));
     }
 

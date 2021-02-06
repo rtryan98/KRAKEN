@@ -13,10 +13,20 @@ namespace kraken::vulkan
         VkPhysicalDevice physicalDevice;
         VkDevice device;
 
-        uint32_t graphicsComputePresentQueueFamilyIndex;
+        struct Queues
+        {
+            // queues
+            VkQueue mainRasterizerQueue;
+            VkQueue asyncComputeQueue;
+            VkQueue directMemoryAccessQueue;
+            VkQueue presentQueue;
 
-        VkQueue graphicsComputePresentQueue;
-        VkQueue presentQueue;
+            // queue family indices                      // Different functions on each chip.
+            uint32_t mainRasterizerQueueFamilyIndex;     // Main rasterizer queue does synchronous compute, graphics and maybe present
+            uint32_t directMemoryAccessQueueFamilyIndex; // Does async compute if exists
+            uint32_t asyncComputeQueueFamilyIndex;       // Does async transfer if exists
+            uint32_t presentQueueFamilyIndex;            // Does present async if seperate queue, synchronous with other queue otherwise
+        } queues;
 
         VkSurfaceKHR surface;
         VkSwapchainKHR swapchain;

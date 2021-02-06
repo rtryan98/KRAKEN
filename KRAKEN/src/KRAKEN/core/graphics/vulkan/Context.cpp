@@ -200,7 +200,7 @@ namespace kraken::vulkan
                     context.queues.presentQueueFamilyIndex = i;
                 }
 
-                KRAKEN_CORE_INFO("Found main rasterizer queue with family index {0}", i);
+                KRAKEN_CORE_INFO("Found main rasterizer queue with family index {0}.", i);
             }
             else if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
                      queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
@@ -209,7 +209,7 @@ namespace kraken::vulkan
                 context.queues.asyncComputeQueueFamilyIndex = i;
                 asyncComputeQueueFamilyFound = true;
 
-                KRAKEN_CORE_INFO("Found async compute queue with family index {0}", i);
+                KRAKEN_CORE_INFO("Found async compute queue with family index {0}.", i);
             }
             else if(queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
                    !directMemoryAccessQueueFamilyFound)
@@ -217,7 +217,7 @@ namespace kraken::vulkan
                 context.queues.directMemoryAccessQueueFamilyIndex = i;
                 directMemoryAccessQueueFamilyFound = true;
 
-                KRAKEN_CORE_INFO("Found direct memory access queue with family index {0}", i);
+                KRAKEN_CORE_INFO("Found direct memory access queue with family index {0}.", i);
             }
         }
 
@@ -298,6 +298,7 @@ namespace kraken::vulkan
         else if(context.queues.presentQueueFamilyIndex == context.queues.mainRasterizerQueueFamilyIndex)
         {
             vkGetDeviceQueue(context.device, context.queues.presentQueueFamilyIndex, 1, &context.queues.presentQueue);
+            KRAKEN_CORE_INFO("Using seperate queues for presentation.");
         }
 
         KRAKEN_ASSERT_VALUE(context.queues.mainRasterizerQueue);

@@ -149,8 +149,8 @@ namespace kraken::vulkan
                 selectedDevice = physicalDevices[i];
             }
         }
-        context.physicalDevice = selectedDevice;
-        KRAKEN_ASSERT_VALUE(context.physicalDevice);
+        context.device.physical = selectedDevice;
+        KRAKEN_ASSERT_VALUE(context.device.physical);
     }
 
     bool_t queueFamilySupportsGraphicsAndCompute(const VkQueueFamilyProperties& properties)
@@ -161,7 +161,7 @@ namespace kraken::vulkan
     bool_t queueFamilySupportsPresentation(Context& context, uint32_t queueFamilyIndex)
     {
         VkBool32 presentationSupported{};
-        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, queueFamilyIndex, context.surface, &presentationSupported));
+        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.device.physical, queueFamilyIndex, context.surface, &presentationSupported));
         return presentationSupported;
     }
 
@@ -170,9 +170,9 @@ namespace kraken::vulkan
         selectPhysicalDevice(context);
 
         uint32_t queueFamilyCount{ 0 };
-        vkGetPhysicalDeviceQueueFamilyProperties(context.physicalDevice, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(context.device.physical, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(context.physicalDevice, &queueFamilyCount, queueFamilies.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(context.device.physical, &queueFamilyCount, queueFamilies.data());
 
         bool_t transferQueueFamilyFound{ false };
         bool_t asyncComputeQueueFamilyFound{ false };
@@ -271,17 +271,17 @@ namespace kraken::vulkan
         deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledDeviceExtensions.size());
         deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
 
-        VK_CHECK(vkCreateDevice(context.physicalDevice, &deviceCreateInfo, VK_CPU_ALLOCATOR, &context.device));
-        KRAKEN_ASSERT_VALUE(context.device);
+        VK_CHECK(vkCreateDevice(context.device.physical, &deviceCreateInfo, VK_CPU_ALLOCATOR, &context.device.logical));
+        KRAKEN_ASSERT_VALUE(context.device.logical);
 
-        vkGetDeviceQueue(context.device, context.queues.rasterizerQueueFamilyIndex, 0, &context.queues.rasterizerQueue);
+        vkGetDeviceQueue(context.device.logical, context.queues.rasterizerQueueFamilyIndex, 0, &context.queues.rasterizerQueue);
         if (!asyncComputeQueueFamilyFound)
         {
             context.queues.asyncComputeQueue = context.queues.rasterizerQueue;
         }
         else
         {
-             vkGetDeviceQueue(context.device, context.queues.asyncComputeQueueFamilyIndex, 0, &context.queues.asyncComputeQueue);
+             vkGetDeviceQueue(context.device.logical, context.queues.asyncComputeQueueFamilyIndex, 0, &context.queues.asyncComputeQueue);
         }
         if (!transferQueueFamilyFound)
         {
@@ -289,7 +289,7 @@ namespace kraken::vulkan
         }
         else
         {
-            vkGetDeviceQueue(context.device, context.queues.transferQueueFamilyIndex, 0, &context.queues.transferQueue);
+            vkGetDeviceQueue(context.device.logical, context.queues.transferQueueFamilyIndex, 0, &context.queues.transferQueue);
         }
         if (!presentQueueFamilyFound)
         {
@@ -297,7 +297,7 @@ namespace kraken::vulkan
         }
         else if(context.queues.presentQueueFamilyIndex == context.queues.rasterizerQueueFamilyIndex)
         {
-            vkGetDeviceQueue(context.device, context.queues.presentQueueFamilyIndex, 1, &context.queues.presentQueue);
+            vkGetDeviceQueue(context.device.logical, context.queues.presentQueueFamilyIndex, 1, &context.queues.presentQueue);
             KRAKEN_CORE_INFO("Using seperate queues for presentation.");
         }
 
@@ -308,9 +308,9 @@ namespace kraken::vulkan
     void getSwapchainImages(Context& context)
     {
         uint32_t swapchainImageCount{};
-        VK_CHECK(vkGetSwapchainImagesKHR(context.device, context.swapchain, &swapchainImageCount, nullptr));
+        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.swapchain, &swapchainImageCount, nullptr));
         context.swapchainImages.resize(swapchainImageCount);
-        VK_CHECK(vkGetSwapchainImagesKHR(context.device, context.swapchain, &swapchainImageCount, context.swapchainImages.data()));
+        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.swapchain, &swapchainImageCount, context.swapchainImages.data()));
     }
 
     void createSwapchainImageViews(Context& context)
@@ -333,14 +333,14 @@ namespace kraken::vulkan
         for (uint32_t i{ 0 }; i < context.swapchainImages.size(); i++)
         {
             imageViewCreateInfo.image = context.swapchainImages[i];
-            VK_CHECK(vkCreateImageView(context.device, &imageViewCreateInfo, VK_CPU_ALLOCATOR, &context.swapchainImageViews[i]));
+            VK_CHECK(vkCreateImageView(context.device.logical, &imageViewCreateInfo, VK_CPU_ALLOCATOR, &context.swapchainImageViews[i]));
         }
     }
 
     void createSwapchain(Context& context)
     {
         VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.physicalDevice, context.surface, &surfaceCapabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.device.physical, context.surface, &surfaceCapabilities);
 
         VkSwapchainCreateInfoKHR swapchainCreateInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
         swapchainCreateInfo.surface = context.surface;
@@ -374,18 +374,18 @@ namespace kraken::vulkan
         swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
         uint32_t presentModeCount{ 0 };
-        vkGetPhysicalDeviceSurfacePresentModesKHR(context.physicalDevice, context.surface, &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.surface, &presentModeCount, nullptr);
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(context.physicalDevice, context.surface, &presentModeCount, presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.surface, &presentModeCount, presentModes.data());
 
         swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         swapchainCreateInfo.clipped = VK_TRUE;
         swapchainCreateInfo.imageArrayLayers = 1;
 
         uint32_t surfaceFormatCount{ 0 };
-        vkGetPhysicalDeviceSurfaceFormatsKHR(context.physicalDevice, context.surface, &surfaceFormatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.surface, &surfaceFormatCount, nullptr);
         std::vector<VkSurfaceFormatKHR> availableFormats(surfaceFormatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(context.physicalDevice, context.surface, &surfaceFormatCount, availableFormats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.surface, &surfaceFormatCount, availableFormats.data());
 
         bool bgraFound{ false };
         bool rgbaFound{ false };
@@ -416,7 +416,7 @@ namespace kraken::vulkan
 
         context.swapchainImageFormat = swapchainCreateInfo.imageFormat;
 
-        VK_CHECK(vkCreateSwapchainKHR(context.device, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.swapchain));
+        VK_CHECK(vkCreateSwapchainKHR(context.device.logical, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.swapchain));
         KRAKEN_ASSERT_VALUE(context.swapchain);
 
         getSwapchainImages(context);
@@ -428,15 +428,15 @@ namespace kraken::vulkan
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
         createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
         createInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
-        VK_CHECK(vkCreateCommandPool(context.device, &createInfo, VK_CPU_ALLOCATOR, &context.commandPool));
+        VK_CHECK(vkCreateCommandPool(context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &context.commandPool));
     }
 
     void printGpuMemoryInfo(Context& context)
     {
         VkPhysicalDeviceProperties deviceProperties{};
-        vkGetPhysicalDeviceProperties(context.physicalDevice, &deviceProperties);
+        vkGetPhysicalDeviceProperties(context.device.physical, &deviceProperties);
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
-        vkGetPhysicalDeviceMemoryProperties(context.physicalDevice, &deviceMemoryProperties);
+        vkGetPhysicalDeviceMemoryProperties(context.device.physical, &deviceMemoryProperties);
 
         KRAKEN_CORE_INFO("Selected Device: {0}", deviceProperties.deviceName);
         KRAKEN_CORE_INFO("Driver Version: {0}", deviceProperties.driverVersion);
@@ -504,17 +504,17 @@ namespace kraken::vulkan
     
     void freeContext(Context& context)
     {
-        VK_CHECK(vkDeviceWaitIdle(context.device));
+        VK_CHECK(vkDeviceWaitIdle(context.device.logical));
 
-        vkDestroyCommandPool(context.device, context.commandPool, VK_CPU_ALLOCATOR);
+        vkDestroyCommandPool(context.device.logical, context.commandPool, VK_CPU_ALLOCATOR);
 
         for (uint32_t i{ 0 }; i < context.swapchainImageViews.size(); i++)
         {
-            vkDestroyImageView(context.device, context.swapchainImageViews[i], VK_CPU_ALLOCATOR);
+            vkDestroyImageView(context.device.logical, context.swapchainImageViews[i], VK_CPU_ALLOCATOR);
         }
 
-        vkDestroySwapchainKHR(context.device, context.swapchain, VK_CPU_ALLOCATOR);
-        vkDestroyDevice(context.device, VK_CPU_ALLOCATOR);
+        vkDestroySwapchainKHR(context.device.logical, context.swapchain, VK_CPU_ALLOCATOR);
+        vkDestroyDevice(context.device.logical, VK_CPU_ALLOCATOR);
         vkDestroySurfaceKHR(context.instance, context.surface, VK_CPU_ALLOCATOR);
 #if KRAKEN_USE_ASSERTS
         vkDestroyDebugUtilsMessengerEXT(context.instance, context.debugMessenger, VK_CPU_ALLOCATOR);

@@ -60,10 +60,11 @@ namespace kraken::vulkan::util
         return result;
     }
 
-    VkFence createFence(VkDevice device)
+    VkFence createFence(VkDevice device, VkFenceCreateFlags flags)
     {
         VkFence result{};
         VkFenceCreateInfo fenceCreateInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+        fenceCreateInfo.flags = flags;
         VK_CHECK(vkCreateFence(device, &fenceCreateInfo, VK_CPU_ALLOCATOR, &result));
         KRAKEN_ASSERT_VALUE(result);
         return result;

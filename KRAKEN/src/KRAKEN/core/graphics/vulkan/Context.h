@@ -10,8 +10,11 @@ namespace kraken::vulkan
 
         VkDebugUtilsMessengerEXT debugMessenger;
 
-        VkPhysicalDevice physicalDevice;
-        VkDevice device;
+        struct Device
+        {
+            VkPhysicalDevice physical;
+            VkDevice logical;
+        } device;
 
         struct Queues
         {

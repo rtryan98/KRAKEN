@@ -8,7 +8,7 @@ namespace kraken::vulkan::util
 
     VkSemaphore createSemaphore(VkDevice device);
 
-    VkFence createFence(VkDevice device);
+    VkFence createFence(VkDevice device, VkFenceCreateFlags flags);
 }
 
 #if KRAKEN_USE_ASSERTS

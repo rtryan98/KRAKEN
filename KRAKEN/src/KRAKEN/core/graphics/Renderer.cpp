@@ -110,7 +110,7 @@ namespace kraken
         submitInfo.pCommandBuffers = &this->commandBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
-        VK_CHECK(vkQueueSubmit(this->context.queues.mainRasterizerQueue, 1, &submitInfo, VK_NULL_HANDLE));
+        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;

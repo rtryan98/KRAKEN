@@ -3,6 +3,5 @@
 
 namespace kraken::vulkan
 {
-    /// Allocator Callback
     extern VkAllocationCallbacks* VK_CPU_ALLOCATOR;
 }

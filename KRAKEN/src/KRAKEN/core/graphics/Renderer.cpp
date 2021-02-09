@@ -35,6 +35,8 @@ namespace kraken
         renderPassCreateInfo.pAttachments = &attachmentDescription;
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpass;
+        renderPassCreateInfo.dependencyCount = 0;
+        renderPassCreateInfo.pDependencies = nullptr;
 
         VK_CHECK(vkCreateRenderPass(this->context.device.logical, &renderPassCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->renderPass));
     }
@@ -59,12 +61,12 @@ namespace kraken
 
     void Renderer::onUpdate()
     {
-        // TODO: TEMPORARY
         vkDeviceWaitIdle(this->context.device.logical);
-        // TODO: TEMPORARY
 
         uint32_t imageIndex{};
         VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
+
+
 
         VK_CHECK(vkResetCommandPool(this->context.device.logical, this->context.commandPool, 0x0));
 
@@ -81,7 +83,7 @@ namespace kraken
         VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
 
         VkClearValue clearValue{};
-        clearValue.color = { 1.0f, 0.5f, 0.0f, 1.0f };
+        clearValue.color = { 0.1f, 0.1f, 0.1f, 1.0f };
 
         VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
         renderPassBeginInfo.framebuffer = this->framebuffers[imageIndex];
@@ -91,11 +93,10 @@ namespace kraken
         renderPassBeginInfo.renderArea.extent = this->context.swapchainImageExtent;
         renderPassBeginInfo.renderArea.offset = {0, 0};
 
-
         vkCmdBeginRenderPass(this->commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdEndRenderPass(this->commandBuffer);
 
+        vkCmdEndRenderPass(this->commandBuffer);
 
         VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
 
@@ -122,29 +123,37 @@ namespace kraken
         VK_CHECK(vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo));
     }
 
+    void Renderer::createSyncObjects()
+    {
+        this->acquireSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
+        this->releaseSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
+    }
+
+    void Renderer::freeSyncObjects()
+    {
+        vkDestroySemaphore(this->context.device.logical, this->acquireSemaphore, vulkan::VK_CPU_ALLOCATOR);
+        vkDestroySemaphore(this->context.device.logical, this->releaseSemaphore, vulkan::VK_CPU_ALLOCATOR);
+    }
+
     void Renderer::init(const Window& window)
     {
         KRAKEN_UNUSED_VARIABLE(window);
         vulkan::initContext(this->context);
-        this->acquireSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
-        this->releaseSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
-        this->submitFence = vulkan::util::createFence(this->context.device.logical, VK_FENCE_CREATE_SIGNALED_BIT);
         createRenderPasses();
         createFramebuffers();
+        createSyncObjects();
     }
 
     void Renderer::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        freeSyncObjects();
         for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
         {
             vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
         }
         vkDestroyRenderPass(this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
-        vkDestroyFence(this->context.device.logical, this->submitFence, vulkan::VK_CPU_ALLOCATOR);
-        vkDestroySemaphore(this->context.device.logical, this->releaseSemaphore, vulkan::VK_CPU_ALLOCATOR);
-        vkDestroySemaphore(this->context.device.logical, this->acquireSemaphore, vulkan::VK_CPU_ALLOCATOR);
         vulkan::freeContext(this->context);
     }
 

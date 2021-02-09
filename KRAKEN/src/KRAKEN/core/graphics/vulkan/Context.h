@@ -39,6 +39,8 @@ namespace kraken::vulkan
         VkExtent2D swapchainImageExtent;
 
         VkCommandPool commandPool;
+
+        uint32_t maxFramesInFlight{ 2 };
     };
 
     void initContext(Context& context);

@@ -26,15 +26,15 @@ namespace kraken
     private:
         void createRenderPasses();
         void createFramebuffers();
+        void createSyncObjects();
+        void freeSyncObjects();
 
     private:
         vulkan::Context context{};
-
-        VkSemaphore acquireSemaphore{};
-        VkSemaphore releaseSemaphore{};
         VkCommandBuffer commandBuffer{};
-        VkFence submitFence{};
         VkRenderPass renderPass{};
         std::vector<VkFramebuffer> framebuffers{};
+        VkSemaphore acquireSemaphore{};
+        VkSemaphore releaseSemaphore{};
     };
 }

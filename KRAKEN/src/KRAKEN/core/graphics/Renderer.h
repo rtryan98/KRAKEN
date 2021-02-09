@@ -28,6 +28,7 @@ namespace kraken
         void createFramebuffers();
         void createSyncObjects();
         void freeSyncObjects();
+        void createPipeline();
 
     private:
         vulkan::Context context{};
@@ -36,5 +37,6 @@ namespace kraken
         std::vector<VkFramebuffer> framebuffers{};
         VkSemaphore acquireSemaphore{};
         VkSemaphore releaseSemaphore{};
+        VkPipeline pipeline{};
     };
 }

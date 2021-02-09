@@ -59,10 +59,13 @@ namespace kraken
         }
     }
 
+    void Renderer::createPipeline()
+    {
+
+    }
+
     void Renderer::onUpdate()
     {
-        vkDeviceWaitIdle(this->context.device.logical);
-
         uint32_t imageIndex{};
         VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
 
@@ -96,6 +99,7 @@ namespace kraken
         vkCmdBeginRenderPass(this->commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 
+
         vkCmdEndRenderPass(this->commandBuffer);
 
         VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
@@ -120,7 +124,8 @@ namespace kraken
         queuePresentInfo.pWaitSemaphores = &this->releaseSemaphore;
         queuePresentInfo.pImageIndices = &imageIndex;
 
-        VK_CHECK(vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo));
+        VK_CHECK(vkQueuePresentKHR(this->context.queues.rasterizerQueue, &queuePresentInfo));
+        VK_CHECK(vkQueueWaitIdle(this->context.queues.rasterizerQueue));
     }
 
     void Renderer::createSyncObjects()
@@ -142,18 +147,29 @@ namespace kraken
         createRenderPasses();
         createFramebuffers();
         createSyncObjects();
+        createPipeline();
     }
 
     void Renderer::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        if (this->pipeline != VK_NULL_HANDLE)
+        {
+            vkDestroyPipeline(this->context.device.logical, this->pipeline, vulkan::VK_CPU_ALLOCATOR);
+        }
         freeSyncObjects();
         for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
         {
-            vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
+            if (this->framebuffers[i] != VK_NULL_HANDLE)
+            {
+                vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
+            }
         }
-        vkDestroyRenderPass(this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
+        if (this->renderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass(this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
+        }
         vulkan::freeContext(this->context);
     }
 

@@ -506,19 +506,35 @@ namespace kraken::vulkan
     {
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
 
-        vkDestroyCommandPool(context.device.logical, context.commandPool, VK_CPU_ALLOCATOR);
-
+        if (context.commandPool != VK_NULL_HANDLE)
+        {
+            vkDestroyCommandPool(context.device.logical, context.commandPool, VK_CPU_ALLOCATOR);
+        }
         for (uint32_t i{ 0 }; i < context.swapchainImageViews.size(); i++)
         {
             vkDestroyImageView(context.device.logical, context.swapchainImageViews[i], VK_CPU_ALLOCATOR);
         }
-
-        vkDestroySwapchainKHR(context.device.logical, context.swapchain, VK_CPU_ALLOCATOR);
-        vkDestroyDevice(context.device.logical, VK_CPU_ALLOCATOR);
-        vkDestroySurfaceKHR(context.instance, context.surface, VK_CPU_ALLOCATOR);
+        if (context.swapchain != VK_NULL_HANDLE)
+        {
+            vkDestroySwapchainKHR(context.device.logical, context.swapchain, VK_CPU_ALLOCATOR);
+        }
+        if (context.device.logical != VK_NULL_HANDLE)
+        {
+            vkDestroyDevice(context.device.logical, VK_CPU_ALLOCATOR);
+        }
+        if (context.surface != VK_NULL_HANDLE)
+        {
+            vkDestroySurfaceKHR(context.instance, context.surface, VK_CPU_ALLOCATOR);
+        }
 #if KRAKEN_USE_ASSERTS
-        vkDestroyDebugUtilsMessengerEXT(context.instance, context.debugMessenger, VK_CPU_ALLOCATOR);
+        if (context.debugMessenger != VK_NULL_HANDLE)
+        {
+            vkDestroyDebugUtilsMessengerEXT(context.instance, context.debugMessenger, VK_CPU_ALLOCATOR);
+        }
 #endif
-        vkDestroyInstance(context.instance, VK_CPU_ALLOCATOR);
+        if (context.instance != VK_NULL_HANDLE)
+        {
+            vkDestroyInstance(context.instance, VK_CPU_ALLOCATOR);
+        }
     }
 }

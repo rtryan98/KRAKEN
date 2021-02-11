@@ -28,6 +28,7 @@ namespace kraken
         void createFramebuffers();
         void createSyncObjects();
         void freeSyncObjects();
+        void createShaderModules();
         void createPipeline();
 
     private:
@@ -37,6 +38,9 @@ namespace kraken
         std::vector<VkFramebuffer> framebuffers{};
         VkSemaphore acquireSemaphore{};
         VkSemaphore releaseSemaphore{};
+        VkShaderModule frag{};
+        VkShaderModule vert{};
+        VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
     };
 }

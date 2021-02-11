@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include <vector>
 #include "KRAKEN/Defines.h"
 
 namespace kraken::vulkan::util
@@ -9,6 +10,8 @@ namespace kraken::vulkan::util
     VkSemaphore createSemaphore(VkDevice device);
 
     VkFence createFence(VkDevice device, VkFenceCreateFlags flags);
+
+    std::vector<char> parseSPIRV(const char* path);
 }
 
 #if KRAKEN_USE_ASSERTS

@@ -2,6 +2,8 @@
 
 #include "KRAKEN/core/graphics/vulkan/Util.h"
 #include "KRAKEN/core/graphics/vulkan/Globals.h"
+#include <fstream>
+#include <sstream>
 
 namespace kraken::vulkan::util
 {
@@ -67,6 +69,18 @@ namespace kraken::vulkan::util
         fenceCreateInfo.flags = flags;
         VK_CHECK(vkCreateFence(device, &fenceCreateInfo, VK_CPU_ALLOCATOR, &result));
         KRAKEN_ASSERT_VALUE(result);
+        return result;
+    }
+
+    std::vector<char> parseSPIRV(const char* path)
+    {
+        std::ifstream ifStream{ path, std::ios::ate | std::ios::binary };
+        KRAKEN_ASSERT_VALUE(ifStream.is_open());
+        uint32_t fileSize{ static_cast<uint32_t>(ifStream.tellg()) };
+        std::vector<char> result(fileSize);
+        ifStream.seekg(0);
+        ifStream.read(result.data(), fileSize);
+        ifStream.close();
         return result;
     }
 }

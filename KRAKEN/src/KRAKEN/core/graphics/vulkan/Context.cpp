@@ -291,14 +291,13 @@ namespace kraken::vulkan
         {
             vkGetDeviceQueue(context.device.logical, context.queues.transferQueueFamilyIndex, 0, &context.queues.transferQueue);
         }
-        if (!presentQueueFamilyFound)
+        if (presentQueueFamilyFound)
         {
             context.queues.presentQueue = context.queues.rasterizerQueue;
         }
-        else if(context.queues.presentQueueFamilyIndex == context.queues.rasterizerQueueFamilyIndex)
+        else
         {
-            vkGetDeviceQueue(context.device.logical, context.queues.presentQueueFamilyIndex, 1, &context.queues.presentQueue);
-            KRAKEN_CORE_INFO("Using seperate queues for presentation.");
+            KRAKEN_CORE_ERROR("Presentation not supported.");
         }
 
         KRAKEN_ASSERT_VALUE(context.queues.rasterizerQueue);

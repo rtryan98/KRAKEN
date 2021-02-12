@@ -96,9 +96,9 @@ namespace kraken
 
         VkViewport viewport{};
         viewport.x = 0.0f;
-        viewport.y = 0.0f;
+        viewport.y = static_cast<float>(this->context.swapchainImageExtent.height);
         viewport.width = static_cast<float>(this->context.swapchainImageExtent.width);
-        viewport.height = static_cast<float>(this->context.swapchainImageExtent.height);
+        viewport.height = -static_cast<float>(this->context.swapchainImageExtent.height);
         viewport.maxDepth = 1.0f;
         viewport.minDepth = 0.0f;
 
@@ -118,7 +118,7 @@ namespace kraken
         rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizerCreateInfo.lineWidth = 1.0f;
         rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizerCreateInfo.depthBiasClamp = 0.0f;
         rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
         rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -217,7 +217,7 @@ namespace kraken
         VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
 
         VkClearValue clearValue{};
-        clearValue.color = { 0.1f, 0.1f, 0.1f, 1.0f };
+        clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
         renderPassBeginInfo.framebuffer = this->framebuffers[imageIndex];

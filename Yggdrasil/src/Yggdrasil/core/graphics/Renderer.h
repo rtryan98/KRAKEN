@@ -18,6 +18,11 @@ namespace yggdrasil
         VkImage swapchainImage{};
         VkImageView swapchainImageView{};
         VkFramebuffer framebuffer{};
+        VkSemaphore acquireSemaphore{};
+        VkSemaphore releaseSemaphore{};
+        VkFence currentFence{};
+        VkFence lastFence{};
+        uint32_t frame{ 0 };
     };
 
     class Renderer

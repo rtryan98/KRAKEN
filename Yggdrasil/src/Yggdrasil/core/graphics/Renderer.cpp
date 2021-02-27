@@ -197,14 +197,21 @@ namespace yggdrasil
 
     void Renderer::acquirePerFrameData()
     {
+        this->perFrame.acquireSemaphore = this->context.syncObjects.acquireSemaphores[this->perFrame.frame];
+        this->perFrame.releaseSemaphore = this->context.syncObjects.releaseSemaphores[this->perFrame.frame];
+        this->perFrame.currentFence = this->context.syncObjects.acquireFences[this->perFrame.frame];
+
+        vkWaitForFences(this->context.device.logical, 1, &this->perFrame.currentFence, VK_TRUE, ~0ull);
+
         uint32_t imageIndex{};
-        VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
+        VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->perFrame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
         this->currentImage = imageIndex;
         this->perFrame.commandPool = this->context.commandPools[imageIndex];
         this->perFrame.commandBuffer = this->context.commandBuffers[imageIndex];
         this->perFrame.swapchainImage = this->context.screen.swapchainImages[imageIndex];
         this->perFrame.swapchainImageView = this->context.screen.swapchainImageViews[imageIndex];
         this->perFrame.framebuffer = this->framebuffers[imageIndex];
+        this->perFrame.lastFence = this->perFrame.currentFence;
     }
 
     void Renderer::prepare()
@@ -257,24 +264,25 @@ namespace yggdrasil
 
         VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
         submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &this->acquireSemaphore;
+        submitInfo.pWaitSemaphores = &this->perFrame.acquireSemaphore;
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &this->releaseSemaphore;
+        submitInfo.pSignalSemaphores = &this->perFrame.releaseSemaphore;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &this->perFrame.commandBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
-        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, VK_NULL_HANDLE));
+        VK_CHECK(vkResetFences(this->context.device.logical, 1, &this->perFrame.currentFence));
+        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, this->perFrame.currentFence));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;
         queuePresentInfo.pSwapchains = &this->context.screen.swapchain;
         queuePresentInfo.waitSemaphoreCount = 1;
-        queuePresentInfo.pWaitSemaphores = &this->releaseSemaphore;
+        queuePresentInfo.pWaitSemaphores = &this->perFrame.releaseSemaphore;
         queuePresentInfo.pImageIndices = &this->currentImage;
 
         VK_CHECK(vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo));
-        VK_CHECK(vkQueueWaitIdle(this->context.queues.rasterizerQueue));
+        this->perFrame.frame = (this->perFrame.frame + 1) % static_cast<uint32_t>(this->context.screen.swapchainImages.size());
     }
 
     void Renderer::createSyncObjects()

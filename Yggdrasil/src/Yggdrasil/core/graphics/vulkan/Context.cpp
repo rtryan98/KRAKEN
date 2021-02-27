@@ -417,13 +417,13 @@ namespace yggdrasil::vulkan
         context.screen.swapchainImageFormat = swapchainCreateInfo.imageFormat;
 
         VK_CHECK(vkCreateSwapchainKHR(context.device.logical, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.screen.swapchain));
-        YGGDRASIL_ASSERT_VALUE(context.swapchain);
+        YGGDRASIL_ASSERT_VALUE(context.screen.swapchain);
 
         getSwapchainImages(context);
         createSwapchainImageViews(context);
     }
 
-    void createCommandPool(Context& context)
+    void createCommandPools(Context& context)
     {
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
         createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
@@ -440,6 +440,29 @@ namespace yggdrasil::vulkan
             VK_CHECK(vkCreateCommandPool(context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &context.commandPools[i]));
             allocateInfo.commandPool = context.commandPools[i];
             VK_CHECK(vkAllocateCommandBuffers(context.device.logical, &allocateInfo, &context.commandBuffers[i]));
+        }
+    }
+
+    void createSyncObjects(Context& context)
+    {
+        context.syncObjects.acquireFences.resize(context.screen.swapchainImages.size());
+        context.syncObjects.acquireSemaphores.resize(context.screen.swapchainImages.size());
+        context.syncObjects.releaseSemaphores.resize(context.screen.swapchainImages.size());
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
+        {
+            context.syncObjects.acquireFences[i] = util::createFence(context.device.logical, VK_FENCE_CREATE_SIGNALED_BIT);
+            context.syncObjects.acquireSemaphores[i] = util::createSemaphore(context.device.logical);
+            context.syncObjects.releaseSemaphores[i] = util::createSemaphore(context.device.logical);
+        }
+    }
+
+    void freeSyncObjects(Context& context)
+    {
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
+        {
+            vkDestroyFence(context.device.logical, context.syncObjects.acquireFences[i], VK_CPU_ALLOCATOR);
+            vkDestroySemaphore(context.device.logical, context.syncObjects.acquireSemaphores[i], VK_CPU_ALLOCATOR);
+            vkDestroySemaphore(context.device.logical, context.syncObjects.releaseSemaphores[i], VK_CPU_ALLOCATOR);
         }
     }
 
@@ -509,7 +532,8 @@ namespace yggdrasil::vulkan
         createSurface(context);
         createDevice(context);
         createSwapchain(context);
-        createCommandPool(context);
+        createCommandPools(context);
+        createSyncObjects(context);
 
         printGpuMemoryInfo(context);
     }
@@ -518,6 +542,7 @@ namespace yggdrasil::vulkan
     {
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
 
+        freeSyncObjects(context);
         for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
         {
             vkDestroyCommandPool(context.device.logical, context.commandPools[i], VK_CPU_ALLOCATOR);

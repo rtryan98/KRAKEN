@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "Yggdrasil/core/event/Event.h"
+#include "Yggdrasil/Types.h"
 
 namespace yggdrasil
 {
@@ -13,10 +14,17 @@ namespace yggdrasil
         virtual void onAttach() = 0;
         virtual void onDetach() = 0;
         virtual void onUpdate() = 0;
+        virtual void onImguiUpdate() {};
+
+        virtual void onDetachInternal() final;
+
         virtual void onEvent(Event& event) = 0;
 
         const std::string& getDebugName() const;
+
+        bool_t isDetach() const;
     private:
         std::string debugName{};
+        bool_t detached{ false };
     };
 }

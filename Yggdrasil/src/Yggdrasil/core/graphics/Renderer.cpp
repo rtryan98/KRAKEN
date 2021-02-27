@@ -19,7 +19,7 @@ namespace yggdrasil
         attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference colorAttachmentReference{};
         colorAttachmentReference.attachment = 0;
@@ -195,12 +195,11 @@ namespace yggdrasil
         VK_CHECK(vkCreateGraphicsPipelines(this->context.device.logical, VK_NULL_HANDLE, 1, &pipelineCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->pipeline));
     }
 
-    void Renderer::onUpdate()
+    void Renderer::prepare()
     {
         uint32_t imageIndex{};
         VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
-
-
+        this->currentImage = imageIndex;
 
         VK_CHECK(vkResetCommandPool(this->context.device.logical, this->context.commandPool, 0x0));
 
@@ -209,18 +208,22 @@ namespace yggdrasil
         commandBufferAllocateInfo.commandPool = this->context.commandPool;
         commandBufferAllocateInfo.commandBufferCount = 1;
 
+
         VK_CHECK(vkAllocateCommandBuffers(this->context.device.logical, &commandBufferAllocateInfo, &commandBuffer));
+        this->perFrame.commandBuffer = commandBuffer;
 
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
         VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
+    }
 
+    void Renderer::onUpdate()
+    {
         VkClearValue clearValue{};
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-        renderPassBeginInfo.framebuffer = this->framebuffers[imageIndex];
+        renderPassBeginInfo.framebuffer = this->framebuffers[this->currentImage];
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
         renderPassBeginInfo.renderPass = this->renderPass;
@@ -231,11 +234,27 @@ namespace yggdrasil
 
         vkCmdBindPipeline(this->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline);
         vkCmdDraw(this->commandBuffer, 3, 1, 0, 0);
-
         vkCmdEndRenderPass(this->commandBuffer);
+    }
+
+    void Renderer::present()
+    {
+        VkImageMemoryBarrier layoutBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        layoutBarrier.image = this->context.swapchainImages[this->currentImage];
+        layoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        layoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        layoutBarrier.srcQueueFamilyIndex = this->context.queues.rasterizerQueueFamilyIndex;
+        layoutBarrier.dstQueueFamilyIndex = this->context.queues.rasterizerQueueFamilyIndex;
+        layoutBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        layoutBarrier.subresourceRange.layerCount = 1;
+        layoutBarrier.subresourceRange.baseArrayLayer = 0;
+        layoutBarrier.subresourceRange.levelCount = 1;
+        layoutBarrier.subresourceRange.baseMipLevel = 0;
+
+        vkCmdPipelineBarrier(this->commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
+            0, nullptr, 0, nullptr, 1, &layoutBarrier);
 
         VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
-
         VkPipelineStageFlags submitStageMask{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
         VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
@@ -254,7 +273,7 @@ namespace yggdrasil
         queuePresentInfo.pSwapchains = &this->context.swapchain;
         queuePresentInfo.waitSemaphoreCount = 1;
         queuePresentInfo.pWaitSemaphores = &this->releaseSemaphore;
-        queuePresentInfo.pImageIndices = &imageIndex;
+        queuePresentInfo.pImageIndices = &this->currentImage;
 
         VK_CHECK(vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo));
         VK_CHECK(vkQueueWaitIdle(this->context.queues.rasterizerQueue));
@@ -322,4 +341,25 @@ namespace yggdrasil
     {
         return this->context;
     }
+
+    VkRenderPass Renderer::getRenderPass() const
+    {
+        return this->renderPass;
+    }
+
+    const PerFrame& Renderer::getPerFrameData() const
+    {
+        return this->perFrame;
+    }
+
+    const std::vector<VkFramebuffer>& Renderer::getFramebuffers() const
+    {
+        return this->framebuffers;
+    }
+
+    uint32_t Renderer::getCurrentFrame() const
+    {
+        return this->currentImage;
+    }
+
 }

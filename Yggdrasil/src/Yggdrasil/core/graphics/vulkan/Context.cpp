@@ -200,7 +200,7 @@ namespace yggdrasil::vulkan
                     context.queues.presentQueueFamilyIndex = i;
                 }
 
-                KRAKEN_CORE_INFO("Found main rasterizer queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found main rasterizer queue with family index {0}.", i);
             }
             else if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
                      queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
@@ -209,7 +209,7 @@ namespace yggdrasil::vulkan
                 context.queues.asyncComputeQueueFamilyIndex = i;
                 asyncComputeQueueFamilyFound = true;
 
-                KRAKEN_CORE_INFO("Found async compute queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found async compute queue with family index {0}.", i);
             }
             else if(queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
                    !transferQueueFamilyFound)
@@ -217,7 +217,7 @@ namespace yggdrasil::vulkan
                 context.queues.transferQueueFamilyIndex = i;
                 transferQueueFamilyFound = true;
 
-                KRAKEN_CORE_INFO("Found direct memory access queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found direct memory access queue with family index {0}.", i);
             }
         }
 
@@ -297,7 +297,7 @@ namespace yggdrasil::vulkan
         }
         else
         {
-            KRAKEN_CORE_ERROR("Presentation not supported.");
+            YGGDRASIL_CORE_ERROR("Presentation not supported.");
         }
 
         YGGDRASIL_ASSERT_VALUE(context.queues.rasterizerQueue);
@@ -437,12 +437,12 @@ namespace yggdrasil::vulkan
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
         vkGetPhysicalDeviceMemoryProperties(context.device.physical, &deviceMemoryProperties);
 
-        KRAKEN_CORE_INFO("Selected Device: {0}", deviceProperties.deviceName);
-        KRAKEN_CORE_INFO("Driver Version: {0}", deviceProperties.driverVersion);
-        KRAKEN_CORE_INFO("Memory:");
+        YGGDRASIL_CORE_INFO("Selected Device: {0}", deviceProperties.deviceName);
+        YGGDRASIL_CORE_INFO("Driver Version: {0}", deviceProperties.driverVersion);
+        YGGDRASIL_CORE_INFO("Memory:");
         for (uint32_t i{ 0 }; i < deviceMemoryProperties.memoryHeapCount; i++)
         {
-            KRAKEN_CORE_INFO("\tHeap Size: {0:.6f} GB", deviceMemoryProperties.memoryHeaps[i].size * 1.0e-9);
+            YGGDRASIL_CORE_INFO("\tHeap Size: {0:.6f} GB", deviceMemoryProperties.memoryHeaps[i].size * 1.0e-9);
             std::stringstream heapTypeStringStream{};
             heapTypeStringStream << "\t\tHeapType: ";
             for (uint32_t j{ 0 }; j < deviceMemoryProperties.memoryTypeCount; j++)
@@ -483,7 +483,7 @@ namespace yggdrasil::vulkan
                     }
                 }
             }
-            KRAKEN_CORE_INFO(heapTypeStringStream.str().c_str());
+            YGGDRASIL_CORE_INFO(heapTypeStringStream.str().c_str());
         }
     }
 

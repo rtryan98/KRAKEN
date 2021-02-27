@@ -53,7 +53,18 @@ namespace yggdrasil
 
     void Application::onUpdate()
     {
+        for (Layer* layer : this->layerStack)
+        {
+            layer->onUpdate();
+        }
+    }
 
+    void Application::onImguiUpdate()
+    {
+        for (Layer* layer : this->layerStack)
+        {
+            layer->onImguiUpdate();
+        }
     }
 
     void Application::run()
@@ -61,13 +72,26 @@ namespace yggdrasil
         while (window->isRunning())
         {
             window->onUpdate();
+            globals::RENDERER->prepare();
             onUpdate();
             globals::RENDERER->onUpdate();
+            onImguiUpdate();
+            globals::RENDERER->present();
+        }
+        for (Layer* layer : this->layerStack)
+        {
+            YGGDRASIL_CORE_TRACE("Pop {0}", layer->getDebugName());
+            layer->onDetachInternal();
         }
     }
 
     Window* const Application::getWindow() const
     {
         return this->window;
+    }
+
+    LayerStack& Application::getLayerStack()
+    {
+        return this->layerStack;
     }
 }

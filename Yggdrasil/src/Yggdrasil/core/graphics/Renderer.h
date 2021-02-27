@@ -11,6 +11,11 @@ namespace yggdrasil
 {
     class Window;
 
+    struct PerFrame
+    {
+        VkCommandBuffer commandBuffer{};
+    };
+
     class Renderer
     {
     public:
@@ -20,8 +25,14 @@ namespace yggdrasil
         void init(const Window& window);
         void free();
         void onUpdate();
+        void present();
+        void prepare();
 
         const vulkan::Context& getContext() const;
+        VkRenderPass getRenderPass() const;
+        const PerFrame& getPerFrameData() const;
+        const std::vector<VkFramebuffer>& getFramebuffers() const;
+        uint32_t getCurrentFrame() const;
 
     private:
         void createRenderPasses();
@@ -42,5 +53,7 @@ namespace yggdrasil
         VkShaderModule vert{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
+        uint32_t currentImage{ 0 };
+        PerFrame perFrame{};
     };
 }

@@ -8,7 +8,10 @@ namespace yggdrasil
     {
         for (Layer* const layer : layers)
         {
-            layer->onDetach();
+            if (!layer->isDetach())
+            {
+                layer->onDetach();
+            }
             delete layer;
         }
     }

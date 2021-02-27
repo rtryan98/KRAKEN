@@ -14,4 +14,15 @@ namespace yggdrasil
     {
         return debugName;
     }
+
+    bool Layer::isDetach() const
+    {
+        return this->detached;
+    }
+
+    void Layer::onDetachInternal()
+    {
+        this->detached = true;
+        onDetach();
+    }
 }

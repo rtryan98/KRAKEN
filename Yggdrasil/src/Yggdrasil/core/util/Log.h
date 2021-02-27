@@ -25,14 +25,14 @@ namespace yggdrasil
     };
 }
 
-#define KRAKEN_CORE_TRACE(...)    ::yggdrasil::Logger::getCoreLogger()->trace(__VA_ARGS__);
-#define KRAKEN_CORE_INFO(...)     ::yggdrasil::Logger::getCoreLogger()->info(__VA_ARGS__);
-#define KRAKEN_CORE_WARN(...)     ::yggdrasil::Logger::getCoreLogger()->warn(__VA_ARGS__);
-#define KRAKEN_CORE_ERROR(...)    ::yggdrasil::Logger::getCoreLogger()->error(__VA_ARGS__);
+#define YGGDRASIL_CORE_TRACE(...)    ::yggdrasil::Logger::getCoreLogger()->trace(__VA_ARGS__);
+#define YGGDRASIL_CORE_INFO(...)     ::yggdrasil::Logger::getCoreLogger()->info(__VA_ARGS__);
+#define YGGDRASIL_CORE_WARN(...)     ::yggdrasil::Logger::getCoreLogger()->warn(__VA_ARGS__);
+#define YGGDRASIL_CORE_ERROR(...)    ::yggdrasil::Logger::getCoreLogger()->error(__VA_ARGS__);
 #define YGGDRASIL_CORE_CRITICAL(...) ::yggdrasil::Logger::getCoreLogger()->critical(__VA_ARGS__);
 
-#define KRAKEN_TRACE(...)         ::yggdrasil::Logger::getClientLogger()->trace(__VA_ARGS__);
-#define KRAKEN_INFO(...)          ::yggdrasil::Logger::getClientLogger()->info(__VA_ARGS__);
-#define KRAKEN_WARN(...)          ::yggdrasil::Logger::getClientLogger()->warn(__VA_ARGS__);
-#define KRAKEN_ERROR(...)         ::yggdrasil::Logger::getClientLogger()->error(__VA_ARGS__);
-#define KRAKEN_CRITICAL(...)      ::yggdrasil::Logger::getClientLogger()->critical(__VA_ARGS__);
+#define YGGDRASIL_TRACE(...)         ::yggdrasil::Logger::getClientLogger()->trace(__VA_ARGS__);
+#define YGGDRASIL_INFO(...)          ::yggdrasil::Logger::getClientLogger()->info(__VA_ARGS__);
+#define YGGDRASIL_WARN(...)          ::yggdrasil::Logger::getClientLogger()->warn(__VA_ARGS__);
+#define YGGDRASIL_ERROR(...)         ::yggdrasil::Logger::getClientLogger()->error(__VA_ARGS__);
+#define YGGDRASIL_CRITICAL(...)      ::yggdrasil::Logger::getClientLogger()->critical(__VA_ARGS__);

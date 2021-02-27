@@ -64,7 +64,9 @@ endif()
 
 # Include Libraries to Yggdrasil
 target_link_libraries(${ENGINE_NAME} PUBLIC glslang glfw Vulkan::Vulkan spdlog)
-target_include_directories(${ENGINE_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src/" "vendor/glm/")
+target_include_directories(${ENGINE_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src/" "vendor/glm/"
+                                                                                      "vendor/"
+                                                                                      "vendor/imgui/")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -95,6 +97,7 @@ endif()
 
 # Include Libraries to KRAKEN-Sandbox
 target_link_libraries(${ENGINE_SANDBOX_NAME} PRIVATE ${ENGINE_NAME})
+target_include_directories(${ENGINE_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/Sandbox/src")
 
 # Compile Options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

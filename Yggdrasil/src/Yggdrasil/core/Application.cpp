@@ -5,11 +5,14 @@
 #include "Yggdrasil/core/event/WindowEvent.h"
 #include "Yggdrasil/core/input/Input.h"
 #include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/util/layers/DearImguiLayer.h"
+
+#include <glfw/glfw3.h>
 
 namespace yggdrasil
 {
     Application::Application(const ApplicationCreateInfo& createInfo)
-        : window{ nullptr }
+        : window{ nullptr }, imguiEnabled{ createInfo.imguiEnabled }
     {
         Logger::init();
         globals::APPLICATION = this;
@@ -27,13 +30,16 @@ namespace yggdrasil
             {
             return this->onEvent(std::forward<decltype(args)>(args)...);
             };
+        windowData.decorated = createInfo.decorated;
         window = Window::createWindow( windowData );
         globals::RENDERER = new Renderer();
         globals::RENDERER->init(*this->window);
+        ImguiLayer::init();
     }
 
     Application::~Application()
     {
+        ImguiLayer::free();
         globals::RENDERER->free();
         delete globals::RENDERER;
         delete window;
@@ -69,18 +75,35 @@ namespace yggdrasil
 
     void Application::run()
     {
+        float_t deltaAccumulator{ 1.0f };
+        uint32_t frames{ 0 };
         while (window->isRunning())
         {
+            globals::CURRENT_FRAME_TIME = static_cast<float_t>(glfwGetTime());
+            globals::DELTA_FRAME_TIME = globals::CURRENT_FRAME_TIME - globals::LAST_FRAME_TIME;
+            globals::LAST_FRAME_TIME = globals::CURRENT_FRAME_TIME;
+            deltaAccumulator -= globals::DELTA_FRAME_TIME;
+            if (deltaAccumulator < 0.0f)
+            {
+                this->framesPerSecond = frames;
+                this->cpuFrameTime = 1.0f / static_cast<float>(this->framesPerSecond) * 1000;
+                frames = 0;
+                deltaAccumulator = 1.0f;
+            }
             window->onUpdate();
             globals::RENDERER->prepare();
             onUpdate();
             globals::RENDERER->onUpdate();
-            onImguiUpdate();
+            if (this->imguiEnabled)
+            {
+                onImguiUpdate();
+            }
             globals::RENDERER->present();
+            frames++;
         }
         for (Layer* layer : this->layerStack)
         {
-            YGGDRASIL_CORE_TRACE("Pop {0}", layer->getDebugName());
+            YGGDRASIL_CORE_TRACE("Detach {0}", layer->getDebugName());
             layer->onDetachInternal();
         }
     }
@@ -93,5 +116,15 @@ namespace yggdrasil
     LayerStack& Application::getLayerStack()
     {
         return this->layerStack;
+    }
+
+    uint32_t Application::getFramesPerSecond() const
+    {
+        return this->framesPerSecond;
+    }
+
+    float_t Application::getCpuFrametime() const
+    {
+        return this->cpuFrameTime;
     }
 }

@@ -10,4 +10,6 @@ public:
     virtual void onImguiUpdate() override;
     virtual void onUpdate() override;
     virtual void onEvent(yggdrasil::Event& event) override;
+private:
+    void showPerformance();
 };

@@ -1,5 +1,7 @@
 #include "layers/SandboxLayer.h"
 #include <Yggdrasil/Defines.h>
+#include <Yggdrasil/core/Globals.h>
+#include <Yggdrasil/core/Application.h>
 #include <imgui/imgui.h>
 
 SandboxLayer::SandboxLayer(const std::string& debugName)
@@ -11,11 +13,31 @@ void SandboxLayer::onUpdate()
 
 }
 
+void SandboxLayer::showPerformance()
+{
+    constexpr ImGuiWindowFlags flags
+    {
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoFocusOnAppearing |
+        ImGuiWindowFlags_NoMove
+    };
+
+    bool_t open{ true };
+    ImGui::SetNextWindowBgAlpha(0.35f);
+    ImGui::Begin("Performance Stats", &open, flags);
+    float_t ms{ yggdrasil::globals::APPLICATION->getCpuFrametime() };
+    ImGui::Text("Frametime: %.7f", ms);
+    uint32_t fps{ yggdrasil::globals::APPLICATION->getFramesPerSecond() };
+    ImGui::Text("Frames per Second: %i", fps);
+    ImGui::End();
+}
+
 void SandboxLayer::onImguiUpdate()
 {
-    bool_t show{ true };
     beginFrame();
-    ImGui::ShowDemoWindow(&show);
+    showPerformance();
     endFrame();
 }
 

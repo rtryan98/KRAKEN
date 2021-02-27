@@ -17,6 +17,7 @@ namespace yggdrasil
         std::string title{ "Yggdrasil Engine" };
         bool_t fullscreen{ false };
         bool_t vsync{ false };
+        bool_t decorated{ true };
         std::function<void(Event&)> function;
     };
 

@@ -56,7 +56,7 @@
     #define debugBreak()
 #endif
 
-#define YGGDRASIL_USE_ASSERTS 1
+#define YGGDRASIL_USE_ASSERTS 0
 
 #if !defined(NDEBUG) || YGGDRASIL_USE_ASSERTS
     #include "Yggdrasil/core/util/Log.h"

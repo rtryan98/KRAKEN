@@ -31,16 +31,20 @@ namespace yggdrasil::vulkan
             uint32_t presentQueueFamilyIndex;            // Does present either on async compute or graphics depending on where post process is done
         } queues;
 
-        VkSurfaceKHR surface;
-        VkSwapchainKHR swapchain;
-        std::vector<VkImage> swapchainImages;
-        std::vector<VkImageView> swapchainImageViews;
-        VkFormat swapchainImageFormat;
-        VkExtent2D swapchainImageExtent;
-
-        VkCommandPool commandPool;
+        struct Screen
+        {
+            VkSurfaceKHR surface;
+            VkSwapchainKHR swapchain;
+            std::vector<VkImage> swapchainImages;
+            std::vector<VkImageView> swapchainImageViews;
+            VkFormat swapchainImageFormat;
+            VkExtent2D swapchainImageExtent;
+        } screen;
 
         uint32_t maxFramesInFlight{ 2 };
+
+        std::vector<VkCommandPool> commandPools{};
+        std::vector<VkCommandBuffer> commandBuffers{};
     };
 
     void initContext(Context& context);

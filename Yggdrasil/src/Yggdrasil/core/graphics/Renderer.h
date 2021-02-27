@@ -13,7 +13,11 @@ namespace yggdrasil
 
     struct PerFrame
     {
+        VkCommandPool commandPool{};
         VkCommandBuffer commandBuffer{};
+        VkImage swapchainImage{};
+        VkImageView swapchainImageView{};
+        VkFramebuffer framebuffer{};
     };
 
     class Renderer
@@ -42,9 +46,10 @@ namespace yggdrasil
         void createShaderModules();
         void createPipeline();
 
+        void acquirePerFrameData();
+
     private:
         vulkan::Context context{};
-        VkCommandBuffer commandBuffer{};
         VkRenderPass renderPass{};
         std::vector<VkFramebuffer> framebuffers{};
         VkSemaphore acquireSemaphore{};

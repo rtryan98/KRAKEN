@@ -7,6 +7,7 @@
 #include "Yggdrasil/Types.h"
 #include "Yggdrasil/core/Globals.h"
 #include "Yggdrasil/core/Application.h"
+#include "Yggdrasil/core/util/Log.h"
 #include <sstream>
 #include <set>
 
@@ -122,7 +123,7 @@ namespace yggdrasil::vulkan
 
     void createSurface(Context& context)
     {
-        context.surface = globals::APPLICATION->getWindow()->getSurface(context.instance);
+        context.screen.surface = globals::APPLICATION->getWindow()->getSurface(context.instance);
     }
 
     void selectPhysicalDevice(Context& context)
@@ -161,7 +162,7 @@ namespace yggdrasil::vulkan
     bool_t queueFamilySupportsPresentation(Context& context, uint32_t queueFamilyIndex)
     {
         VkBool32 presentationSupported{};
-        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.device.physical, queueFamilyIndex, context.surface, &presentationSupported));
+        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(context.device.physical, queueFamilyIndex, context.screen.surface, &presentationSupported));
         return presentationSupported;
     }
 
@@ -307,18 +308,18 @@ namespace yggdrasil::vulkan
     void getSwapchainImages(Context& context)
     {
         uint32_t swapchainImageCount{};
-        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.swapchain, &swapchainImageCount, nullptr));
-        context.swapchainImages.resize(swapchainImageCount);
-        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.swapchain, &swapchainImageCount, context.swapchainImages.data()));
+        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.screen.swapchain, &swapchainImageCount, nullptr));
+        context.screen.swapchainImages.resize(swapchainImageCount);
+        VK_CHECK(vkGetSwapchainImagesKHR(context.device.logical, context.screen.swapchain, &swapchainImageCount, context.screen.swapchainImages.data()));
     }
 
     void createSwapchainImageViews(Context& context)
     {
-        context.swapchainImageViews.resize(context.swapchainImages.size());
+        context.screen.swapchainImageViews.resize(context.screen.swapchainImages.size());
 
         VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
         imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.format = context.swapchainImageFormat;
+        imageViewCreateInfo.format = context.screen.swapchainImageFormat;
         imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -329,20 +330,20 @@ namespace yggdrasil::vulkan
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        for (uint32_t i{ 0 }; i < context.swapchainImages.size(); i++)
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
         {
-            imageViewCreateInfo.image = context.swapchainImages[i];
-            VK_CHECK(vkCreateImageView(context.device.logical, &imageViewCreateInfo, VK_CPU_ALLOCATOR, &context.swapchainImageViews[i]));
+            imageViewCreateInfo.image = context.screen.swapchainImages[i];
+            VK_CHECK(vkCreateImageView(context.device.logical, &imageViewCreateInfo, VK_CPU_ALLOCATOR, &context.screen.swapchainImageViews[i]));
         }
     }
 
     void createSwapchain(Context& context)
     {
         VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.device.physical, context.surface, &surfaceCapabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.device.physical, context.screen.surface, &surfaceCapabilities);
 
         VkSwapchainCreateInfoKHR swapchainCreateInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-        swapchainCreateInfo.surface = context.surface;
+        swapchainCreateInfo.surface = context.screen.surface;
 
         if (surfaceCapabilities.minImageCount <= 2 && surfaceCapabilities.maxImageCount >= 2)
         {
@@ -356,7 +357,7 @@ namespace yggdrasil::vulkan
         // TODO: add support for HDR and other displays here
         swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         swapchainCreateInfo.imageExtent = globals::APPLICATION->getWindow()->getFramebufferSize();
-        context.swapchainImageExtent = swapchainCreateInfo.imageExtent;
+        context.screen.swapchainImageExtent = swapchainCreateInfo.imageExtent;
 
         // TODO: we might want to write directly to the image later on
         if (surfaceCapabilities.supportedUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -373,18 +374,18 @@ namespace yggdrasil::vulkan
         swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
         uint32_t presentModeCount{ 0 };
-        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.surface, &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.screen.surface, &presentModeCount, nullptr);
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.surface, &presentModeCount, presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(context.device.physical, context.screen.surface, &presentModeCount, presentModes.data());
 
         swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         swapchainCreateInfo.clipped = VK_TRUE;
         swapchainCreateInfo.imageArrayLayers = 1;
 
         uint32_t surfaceFormatCount{ 0 };
-        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.surface, &surfaceFormatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.screen.surface, &surfaceFormatCount, nullptr);
         std::vector<VkSurfaceFormatKHR> availableFormats(surfaceFormatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.surface, &surfaceFormatCount, availableFormats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(context.device.physical, context.screen.surface, &surfaceFormatCount, availableFormats.data());
 
         bool bgraFound{ false };
         bool rgbaFound{ false };
@@ -413,9 +414,9 @@ namespace yggdrasil::vulkan
             YGGDRASIL_CORE_CRITICAL("No viable surface format found");
         }
 
-        context.swapchainImageFormat = swapchainCreateInfo.imageFormat;
+        context.screen.swapchainImageFormat = swapchainCreateInfo.imageFormat;
 
-        VK_CHECK(vkCreateSwapchainKHR(context.device.logical, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.swapchain));
+        VK_CHECK(vkCreateSwapchainKHR(context.device.logical, &swapchainCreateInfo, VK_CPU_ALLOCATOR, &context.screen.swapchain));
         YGGDRASIL_ASSERT_VALUE(context.swapchain);
 
         getSwapchainImages(context);
@@ -427,7 +428,19 @@ namespace yggdrasil::vulkan
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
         createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
         createInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
-        VK_CHECK(vkCreateCommandPool(context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &context.commandPool));
+
+        VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocateInfo.commandBufferCount = 1;
+
+        context.commandPools.resize(context.screen.swapchainImages.size());
+        context.commandBuffers.resize(context.screen.swapchainImages.size());
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
+        {
+            VK_CHECK(vkCreateCommandPool(context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &context.commandPools[i]));
+            allocateInfo.commandPool = context.commandPools[i];
+            VK_CHECK(vkAllocateCommandBuffers(context.device.logical, &allocateInfo, &context.commandBuffers[i]));
+        }
     }
 
     void printGpuMemoryInfo(Context& context)
@@ -505,25 +518,25 @@ namespace yggdrasil::vulkan
     {
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
 
-        if (context.commandPool != VK_NULL_HANDLE)
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
         {
-            vkDestroyCommandPool(context.device.logical, context.commandPool, VK_CPU_ALLOCATOR);
+            vkDestroyCommandPool(context.device.logical, context.commandPools[i], VK_CPU_ALLOCATOR);
         }
-        for (uint32_t i{ 0 }; i < context.swapchainImageViews.size(); i++)
+        for (uint32_t i{ 0 }; i < context.screen.swapchainImageViews.size(); i++)
         {
-            vkDestroyImageView(context.device.logical, context.swapchainImageViews[i], VK_CPU_ALLOCATOR);
+            vkDestroyImageView(context.device.logical, context.screen.swapchainImageViews[i], VK_CPU_ALLOCATOR);
         }
-        if (context.swapchain != VK_NULL_HANDLE)
+        if (context.screen.swapchain != VK_NULL_HANDLE)
         {
-            vkDestroySwapchainKHR(context.device.logical, context.swapchain, VK_CPU_ALLOCATOR);
+            vkDestroySwapchainKHR(context.device.logical, context.screen.swapchain, VK_CPU_ALLOCATOR);
         }
         if (context.device.logical != VK_NULL_HANDLE)
         {
             vkDestroyDevice(context.device.logical, VK_CPU_ALLOCATOR);
         }
-        if (context.surface != VK_NULL_HANDLE)
+        if (context.screen.surface != VK_NULL_HANDLE)
         {
-            vkDestroySurfaceKHR(context.instance, context.surface, VK_CPU_ALLOCATOR);
+            vkDestroySurfaceKHR(context.instance, context.screen.surface, VK_CPU_ALLOCATOR);
         }
 #if YGGDRASIL_USE_ASSERTS
         if (context.debugMessenger != VK_NULL_HANDLE)

@@ -12,7 +12,7 @@ namespace yggdrasil
     void Renderer::createRenderPasses()
     {
         VkAttachmentDescription attachmentDescription{};
-        attachmentDescription.format = this->context.swapchainImageFormat;
+        attachmentDescription.format = this->context.screen.swapchainImageFormat;
         attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
         attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -43,18 +43,18 @@ namespace yggdrasil
 
     void Renderer::createFramebuffers()
     {
-        this->framebuffers.resize(this->context.swapchainImageViews.size());
+        this->framebuffers.resize(this->context.screen.swapchainImageViews.size());
 
         VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
         framebufferCreateInfo.renderPass = this->renderPass;
         framebufferCreateInfo.attachmentCount = 1;
-        framebufferCreateInfo.width = this->context.swapchainImageExtent.width;
-        framebufferCreateInfo.height = this->context.swapchainImageExtent.height;
+        framebufferCreateInfo.width = this->context.screen.swapchainImageExtent.width;
+        framebufferCreateInfo.height = this->context.screen.swapchainImageExtent.height;
         framebufferCreateInfo.layers = 1;
 
-        for (uint32_t i{0}; i < this->context.swapchainImageViews.size(); i++)
+        for (uint32_t i{0}; i < this->context.screen.swapchainImageViews.size(); i++)
         {
-            framebufferCreateInfo.pAttachments = &this->context.swapchainImageViews[i];
+            framebufferCreateInfo.pAttachments = &this->context.screen.swapchainImageViews[i];
             VK_CHECK(vkCreateFramebuffer(this->context.device.logical, &framebufferCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->framebuffers[i]));
         }
     }
@@ -96,14 +96,14 @@ namespace yggdrasil
 
         VkViewport viewport{};
         viewport.x = 0.0f;
-        viewport.y = static_cast<float>(this->context.swapchainImageExtent.height);
-        viewport.width = static_cast<float>(this->context.swapchainImageExtent.width);
-        viewport.height = -static_cast<float>(this->context.swapchainImageExtent.height);
+        viewport.y = static_cast<float>(this->context.screen.swapchainImageExtent.height);
+        viewport.width = static_cast<float>(this->context.screen.swapchainImageExtent.width);
+        viewport.height = -static_cast<float>(this->context.screen.swapchainImageExtent.height);
         viewport.maxDepth = 1.0f;
         viewport.minDepth = 0.0f;
 
         VkRect2D scissor{};
-        scissor.extent = this->context.swapchainImageExtent;
+        scissor.extent = this->context.screen.swapchainImageExtent;
         scissor.offset = { 0, 0 };
 
         VkPipelineViewportStateCreateInfo viewportStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
@@ -195,26 +195,25 @@ namespace yggdrasil
         VK_CHECK(vkCreateGraphicsPipelines(this->context.device.logical, VK_NULL_HANDLE, 1, &pipelineCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->pipeline));
     }
 
-    void Renderer::prepare()
+    void Renderer::acquirePerFrameData()
     {
         uint32_t imageIndex{};
-        VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
+        VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
         this->currentImage = imageIndex;
+        this->perFrame.commandPool = this->context.commandPools[imageIndex];
+        this->perFrame.commandBuffer = this->context.commandBuffers[imageIndex];
+        this->perFrame.swapchainImage = this->context.screen.swapchainImages[imageIndex];
+        this->perFrame.swapchainImageView = this->context.screen.swapchainImageViews[imageIndex];
+        this->perFrame.framebuffer = this->framebuffers[imageIndex];
+    }
 
-        VK_CHECK(vkResetCommandPool(this->context.device.logical, this->context.commandPool, 0x0));
-
-        VkCommandBufferAllocateInfo commandBufferAllocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = this->context.commandPool;
-        commandBufferAllocateInfo.commandBufferCount = 1;
-
-
-        VK_CHECK(vkAllocateCommandBuffers(this->context.device.logical, &commandBufferAllocateInfo, &commandBuffer));
-        this->perFrame.commandBuffer = commandBuffer;
-
+    void Renderer::prepare()
+    {
+        acquirePerFrameData();
+        VK_CHECK(vkResetCommandPool(this->context.device.logical, this->perFrame.commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT));
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        VK_CHECK(vkBeginCommandBuffer(this->commandBuffer, &commandBufferBeginInfo));
+        VK_CHECK(vkBeginCommandBuffer(this->perFrame.commandBuffer, &commandBufferBeginInfo));
     }
 
     void Renderer::onUpdate()
@@ -223,24 +222,23 @@ namespace yggdrasil
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-        renderPassBeginInfo.framebuffer = this->framebuffers[this->currentImage];
+        renderPassBeginInfo.framebuffer = this->perFrame.framebuffer;
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
         renderPassBeginInfo.renderPass = this->renderPass;
-        renderPassBeginInfo.renderArea.extent = this->context.swapchainImageExtent;
+        renderPassBeginInfo.renderArea.extent = this->context.screen.swapchainImageExtent;
         renderPassBeginInfo.renderArea.offset = {0, 0};
+        vkCmdBeginRenderPass(this->perFrame.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBeginRenderPass(this->commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        vkCmdBindPipeline(this->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline);
-        vkCmdDraw(this->commandBuffer, 3, 1, 0, 0);
-        vkCmdEndRenderPass(this->commandBuffer);
+        vkCmdBindPipeline(this->perFrame.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline);
+        vkCmdDraw(this->perFrame.commandBuffer, 3, 1, 0, 0);
+        vkCmdEndRenderPass(this->perFrame.commandBuffer);
     }
 
     void Renderer::present()
     {
         VkImageMemoryBarrier layoutBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        layoutBarrier.image = this->context.swapchainImages[this->currentImage];
+        layoutBarrier.image = this->perFrame.swapchainImage;
         layoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         layoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         layoutBarrier.srcQueueFamilyIndex = this->context.queues.rasterizerQueueFamilyIndex;
@@ -251,10 +249,10 @@ namespace yggdrasil
         layoutBarrier.subresourceRange.levelCount = 1;
         layoutBarrier.subresourceRange.baseMipLevel = 0;
 
-        vkCmdPipelineBarrier(this->commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
+        vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
             0, nullptr, 0, nullptr, 1, &layoutBarrier);
 
-        VK_CHECK(vkEndCommandBuffer(this->commandBuffer));
+        VK_CHECK(vkEndCommandBuffer(this->perFrame.commandBuffer));
         VkPipelineStageFlags submitStageMask{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
         VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
@@ -263,14 +261,14 @@ namespace yggdrasil
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = &this->releaseSemaphore;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &this->commandBuffer;
+        submitInfo.pCommandBuffers = &this->perFrame.commandBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
         VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;
-        queuePresentInfo.pSwapchains = &this->context.swapchain;
+        queuePresentInfo.pSwapchains = &this->context.screen.swapchain;
         queuePresentInfo.waitSemaphoreCount = 1;
         queuePresentInfo.pWaitSemaphores = &this->releaseSemaphore;
         queuePresentInfo.pImageIndices = &this->currentImage;

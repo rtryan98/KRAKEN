@@ -21,6 +21,10 @@ namespace yggdrasil::windows
         YGGDRASIL_ASSERT_VALUE(this->windowData.function != nullptr);
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        if (!windowData.decorated)
+        {
+            glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+        }
 
         glfwWindow = glfwCreateWindow(this->windowData.width, this->windowData.height, this->windowData.title.c_str(), nullptr, nullptr);
         YGGDRASIL_ASSERT_VALUE(glfwWindow);

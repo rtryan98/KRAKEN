@@ -20,8 +20,7 @@ namespace yggdrasil
         VkFramebuffer framebuffer{};
         VkSemaphore acquireSemaphore{};
         VkSemaphore releaseSemaphore{};
-        VkFence currentFence{};
-        VkFence lastFence{};
+        VkFence acquireFence{};
         uint32_t frame{ 0 };
     };
 
@@ -41,7 +40,6 @@ namespace yggdrasil
         VkRenderPass getRenderPass() const;
         const PerFrame& getPerFrameData() const;
         const std::vector<VkFramebuffer>& getFramebuffers() const;
-        uint32_t getCurrentFrame() const;
 
     private:
         void createRenderPasses();

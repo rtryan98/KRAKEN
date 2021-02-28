@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13...3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 set(ENGINE_PROJECT_NAME "Yggdrasil")
 project(${ENGINE_PROJECT_NAME})
@@ -69,7 +69,7 @@ target_include_directories(${ENGINE_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/
                                                                                       "vendor/imgui/")
 
 # Compile Options
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if(MSVC)
     target_compile_options(${ENGINE_NAME} PRIVATE "/W4" "/MP" "/std:c++17" "/WX" "/wd26812")
 endif()
 
@@ -100,7 +100,8 @@ target_link_libraries(${ENGINE_SANDBOX_NAME} PRIVATE ${ENGINE_NAME})
 target_include_directories(${ENGINE_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/Sandbox/src")
 
 # Compile Options
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if(MSVC)
     target_compile_options(${ENGINE_SANDBOX_NAME} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
     # target_link_options(${ENGINE_SANDBOX_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${ENGINE_SANDBOX_NAME})
 endif()

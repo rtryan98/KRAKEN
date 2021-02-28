@@ -199,9 +199,9 @@ namespace yggdrasil
     {
         this->perFrame.acquireSemaphore = this->context.syncObjects.acquireSemaphores[this->perFrame.frame];
         this->perFrame.releaseSemaphore = this->context.syncObjects.releaseSemaphores[this->perFrame.frame];
-        this->perFrame.currentFence = this->context.syncObjects.acquireFences[this->perFrame.frame];
+        this->perFrame.acquireFence = this->context.syncObjects.acquireFences[this->perFrame.frame];
 
-        vkWaitForFences(this->context.device.logical, 1, &this->perFrame.currentFence, VK_TRUE, ~0ull);
+        vkWaitForFences(this->context.device.logical, 1, &this->perFrame.acquireFence, VK_TRUE, ~0ull);
 
         uint32_t imageIndex{};
         VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->perFrame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
@@ -211,7 +211,6 @@ namespace yggdrasil
         this->perFrame.swapchainImage = this->context.screen.swapchainImages[imageIndex];
         this->perFrame.swapchainImageView = this->context.screen.swapchainImageViews[imageIndex];
         this->perFrame.framebuffer = this->framebuffers[imageIndex];
-        this->perFrame.lastFence = this->perFrame.currentFence;
     }
 
     void Renderer::prepare()
@@ -271,8 +270,8 @@ namespace yggdrasil
         submitInfo.pCommandBuffers = &this->perFrame.commandBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
-        VK_CHECK(vkResetFences(this->context.device.logical, 1, &this->perFrame.currentFence));
-        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, this->perFrame.currentFence));
+        VK_CHECK(vkResetFences(this->context.device.logical, 1, &this->perFrame.acquireFence));
+        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, this->perFrame.acquireFence));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;
@@ -361,11 +360,6 @@ namespace yggdrasil
     const std::vector<VkFramebuffer>& Renderer::getFramebuffers() const
     {
         return this->framebuffers;
-    }
-
-    uint32_t Renderer::getCurrentFrame() const
-    {
-        return this->currentImage;
     }
 
 }

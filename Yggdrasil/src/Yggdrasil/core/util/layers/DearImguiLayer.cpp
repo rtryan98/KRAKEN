@@ -160,7 +160,7 @@ namespace yggdrasil
         ImGui::Render();
         VkRenderPassBeginInfo begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
         begin.renderPass = internal::imguiRenderPass;
-        begin.framebuffer = renderer.getFramebuffers().at(renderer.getCurrentFrame());
+        begin.framebuffer = renderer.getPerFrameData().framebuffer;
         begin.renderArea.extent = context.screen.swapchainImageExtent;
         begin.clearValueCount = 0;
         begin.pClearValues = nullptr;

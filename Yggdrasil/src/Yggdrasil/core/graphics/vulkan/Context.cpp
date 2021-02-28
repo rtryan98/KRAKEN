@@ -190,8 +190,7 @@ namespace yggdrasil::vulkan
                 context.queues.rasterizerQueueFamilyIndex = i;
                 rasterizerQueueFamilyFound = true;
                 if (!presentQueueFamilyFound &&
-                    queueFamilySupportsPresentation(context, i) &&
-                    queueFamilies[i].queueCount >= 2)
+                    queueFamilySupportsPresentation(context, i))
                 {
                     presentQueueFamilyFound = true;
                     context.queues.presentQueueFamilyIndex = i;
@@ -201,7 +200,7 @@ namespace yggdrasil::vulkan
                     context.queues.presentQueueFamilyIndex = i;
                 }
 
-                YGGDRASIL_CORE_INFO("Found main rasterizer queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found main rasterizer queue family with index {0}.", i);
             }
             else if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
                      queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
@@ -210,7 +209,7 @@ namespace yggdrasil::vulkan
                 context.queues.asyncComputeQueueFamilyIndex = i;
                 asyncComputeQueueFamilyFound = true;
 
-                YGGDRASIL_CORE_INFO("Found async compute queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found async compute queue family with index {0}.", i);
             }
             else if(queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
                    !transferQueueFamilyFound)
@@ -218,7 +217,7 @@ namespace yggdrasil::vulkan
                 context.queues.transferQueueFamilyIndex = i;
                 transferQueueFamilyFound = true;
 
-                YGGDRASIL_CORE_INFO("Found direct memory access queue with family index {0}.", i);
+                YGGDRASIL_CORE_INFO("Found transfer queue family with index {0}.", i);
             }
         }
 

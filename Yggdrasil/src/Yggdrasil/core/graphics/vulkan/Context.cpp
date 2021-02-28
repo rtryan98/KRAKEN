@@ -417,7 +417,7 @@ namespace yggdrasil::vulkan
     void createCommandPools(Context& context)
     {
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-        createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         createInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
 
         VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -536,11 +536,17 @@ namespace yggdrasil::vulkan
         freeSyncObjects(context);
         for (uint32_t i{ 0 }; i < context.screen.swapchainImages.size(); i++)
         {
-            vkDestroyCommandPool(context.device.logical, context.commandPools[i], VK_CPU_ALLOCATOR);
+            if (context.commandPools[i] != VK_NULL_HANDLE)
+            {
+                vkDestroyCommandPool(context.device.logical, context.commandPools[i], VK_CPU_ALLOCATOR);
+            }
         }
         for (uint32_t i{ 0 }; i < context.screen.swapchainImageViews.size(); i++)
         {
-            vkDestroyImageView(context.device.logical, context.screen.swapchainImageViews[i], VK_CPU_ALLOCATOR);
+            if (context.screen.swapchainImageViews[i] != VK_NULL_HANDLE)
+            {
+                vkDestroyImageView(context.device.logical, context.screen.swapchainImageViews[i], VK_CPU_ALLOCATOR);
+            }
         }
         if (context.screen.swapchain != VK_NULL_HANDLE)
         {

@@ -245,15 +245,7 @@ namespace yggdrasil::vulkan
         VkDeviceQueueCreateInfo mainQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
         mainQueueCreateInfo.pQueuePriorities = queuePriorities;
         mainQueueCreateInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
-        if (presentQueueFamilyFound &&
-            context.queues.presentQueueFamilyIndex == context.queues.rasterizerQueueFamilyIndex)
-        {
-            mainQueueCreateInfo.queueCount = 2;
-        }
-        else
-        {
-            mainQueueCreateInfo.queueCount = 1;
-        }
+        mainQueueCreateInfo.queueCount = 1;
         deviceQueueCreateInfos.push_back(mainQueueCreateInfo);
 
         VkPhysicalDeviceFeatures deviceFeatures{};

@@ -254,7 +254,7 @@ namespace yggdrasil::shadercompiler
         link(program, shader, messages, "Internal shader");
     }
 
-    std::vector<uint32_t> compileGLSL(const std::string& fileName)
+    std::vector<uint32_t> compileGlsl(const std::string& fileName)
     {
         std::vector<uint32_t> spirv{};
         if (!isInitialized)
@@ -286,6 +286,43 @@ namespace yggdrasil::shadercompiler
         spv::SpvBuildLogger logger{};
         glslang::SpvOptions options{};
         glslang::GlslangToSpv(*program.getIntermediate( shaderStage ), spirv, &logger, &options);
+
+        return spirv;
+    }
+
+    std::vector<uint32_t> compileGlslInternal(const std::string& code, const char* stage)
+    {
+        std::vector<uint32_t> spirv{};
+        if (!isInitialized)
+        {
+            YGGDRASIL_CORE_ERROR("Tried to compile GLSL shader without initializing the shader compiler.\nUse yggdrasil::shadercompiler::init() to initialize the shader compiler.");
+            return spirv;
+        }
+
+        std::string glsl{ fileutil::readStringFromFile(code) };
+        const char* glslCstr{ glsl.c_str() };
+
+        EShLanguage shaderStage{ findLanguage(stage) };
+
+        glslang::TShader shader{ shaderStage };
+        shader.setStrings(&glslCstr, 1);
+        shader.setEnvInput(glslang::EShSourceGlsl, shaderStage, glslang::EShClientVulkan, CLIENT_INPUT_SEMANTICS_VERSION);
+        shader.setEnvClient(glslang::EShClientVulkan, VULKAN_CLIENT_VERSION);
+        shader.setEnvTarget(glslang::EShTargetSpv, TARGET_VERSION);
+
+        EShMessages messages{ (EShMsgSpvRules | EShMsgVulkanRules) };
+        DirStackFileIncluder includer{};
+        // includer.pushExternalLocalDirectory(fileName);
+        std::string preprocessedGlsl{};
+        glslang::TProgram program{};
+
+        preprocess(shader, messages, preprocessedGlsl, includer);
+        parse(shader, messages, preprocessedGlsl);
+        link(program, shader, messages);
+
+        spv::SpvBuildLogger logger{};
+        glslang::SpvOptions options{};
+        glslang::GlslangToSpv(*program.getIntermediate(shaderStage), spirv, &logger, &options);
 
         return spirv;
     }

@@ -6,5 +6,6 @@ namespace yggdrasil::shadercompiler
 {
     void init();
     void free();
-    std::vector<uint32_t> compileGLSL(const std::string& fileName);
+    std::vector<uint32_t> compileGlsl(const std::string& fileName);
+    std::vector<uint32_t> compileGlslInternal(const std::string& code, const char* stage);
 }

@@ -2,10 +2,12 @@
 
 #include "Yggdrasil/core/graphics/Renderer.h"
 #include "Yggdrasil/core/Globals.h"
-#include <vector>
 #include "Yggdrasil/core/Application.h"
-#include <map>
 #include "Yggdrasil/core/window/Window.h"
+#include "Yggdrasil/core/graphics/ShaderCompiler.h"
+
+#include <map>
+#include <vector>
 
 namespace yggdrasil
 {

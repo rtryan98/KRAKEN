@@ -1,5 +1,5 @@
 #include "Yggdrasil/pch.h"
-
+#include "Yggdrasil/core/util/Log.h"
 #include "Yggdrasil/core/util/LayerStack.h"
 
 namespace yggdrasil
@@ -21,6 +21,7 @@ namespace yggdrasil
         layers.emplace(layers.begin() + index, layer);
         layer->onAttach();
         index++;
+        YGGDRASIL_CORE_TRACE("Pushed layer '{0}'", layer->getDebugName());
     }
 
     void LayerStack::pop(Layer* layer)
@@ -31,6 +32,7 @@ namespace yggdrasil
             layer->onDetach();
             layers.erase(it);
             index--;
+            YGGDRASIL_CORE_TRACE("Popped layer '{0}'", layer->getDebugName());
         }
     }
 
@@ -38,6 +40,7 @@ namespace yggdrasil
     {
         layers.emplace_back(layer);
         layer->onAttach();
+        YGGDRASIL_CORE_TRACE("Pushed layer [overlay] '{0}'", layer->getDebugName());
     }
 
     void LayerStack::popOverlay(Layer* layer)
@@ -47,6 +50,7 @@ namespace yggdrasil
         {
             layer->onDetach();
             layers.erase(it);
+            YGGDRASIL_CORE_TRACE("Popped layer [overlay] '{0}'", layer->getDebugName());
         }
     }
 

@@ -7,12 +7,23 @@ project(${ENGINE_PROJECT_NAME})
 # Header only dependencies are added via target_include_dirs
 # All dependencies are located in /vendor unless they are
 # Models or other resource data
+
+# Search for Vulkan
+message(STATUS "Searching for Vulkan")
+find_package(Vulkan REQUIRED)
+
+if(NOT Vulkan_FOUND)
+    message(FATAL_ERROR "Vulkan not found.")
+endif()
+
 set(GLFW_BUILD_DOCS OFF)
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/spdlog")
 add_subdirectory("vendor/glslang")
+# add_subdirectory("vendor/SPIRV-Tools")
+add_library(spirv-reflect vendor/spirv-reflect/spirv_reflect.c vendor/spirv-reflect/spirv_reflect.h)
 
 # Clean project up a little
 set_target_properties(uninstall PROPERTIES FOLDER vendor/other)
@@ -21,6 +32,7 @@ set_target_properties(HLSL GenericCodeGen glslang-default-resource-limits Machin
     glslang-build-info PROPERTIES FOLDER vendor/glslang)
 set_target_properties(glfw PROPERTIES FOLDER vendor/glfw)
 set_target_properties(spdlog PROPERTIES FOLDER vendor/spdlog)
+set_target_properties(spirv-reflect PROPERTIES FOLDER vendor/SPIRV-Reflect)
 
 set(OUTPUT_DIR_DEBUG "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
 set(OUTPUT_DIR_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
@@ -54,16 +66,8 @@ set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELWITH
 set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/minsizerel/")
 set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/release/")
 
-# Search for Vulkan
-message(STATUS "Searching for Vulkan")
-find_package(Vulkan REQUIRED)
-
-if(NOT Vulkan_FOUND)
-    message(FATAL_ERROR "Vulkan not found.")
-endif()
-
 # Include Libraries to Yggdrasil
-target_link_libraries(${ENGINE_NAME} PUBLIC glslang glfw Vulkan::Vulkan spdlog)
+target_link_libraries(${ENGINE_NAME} PUBLIC glslang glfw Vulkan::Vulkan spdlog spirv-reflect SPIRV)
 target_include_directories(${ENGINE_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src/" "vendor/glm/"
                                                                                       "vendor/"
                                                                                       "vendor/imgui/")

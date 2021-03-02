@@ -4,8 +4,9 @@
 #include "Yggdrasil/core/Globals.h"
 #include "Yggdrasil/core/event/WindowEvent.h"
 #include "Yggdrasil/core/input/Input.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
 #include "Yggdrasil/core/util/layers/DearImguiLayer.h"
+#include "Yggdrasil/core/graphics/ShaderCompiler.h"
+#include "Yggdrasil/core/graphics/Renderer.h"
 
 #include <glfw/glfw3.h>
 
@@ -15,6 +16,7 @@ namespace yggdrasil
         : window{ nullptr }, imguiEnabled{ createInfo.imguiEnabled }
     {
         Logger::init();
+        shadercompiler::init();
         globals::APPLICATION = this;
         WindowData windowData{};
         if (createInfo.width > 0)
@@ -43,6 +45,7 @@ namespace yggdrasil
         globals::RENDERER->free();
         delete globals::RENDERER;
         delete window;
+        shadercompiler::free();
         Logger::free();
     }
 
@@ -103,7 +106,7 @@ namespace yggdrasil
         }
         for (Layer* layer : this->layerStack)
         {
-            YGGDRASIL_CORE_TRACE("Detach {0}", layer->getDebugName());
+            YGGDRASIL_CORE_TRACE("Detach layer [app close] '{0}'", layer->getDebugName());
             layer->onDetachInternal();
         }
     }

@@ -42,6 +42,33 @@ namespace yggdrasil
 
         const vulkan::Context& context = globals::RENDERER->getContext();
 
+        VkAttachmentDescription attachmentDescription{};
+        attachmentDescription.format = context.screen.swapchainImageFormat;
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorAttachment{};
+        colorAttachment.attachment = 0;
+        colorAttachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachment;
+
+        VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &attachmentDescription;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+
+        VK_CHECK(vkCreateRenderPass(context.device.logical, &renderPassInfo, vulkan::VK_CPU_ALLOCATOR, &internal::imguiRenderPass));
+
         VkDescriptorPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
         poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         poolCreateInfo.maxSets = maxSets;
@@ -65,7 +92,7 @@ namespace yggdrasil
         initInfo.MinImageCount = 2;
         initInfo.DescriptorPool = internal::imguiPool;
         initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-        ImGui_ImplVulkan_Init(&initInfo, globals::RENDERER->getRenderPass());
+        ImGui_ImplVulkan_Init(&initInfo, internal::imguiRenderPass);
 
         VkCommandPoolCreateInfo commandPoolCreateInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
         commandPoolCreateInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
@@ -100,33 +127,6 @@ namespace yggdrasil
 
         ImGui_ImplVulkan_DestroyFontUploadObjects();
         vkDestroyCommandPool(context.device.logical, commandPool, vulkan::VK_CPU_ALLOCATOR);
-
-        VkAttachmentDescription attachmentDescription{};
-        attachmentDescription.format = context.screen.swapchainImageFormat;
-        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkAttachmentReference colorAttachment{};
-        colorAttachment.attachment = 0;
-        colorAttachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkSubpassDescription subpass{};
-        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorAttachment;
-
-        VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &attachmentDescription;
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpass;
-
-        VK_CHECK(vkCreateRenderPass(context.device.logical, &renderPassInfo, vulkan::VK_CPU_ALLOCATOR, &internal::imguiRenderPass));
     }
 
     void ImguiLayer::free()

@@ -85,8 +85,6 @@ namespace yggdrasil::windows
             });
         glfwSetWindowSizeCallback(glfwWindow,
             [](GLFWwindow* pWindow, int32_t width, int32_t height) {
-                YGGDRASIL_ASSERT_VALUE(width > 0);
-                YGGDRASIL_ASSERT_VALUE(height > 0);
                 WindowData* data{ static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)) };
                 data->width = width;
                 data->height = height;

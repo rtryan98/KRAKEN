@@ -14,19 +14,19 @@ namespace yggdrasil::vulkan
         /// Creates a VkPipeline based on the prior set data.
         /// The returned handle must be externally deleted once the program terminates.
         /// </summary>
-        /// <param name="device">The VkDevice which this application uses.</param>
+        /// <param name="context">The Context which the application uses.</param>
         /// <param name="renderPass">The renderpass for which to create this pipeline.</param>
         /// <param name="pipelineLayout">The pipelineLayout of this pipeline.</param>
         /// <returns> The created VkPipeline handle </returns>
-        VkPipeline createPipeline(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout);
+        VkPipeline createPipeline(Context& context, VkRenderPass renderPass, VkPipelineLayout pipelineLayout);
 
         /// <summary>
         /// Clears the pipeline factory.
         /// This also destroys any shader module created with it.
         /// Sets all createinfos into their default state.
         /// </summary>
-        /// <param name="device">The VkDevice which this application uses.</param>
-        void clear(VkDevice device);
+        /// <param name="context">The Context which the application uses.</param>
+        void clear(Context& context);
 
         /// <summary>
         /// Sets the pipeline factory into default state.
@@ -38,17 +38,17 @@ namespace yggdrasil::vulkan
         /// <summary>
         /// Pushes a shader stage which will be used in the generated pipeline.
         /// </summary>
-        /// <param name="device">The VkDevice which this application uses.</param>
+        /// <param name="context">The Context which the application uses.</param>
         /// <param name="spirv">The compiled code.</param>
         /// <param name="flags">The shader stage.</param>
-        void pushShaderStage(VkDevice device, std::vector<uint32_t>& spirv, VkShaderStageFlagBits flags );
+        void pushShaderStage(Context& context, std::vector<uint32_t>& spirv, VkShaderStageFlagBits flags );
 
         /// <summary>
         /// Resets all shader stages pushed into the pipeline factory.
         /// Also clears all shader modules created.
         /// </summary>
-        /// <param name="device">The VkDevice which this application uses.</param>
-        void resetShaderStages(VkDevice device);
+        /// <param name="context">The Context which the application uses.</param>
+        void resetShaderStages(Context& context);
 
         VkPipelineVertexInputStateCreateInfo&        getVertexInputStateCreateInfo();
         VkPipelineInputAssemblyStateCreateInfo&      getInputAssemblyStateCreateInfo();

@@ -6,6 +6,7 @@
 #include "Yggdrasil/core/util/Log.h"
 #include "Yggdrasil/core/graphics/vulkan/Util.h"
 #include "Yggdrasil/core/graphics/vulkan/Context.h"
+#include "Yggdrasil/Types.h"
 
 namespace yggdrasil
 {
@@ -44,24 +45,20 @@ namespace yggdrasil
     private:
         void createRenderPasses();
         void createFramebuffers();
-        void createSyncObjects();
-        void freeSyncObjects();
-        void createShaderModules();
         void createPipeline();
 
         void acquirePerFrameData();
+
+        void recreateSwapchain();
 
     private:
         vulkan::Context context{};
         VkRenderPass renderPass{};
         std::vector<VkFramebuffer> framebuffers{};
-        VkSemaphore acquireSemaphore{};
-        VkSemaphore releaseSemaphore{};
-        VkShaderModule frag{};
-        VkShaderModule vert{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
         uint32_t currentImage{ 0 };
         PerFrame perFrame{};
+        bool_t recreateSwapchainThisFrame{ false };
     };
 }

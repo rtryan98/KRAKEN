@@ -55,6 +55,6 @@ namespace yggdrasil::vulkan
     };
 
     void initContext(Context& context);
-
     void freeContext(Context& context);
+    void createSwapchain(Context& context);
 }

@@ -9,6 +9,7 @@
 
 #include <map>
 #include <vector>
+#include <glfw/glfw3.h>
 
 namespace yggdrasil
 {
@@ -62,23 +63,6 @@ namespace yggdrasil
         }
     }
 
-    void Renderer::createShaderModules()
-    {
-        std::vector<char> vertSPIRV{ vulkan::util::parseSPIRV("res/shader/vert.spv") };
-        VkShaderModuleCreateInfo vertCreateInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-        vertCreateInfo.codeSize = vertSPIRV.size();
-        vertCreateInfo.pCode = reinterpret_cast<const uint32_t*>(vertSPIRV.data());
-        vkCreateShaderModule(this->context.device.logical, &vertCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->vert);
-        YGGDRASIL_ASSERT_VALUE(this->vert);
-
-        std::vector<char> fragSPIRV{ vulkan::util::parseSPIRV("res/shader/frag.spv") };
-        VkShaderModuleCreateInfo fragCreateInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-        fragCreateInfo.codeSize = fragSPIRV.size();
-        fragCreateInfo.pCode = reinterpret_cast<const uint32_t*>(fragSPIRV.data());
-        vkCreateShaderModule(this->context.device.logical, &fragCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->frag);
-        YGGDRASIL_ASSERT_VALUE(this->frag);
-    }
-
     void Renderer::createPipeline()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -90,12 +74,14 @@ namespace yggdrasil
 
         vulkan::GraphicsPipelineFactory factory{};
         factory.defaults(this->context);
+        // auto& vertexInputState{ factory.getVertexInputStateCreateInfo() };
+
         std::vector<uint32_t> fragment{ shadercompiler::compileGlsl("res/shader/main.frag") };
-        factory.pushShaderStage(this->context.device.logical, fragment, VK_SHADER_STAGE_FRAGMENT_BIT);
+        factory.pushShaderStage(this->context, fragment, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::vector<uint32_t> vertex{ shadercompiler::compileGlsl("res/shader/main.vert") };
-        factory.pushShaderStage(this->context.device.logical, vertex, VK_SHADER_STAGE_VERTEX_BIT);
-        this->pipeline = factory.createPipeline(this->context.device.logical, this->renderPass, this->pipelineLayout);
-        factory.clear(this->context.device.logical);
+        factory.pushShaderStage(this->context, vertex, VK_SHADER_STAGE_VERTEX_BIT);
+        this->pipeline = factory.createPipeline(this->context, this->renderPass, this->pipelineLayout);
+        factory.clear(this->context);
     }
 
     void Renderer::acquirePerFrameData()
@@ -107,7 +93,18 @@ namespace yggdrasil
         vkWaitForFences(this->context.device.logical, 1, &this->perFrame.acquireFence, VK_TRUE, ~0ull);
 
         uint32_t imageIndex{};
-        VK_CHECK(vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->perFrame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
+        VkResult acquireNexImageResult{ vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->perFrame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex) };
+        if (acquireNexImageResult == VK_ERROR_OUT_OF_DATE_KHR || acquireNexImageResult == VK_SUBOPTIMAL_KHR)
+        {
+            YGGDRASIL_CORE_TRACE("Recreating swapchain - vkAcquireNextImageKHR");
+            this->recreateSwapchainThisFrame = true;
+            recreateSwapchain();
+        }
+        else if(acquireNexImageResult != VK_SUCCESS)
+        {
+            VK_CHECK(acquireNexImageResult);
+        }
+
         this->currentImage = imageIndex;
         this->perFrame.commandPool = this->context.commandPools[imageIndex];
         this->perFrame.commandBuffer = this->context.commandBuffers[imageIndex];
@@ -118,6 +115,11 @@ namespace yggdrasil
 
     void Renderer::prepare()
     {
+        if (this->recreateSwapchainThisFrame == true)
+        {
+            return;
+        }
+
         acquirePerFrameData();
         VK_CHECK(vkResetCommandPool(this->context.device.logical, this->perFrame.commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT));
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -127,6 +129,11 @@ namespace yggdrasil
 
     void Renderer::onUpdate()
     {
+        if (this->recreateSwapchainThisFrame == true)
+        {
+            return;
+        }
+
         VkClearValue clearValue{};
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -154,6 +161,11 @@ namespace yggdrasil
 
     void Renderer::present()
     {
+        if (this->recreateSwapchainThisFrame == true)
+        {
+            return;
+        }
+
         VkImageMemoryBarrier layoutBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
         layoutBarrier.image = this->perFrame.swapchainImage;
         layoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -191,20 +203,18 @@ namespace yggdrasil
         queuePresentInfo.pWaitSemaphores = &this->perFrame.releaseSemaphore;
         queuePresentInfo.pImageIndices = &this->currentImage;
 
-        VK_CHECK(vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo));
+        VkResult presentResult{ vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo) };
+        if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
+        {
+            YGGDRASIL_CORE_TRACE("Recreating swapchain - vkQueuePresentKHR");
+            this->recreateSwapchainThisFrame = true;
+            recreateSwapchain();
+        }
+        else if(presentResult != VK_SUCCESS)
+        {
+            VK_CHECK(presentResult);
+        }
         this->perFrame.frame = (this->perFrame.frame + 1) % static_cast<uint32_t>(this->context.screen.swapchainImages.size());
-    }
-
-    void Renderer::createSyncObjects()
-    {
-        this->acquireSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
-        this->releaseSemaphore = vulkan::util::createSemaphore(this->context.device.logical);
-    }
-
-    void Renderer::freeSyncObjects()
-    {
-        vkDestroySemaphore(this->context.device.logical, this->acquireSemaphore, vulkan::VK_CPU_ALLOCATOR);
-        vkDestroySemaphore(this->context.device.logical, this->releaseSemaphore, vulkan::VK_CPU_ALLOCATOR);
     }
 
     void Renderer::init(const Window& window)
@@ -213,8 +223,6 @@ namespace yggdrasil
         vulkan::initContext(this->context);
         createRenderPasses();
         createFramebuffers();
-        createSyncObjects();
-        createShaderModules();
         createPipeline();
     }
 
@@ -230,15 +238,6 @@ namespace yggdrasil
         {
             vkDestroyPipelineLayout(this->context.device.logical, this->pipelineLayout, vulkan::VK_CPU_ALLOCATOR);
         }
-        if (this->frag != VK_NULL_HANDLE)
-        {
-            vkDestroyShaderModule(this->context.device.logical, this->frag, vulkan::VK_CPU_ALLOCATOR);
-        }
-        if (this->vert != VK_NULL_HANDLE)
-        {
-            vkDestroyShaderModule(this->context.device.logical, this->vert, vulkan::VK_CPU_ALLOCATOR);
-        }
-        freeSyncObjects();
         for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
         {
             if (this->framebuffers[i] != VK_NULL_HANDLE)
@@ -251,6 +250,47 @@ namespace yggdrasil
             vkDestroyRenderPass(this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
         }
         vulkan::freeContext(this->context);
+    }
+
+    void Renderer::recreateSwapchain()
+    {
+        VkExtent2D extent{ globals::APPLICATION->getWindow()->getFramebufferSize() };
+        int32_t width{ static_cast<int32_t>(extent.width) };
+        int32_t height{ static_cast<int32_t>(extent.height) };
+        while (width == 0 || height == 0)
+        {
+            glfwGetFramebufferSize(globals::APPLICATION->getWindow()->getNativeWindow(), &width, &height);
+            glfwWaitEvents();
+        }
+
+        VK_CHECK( vkDeviceWaitIdle(this->context.device.logical) );
+
+        for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
+        {
+            if (this->framebuffers[i] != VK_NULL_HANDLE)
+            {
+                vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
+            }
+        }
+        if (this->renderPass != VK_NULL_HANDLE)
+        {
+            vkDestroyRenderPass( this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR );
+        }
+        for (uint32_t i{ 0 }; i < this->context.screen.swapchainImageViews.size(); i++)
+        {
+            if (this->context.screen.swapchainImageViews[i] != VK_NULL_HANDLE)
+            {
+                vkDestroyImageView(this->context.device.logical, this->context.screen.swapchainImageViews[i], vulkan::VK_CPU_ALLOCATOR);
+            }
+        }
+        if (this->context.screen.swapchain != VK_NULL_HANDLE)
+        {
+            vkDestroySwapchainKHR(this->context.device.logical, this->context.screen.swapchain, vulkan::VK_CPU_ALLOCATOR);
+        }
+        vulkan::createSwapchain(this->context);
+        createRenderPasses();
+        createFramebuffers();
+        this->recreateSwapchainThisFrame = false;
     }
 
     const vulkan::Context& Renderer::getContext() const

@@ -6,7 +6,7 @@
 
 namespace yggdrasil::vulkan
 {
-    void GraphicsPipelineFactory::clear(VkDevice device)
+    void GraphicsPipelineFactory::clear(Context& context)
     {
         this->shaderStageCreateInfos.clear();
         this->dynamicStates.clear();
@@ -26,12 +26,12 @@ namespace yggdrasil::vulkan
 
         while (!this->shaderModuleDeletionQueue.empty())
         {
-            vkDestroyShaderModule(device, shaderModuleDeletionQueue.front(), VK_CPU_ALLOCATOR);
+            vkDestroyShaderModule(context.device.logical, shaderModuleDeletionQueue.front(), VK_CPU_ALLOCATOR);
             shaderModuleDeletionQueue.pop();
         }
     }
 
-    void GraphicsPipelineFactory::pushShaderStage(VkDevice device, std::vector<uint32_t>& spirv, VkShaderStageFlagBits flags)
+    void GraphicsPipelineFactory::pushShaderStage(Context& context, std::vector<uint32_t>& spirv, VkShaderStageFlagBits flags)
     {
         // TODO: move shader module creation somewhere else.
         VkShaderModuleCreateInfo shaderModuleCreateInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
@@ -39,7 +39,7 @@ namespace yggdrasil::vulkan
         shaderModuleCreateInfo.pCode = spirv.data();
 
         VkShaderModule module{};
-        VK_CHECK( vkCreateShaderModule(device, &shaderModuleCreateInfo, VK_CPU_ALLOCATOR, &module) );
+        VK_CHECK( vkCreateShaderModule(context.device.logical, &shaderModuleCreateInfo, VK_CPU_ALLOCATOR, &module) );
         YGGDRASIL_ASSERT_VALUE( module );
         this->shaderModuleDeletionQueue.push( module );
 
@@ -51,19 +51,19 @@ namespace yggdrasil::vulkan
         this->shaderStageCreateInfos.push_back(createInfo);
     }
 
-    void GraphicsPipelineFactory::resetShaderStages(VkDevice device)
+    void GraphicsPipelineFactory::resetShaderStages(Context& context)
     {
         this->shaderStageCreateInfos.clear();
         while (!this->shaderModuleDeletionQueue.empty())
         {
-            vkDestroyShaderModule(device, shaderModuleDeletionQueue.front(), VK_CPU_ALLOCATOR);
+            vkDestroyShaderModule(context.device.logical, shaderModuleDeletionQueue.front(), VK_CPU_ALLOCATOR);
             shaderModuleDeletionQueue.pop();
         }
     }
 
     void GraphicsPipelineFactory::defaults(Context& context)
     {
-        clear(context.device.logical);
+        clear(context);
 
         this->inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
         this->inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -129,7 +129,7 @@ namespace yggdrasil::vulkan
         this->vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
     }
 
-    VkPipeline GraphicsPipelineFactory::createPipeline(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout)
+    VkPipeline GraphicsPipelineFactory::createPipeline(Context& context, VkRenderPass renderPass, VkPipelineLayout pipelineLayout)
     {
         VkGraphicsPipelineCreateInfo createInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
         createInfo.flags               = this->pipelineCreateFlags;
@@ -151,7 +151,7 @@ namespace yggdrasil::vulkan
         createInfo.basePipelineIndex   = -1;
 
         VkPipeline result{};
-        VK_CHECK( vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &createInfo, VK_CPU_ALLOCATOR, &result) );
+        VK_CHECK( vkCreateGraphicsPipelines(context.device.logical, VK_NULL_HANDLE, 1, &createInfo, VK_CPU_ALLOCATOR, &result) );
         return result;
     }
 

@@ -252,6 +252,7 @@ namespace yggdrasil
         vulkan::freeContext(this->context);
     }
 
+    // TODO: optimize this heavily. Use old swapchain and don't query all the information again.
     void Renderer::recreateSwapchain()
     {
         VkExtent2D extent{ globals::APPLICATION->getWindow()->getFramebufferSize() };
@@ -259,6 +260,8 @@ namespace yggdrasil
         int32_t height{ static_cast<int32_t>(extent.height) };
         while (width == 0 || height == 0)
         {
+            // TODO: don't pause the application.
+            // skip rendering instead.
             glfwGetFramebufferSize(globals::APPLICATION->getWindow()->getNativeWindow(), &width, &height);
             glfwWaitEvents();
         }
@@ -272,10 +275,11 @@ namespace yggdrasil
                 vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
             }
         }
-        if (this->renderPass != VK_NULL_HANDLE)
-        {
-            vkDestroyRenderPass( this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR );
-        }
+        // TODO: find out if renderpass requires recreation
+        // if (this->renderPass != VK_NULL_HANDLE)
+        // {
+        //     vkDestroyRenderPass( this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR );
+        // }
         for (uint32_t i{ 0 }; i < this->context.screen.swapchainImageViews.size(); i++)
         {
             if (this->context.screen.swapchainImageViews[i] != VK_NULL_HANDLE)
@@ -288,7 +292,8 @@ namespace yggdrasil
             vkDestroySwapchainKHR(this->context.device.logical, this->context.screen.swapchain, vulkan::VK_CPU_ALLOCATOR);
         }
         vulkan::createSwapchain(this->context);
-        createRenderPasses();
+        // TODO: find out if renderpass requires recreation
+        // createRenderPasses();
         createFramebuffers();
         this->recreateSwapchainThisFrame = false;
     }
@@ -312,5 +317,4 @@ namespace yggdrasil
     {
         return this->framebuffers;
     }
-
 }

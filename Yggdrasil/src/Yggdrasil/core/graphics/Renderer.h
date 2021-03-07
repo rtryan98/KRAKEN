@@ -38,9 +38,7 @@ namespace yggdrasil
         void prepare();
 
         const vulkan::Context& getContext() const;
-        VkRenderPass getRenderPass() const;
         const PerFrame& getPerFrameData() const;
-        const std::vector<VkFramebuffer>& getFramebuffers() const;
 
     private:
         void createRenderPasses();

@@ -41,8 +41,6 @@ namespace yggdrasil::vulkan
             VkExtent2D swapchainImageExtent;
         } screen;
 
-        uint32_t maxFramesInFlight{ 2 };
-
         std::vector<VkCommandPool> commandPools{};
         std::vector<VkCommandBuffer> commandBuffers{};
 

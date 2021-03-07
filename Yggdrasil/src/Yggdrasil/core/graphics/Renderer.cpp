@@ -303,18 +303,8 @@ namespace yggdrasil
         return this->context;
     }
 
-    VkRenderPass Renderer::getRenderPass() const
-    {
-        return this->renderPass;
-    }
-
     const PerFrame& Renderer::getPerFrameData() const
     {
         return this->perFrame;
-    }
-
-    const std::vector<VkFramebuffer>& Renderer::getFramebuffers() const
-    {
-        return this->framebuffers;
     }
 }

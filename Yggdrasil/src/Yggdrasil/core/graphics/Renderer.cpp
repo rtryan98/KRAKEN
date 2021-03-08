@@ -78,13 +78,13 @@ namespace yggdrasil::graphics
 
         vkWaitForFences(this->context.device.logical, 1, &this->perFrame.acquireFence, VK_TRUE, ~0ull);
 
+
         uint32_t imageIndex{};
         VkResult acquireNexImageResult{ vkAcquireNextImageKHR(this->context.device.logical, this->context.screen.swapchain, ~0ull, this->perFrame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex) };
         if (acquireNexImageResult == VK_ERROR_OUT_OF_DATE_KHR || acquireNexImageResult == VK_SUBOPTIMAL_KHR)
         {
             YGGDRASIL_CORE_TRACE("Recreating swapchain - vkAcquireNextImageKHR");
-            this->recreateSwapchainThisFrame = true;
-            recreateSwapchain();
+            this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
         }
         else if(acquireNexImageResult != VK_SUCCESS)
         {
@@ -101,11 +101,6 @@ namespace yggdrasil::graphics
 
     void Renderer::prepare()
     {
-        if (this->recreateSwapchainThisFrame == true)
-        {
-            return;
-        }
-
         acquirePerFrameData();
         VK_CHECK(vkResetCommandPool(this->context.device.logical, this->perFrame.commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT));
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -115,11 +110,6 @@ namespace yggdrasil::graphics
 
     void Renderer::onUpdate()
     {
-        if (this->recreateSwapchainThisFrame == true)
-        {
-            return;
-        }
-
         VkClearValue clearValue{};
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -147,11 +137,6 @@ namespace yggdrasil::graphics
 
     void Renderer::present()
     {
-        if (this->recreateSwapchainThisFrame == true)
-        {
-            return;
-        }
-
         VkImageMemoryBarrier layoutBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
         layoutBarrier.image = this->perFrame.swapchainImage;
         layoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -193,7 +178,7 @@ namespace yggdrasil::graphics
         if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
         {
             YGGDRASIL_CORE_TRACE("Recreating swapchain - vkQueuePresentKHR");
-            recreateSwapchain();
+            this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
         }
         else if(presentResult != VK_SUCCESS)
         {
@@ -228,12 +213,6 @@ namespace yggdrasil::graphics
             vkDestroyRenderPass(this->context.device.logical, this->renderPass, graphics::VK_CPU_ALLOCATOR);
         }
         graphics::freeContext(this->context);
-    }
-
-    void Renderer::recreateSwapchain()
-    {
-        this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
-        this->recreateSwapchainThisFrame = false;
     }
 
     const graphics::Context& Renderer::getContext() const

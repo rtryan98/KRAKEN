@@ -10,8 +10,6 @@ namespace yggdrasil::graphics
     {
         VkInstance instance;
 
-        VkDebugUtilsMessengerEXT debugMessenger;
-
         graphics::Device device{};
         graphics::Screen screen{};
 

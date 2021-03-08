@@ -83,4 +83,60 @@ namespace yggdrasil::graphics::util
         ifStream.close();
         return result;
     }
+
+    VkDebugUtilsMessengerEXT debugMessenger{};
+    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT{};
+    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT{};
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        VkDebugUtilsMessageTypeFlagsEXT type,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData
+    )
+    {
+        YGGDRASIL_UNUSED_VARIABLE(pUserData);
+        YGGDRASIL_UNUSED_VARIABLE(type);
+        if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        {
+            ::yggdrasil::Logger::getValidationErrorLogger()->error("{0}", pCallbackData->pMessage);
+            debugBreak();
+        }
+        else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        {
+            ::yggdrasil::Logger::getValidationErrorLogger()->warn("{0}", pCallbackData->pMessage);
+        }
+        else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+        {
+            ::yggdrasil::Logger::getValidationErrorLogger()->trace("{0}", pCallbackData->pMessage);
+        }
+        return VK_FALSE;
+    }
+
+    void createDebugMessenger(VkInstance instance)
+    {
+        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
+            | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+            | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+            | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
+            | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+        createInfo.pfnUserCallback = debugCallback;
+        createInfo.pUserData = nullptr;
+
+        VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &createInfo, VK_CPU_ALLOCATOR, &debugMessenger));
+        YGGDRASIL_ASSERT_VALUE(debugMessenger);
+    }
+
+    void freeDebugMessenger(VkInstance instance)
+    {
+        if (debugMessenger != VK_NULL_HANDLE)
+        {
+            vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, VK_CPU_ALLOCATOR);
+        }
+    }
 }

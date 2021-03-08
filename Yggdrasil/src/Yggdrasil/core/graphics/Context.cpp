@@ -74,53 +74,6 @@ namespace yggdrasil::graphics
         YGGDRASIL_ASSERT_VALUE(context.instance);
     }
 
-    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
-    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT type,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData
-    )
-    {
-        YGGDRASIL_UNUSED_VARIABLE(pUserData);
-        YGGDRASIL_UNUSED_VARIABLE(type);
-        if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        {
-            ::yggdrasil::Logger::getValidationErrorLogger()->error("{0}", pCallbackData->pMessage);
-            debugBreak();
-        }
-        else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        {
-            ::yggdrasil::Logger::getValidationErrorLogger()->warn("{0}", pCallbackData->pMessage);
-        }
-        else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-        {
-            ::yggdrasil::Logger::getValidationErrorLogger()->trace("{0}", pCallbackData->pMessage);
-        }
-        return VK_FALSE;
-    }
-
-    void createDebugMessenger(Context& context)
-    {
-        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(context.instance, "vkCreateDebugUtilsMessengerEXT"));
-        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(context.instance, "vkDestroyDebugUtilsMessengerEXT"));
-
-        VkDebugUtilsMessengerCreateInfoEXT createInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
-            | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-            | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-            | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
-            | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-        createInfo.pUserData = nullptr;
-
-        VK_CHECK(vkCreateDebugUtilsMessengerEXT(context.instance, &createInfo, VK_CPU_ALLOCATOR, &context.debugMessenger));
-        YGGDRASIL_ASSERT_VALUE(context.debugMessenger);
-    }
-
     void createCommandPools(Context& context)
     {
         VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
@@ -225,7 +178,8 @@ namespace yggdrasil::graphics
     {
         createInstance(context);
 #if YGGDRASIL_USE_ASSERTS
-        createDebugMessenger(context);
+        YGGDRASIL_CORE_TRACE("Creating Vulkan Debug Messenger.");
+        util::createDebugMessenger(context.instance);
 #endif
         YGGDRASIL_CORE_TRACE("Creating Surface.");
         context.screen.createSurface(globals::APPLICATION->getWindow(), context.instance);
@@ -257,12 +211,8 @@ namespace yggdrasil::graphics
         context.screen.freeSwapchain(context.device);
         context.device.free();
         context.screen.freeSurface(context.instance);
-
 #if YGGDRASIL_USE_ASSERTS
-        if (context.debugMessenger != VK_NULL_HANDLE)
-        {
-            vkDestroyDebugUtilsMessengerEXT(context.instance, context.debugMessenger, VK_CPU_ALLOCATOR);
-        }
+        util::freeDebugMessenger(context.instance);
 #endif
         if (context.instance != VK_NULL_HANDLE)
         {

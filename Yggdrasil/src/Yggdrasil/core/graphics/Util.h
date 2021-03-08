@@ -12,6 +12,9 @@ namespace yggdrasil::graphics::util
     VkFence createFence(VkDevice device, VkFenceCreateFlags flags);
 
     std::vector<char> parseSPIRV(const char* path);
+
+    void createDebugMessenger(VkInstance instance);
+    void freeDebugMessenger(VkInstance instance);
 }
 
 #if YGGDRASIL_USE_ASSERTS

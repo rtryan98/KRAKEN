@@ -44,10 +44,7 @@ namespace yggdrasil::graphics
         void createRenderPasses();
         void createFramebuffers();
         void createPipeline();
-
         void acquirePerFrameData();
-
-        void recreateSwapchain();
 
     private:
         graphics::Context context{};
@@ -57,6 +54,5 @@ namespace yggdrasil::graphics
         VkPipeline pipeline{};
         uint32_t currentImage{ 0 };
         PerFrame perFrame{};
-        bool_t recreateSwapchainThisFrame{ false };
     };
 }

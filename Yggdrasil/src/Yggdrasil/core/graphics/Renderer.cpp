@@ -7,10 +7,6 @@
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
 #include "Yggdrasil/core/graphics/PipelineFactory.h"
 
-#include <map>
-#include <vector>
-#include <glfw/glfw3.h>
-
 namespace yggdrasil::graphics
 {
     void Renderer::createRenderPasses()
@@ -43,11 +39,7 @@ namespace yggdrasil::graphics
         renderPassCreateInfo.pDependencies = nullptr;
 
         VK_CHECK(vkCreateRenderPass(this->context.device.logical, &renderPassCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->renderPass));
-    }
-
-    void Renderer::createFramebuffers()
-    {
-        this->context.screen.createSwapchainFramebuffers(this->context.device, this->renderPass);
+        VK_SET_OBJECT_DEBUG_NAME(this->context.device, reinterpret_cast<uint64_t>(this->renderPass), VK_OBJECT_TYPE_RENDER_PASS, "Swapchain Renderpass");
     }
 
     void Renderer::createPipeline()
@@ -192,7 +184,7 @@ namespace yggdrasil::graphics
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
         createRenderPasses();
-        createFramebuffers();
+        this->context.screen.createSwapchainFramebuffers(this->context.device, this->renderPass);
         createPipeline();
     }
 

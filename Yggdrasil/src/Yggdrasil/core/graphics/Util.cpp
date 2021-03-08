@@ -115,7 +115,7 @@ namespace yggdrasil::graphics::util
 
     void createDebugMessenger(VkInstance instance)
     {
-        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkCreateDebugUtilsMessengerEXT  = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
         vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
 
         VkDebugUtilsMessengerCreateInfoEXT createInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
@@ -138,5 +138,48 @@ namespace yggdrasil::graphics::util
         {
             vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, VK_CPU_ALLOCATOR);
         }
+    }
+
+    PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
+    PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT{};
+    PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT{};
+    PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT{};
+
+    void initDebugExtensions(VkInstance instance)
+    {
+        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
+        vkCmdDebugMarkerBeginEXT     = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT    >(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT"));
+        vkCmdDebugMarkerEndEXT       = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT      >(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT"));
+        vkCmdDebugMarkerInsertEXT    = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT   >(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT"));
+    }
+
+    void setObjectDebugName(Device& device, uint64_t handle, VkObjectType type, const char* name)
+    {
+        VkDebugUtilsObjectNameInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+        info.objectType = type;
+        info.objectHandle = handle;
+        info.pObjectName = name;
+        vkSetDebugUtilsObjectNameEXT(device.logical, &info);
+    }
+
+    void beginDebugRegion(VkCommandBuffer commandBuffer, const char* name, glm::vec4 color)
+    {
+        VkDebugMarkerMarkerInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+        memcpy(info.color, &color[0], sizeof(float_t) * 4);
+        info.pMarkerName = name;
+        vkCmdDebugMarkerBeginEXT(commandBuffer, &info);
+    }
+
+    void insertDebugMarker(VkCommandBuffer commandBuffer, const char* name, glm::vec4 color)
+    {
+        VkDebugMarkerMarkerInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+        memcpy(info.color, &color[0], sizeof(float_t) * 4);
+        info.pMarkerName = name;
+        vkCmdDebugMarkerInsertEXT(commandBuffer, &info);
+    }
+
+    void endDebugRegion(VkCommandBuffer commandBuffer)
+    {
+        vkCmdDebugMarkerEndEXT(commandBuffer);
     }
 }

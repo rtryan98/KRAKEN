@@ -42,14 +42,12 @@ namespace yggdrasil::graphics
 
     private:
         void createRenderPasses();
-        void createFramebuffers();
         void createPipeline();
         void acquirePerFrameData();
 
     private:
         graphics::Context context{};
         VkRenderPass renderPass{};
-        // std::vector<VkFramebuffer> swapchainFramebuffers{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
         uint32_t currentImage{ 0 };

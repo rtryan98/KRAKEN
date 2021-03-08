@@ -180,6 +180,7 @@ namespace yggdrasil::graphics
 #if YGGDRASIL_USE_ASSERTS
         YGGDRASIL_CORE_TRACE("Creating Vulkan Debug Messenger.");
         util::createDebugMessenger(context.instance);
+        util::initDebugExtensions(context.instance);
 #endif
         YGGDRASIL_CORE_TRACE("Creating Surface.");
         context.screen.createSurface(globals::APPLICATION->getWindow(), context.instance);

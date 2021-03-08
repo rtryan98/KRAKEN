@@ -5,13 +5,13 @@
 #include "Yggdrasil/core/Application.h"
 #include "Yggdrasil/core/window/Window.h"
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
-#include "Yggdrasil/core/graphics/vulkan/PipelineFactory.h"
+#include "Yggdrasil/core/graphics/PipelineFactory.h"
 
 #include <map>
 #include <vector>
 #include <glfw/glfw3.h>
 
-namespace yggdrasil
+namespace yggdrasil::graphics
 {
     void Renderer::createRenderPasses()
     {
@@ -42,25 +42,12 @@ namespace yggdrasil
         renderPassCreateInfo.dependencyCount = 0;
         renderPassCreateInfo.pDependencies = nullptr;
 
-        VK_CHECK(vkCreateRenderPass(this->context.device.logical, &renderPassCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->renderPass));
+        VK_CHECK(vkCreateRenderPass(this->context.device.logical, &renderPassCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->renderPass));
     }
 
     void Renderer::createFramebuffers()
     {
-        this->framebuffers.resize(this->context.screen.swapchainImageViews.size());
-
-        VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-        framebufferCreateInfo.renderPass = this->renderPass;
-        framebufferCreateInfo.attachmentCount = 1;
-        framebufferCreateInfo.width = this->context.screen.swapchainImageExtent.width;
-        framebufferCreateInfo.height = this->context.screen.swapchainImageExtent.height;
-        framebufferCreateInfo.layers = 1;
-
-        for (uint32_t i{0}; i < this->context.screen.swapchainImageViews.size(); i++)
-        {
-            framebufferCreateInfo.pAttachments = &this->context.screen.swapchainImageViews[i];
-            VK_CHECK(vkCreateFramebuffer(this->context.device.logical, &framebufferCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->framebuffers[i]));
-        }
+        this->context.screen.createSwapchainFramebuffers(this->context.device, this->renderPass);
     }
 
     void Renderer::createPipeline()
@@ -70,11 +57,10 @@ namespace yggdrasil
         pipelineLayoutCreateInfo.pSetLayouts = nullptr;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-        VK_CHECK(vkCreatePipelineLayout(this->context.device.logical, &pipelineLayoutCreateInfo, vulkan::VK_CPU_ALLOCATOR, &this->pipelineLayout));
+        VK_CHECK(vkCreatePipelineLayout(this->context.device.logical, &pipelineLayoutCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->pipelineLayout));
 
-        vulkan::GraphicsPipelineFactory factory{};
+        graphics::GraphicsPipelineFactory factory{};
         factory.defaults(this->context);
-        // auto& vertexInputState{ factory.getVertexInputStateCreateInfo() };
 
         std::vector<uint32_t> fragment{ shadercompiler::compileGlsl("res/shader/main.frag") };
         factory.pushShaderStage(this->context, fragment, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -110,7 +96,7 @@ namespace yggdrasil
         this->perFrame.commandBuffer = this->context.commandBuffers[imageIndex];
         this->perFrame.swapchainImage = this->context.screen.swapchainImages[imageIndex];
         this->perFrame.swapchainImageView = this->context.screen.swapchainImageViews[imageIndex];
-        this->perFrame.framebuffer = this->framebuffers[imageIndex];
+        this->perFrame.framebuffer = this->context.screen.swapchainFramebuffers[imageIndex];
     }
 
     void Renderer::prepare()
@@ -170,8 +156,8 @@ namespace yggdrasil
         layoutBarrier.image = this->perFrame.swapchainImage;
         layoutBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         layoutBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        layoutBarrier.srcQueueFamilyIndex = this->context.queues.rasterizerQueueFamilyIndex;
-        layoutBarrier.dstQueueFamilyIndex = this->context.queues.rasterizerQueueFamilyIndex;
+        layoutBarrier.srcQueueFamilyIndex = this->context.device.queues.rasterizerQueueFamilyIndex;
+        layoutBarrier.dstQueueFamilyIndex = this->context.device.queues.rasterizerQueueFamilyIndex;
         layoutBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         layoutBarrier.subresourceRange.layerCount = 1;
         layoutBarrier.subresourceRange.baseArrayLayer = 0;
@@ -194,7 +180,7 @@ namespace yggdrasil
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
         VK_CHECK(vkResetFences(this->context.device.logical, 1, &this->perFrame.acquireFence));
-        VK_CHECK(vkQueueSubmit(this->context.queues.rasterizerQueue, 1, &submitInfo, this->perFrame.acquireFence));
+        VK_CHECK(vkQueueSubmit(this->context.device.queues.rasterizerQueue, 1, &submitInfo, this->perFrame.acquireFence));
 
         VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         queuePresentInfo.swapchainCount = 1;
@@ -203,11 +189,10 @@ namespace yggdrasil
         queuePresentInfo.pWaitSemaphores = &this->perFrame.releaseSemaphore;
         queuePresentInfo.pImageIndices = &this->currentImage;
 
-        VkResult presentResult{ vkQueuePresentKHR(this->context.queues.presentQueue, &queuePresentInfo) };
+        VkResult presentResult{ vkQueuePresentKHR(this->context.device.queues.presentQueue, &queuePresentInfo) };
         if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
         {
             YGGDRASIL_CORE_TRACE("Recreating swapchain - vkQueuePresentKHR");
-            this->recreateSwapchainThisFrame = true;
             recreateSwapchain();
         }
         else if(presentResult != VK_SUCCESS)
@@ -220,7 +205,7 @@ namespace yggdrasil
     void Renderer::init(const Window& window)
     {
         YGGDRASIL_UNUSED_VARIABLE(window);
-        vulkan::initContext(this->context);
+        graphics::initContext(this->context);
         createRenderPasses();
         createFramebuffers();
         createPipeline();
@@ -232,73 +217,26 @@ namespace yggdrasil
 
         if (this->pipeline != VK_NULL_HANDLE)
         {
-            vkDestroyPipeline(this->context.device.logical, this->pipeline, vulkan::VK_CPU_ALLOCATOR);
+            vkDestroyPipeline(this->context.device.logical, this->pipeline, graphics::VK_CPU_ALLOCATOR);
         }
         if (this->pipelineLayout != VK_NULL_HANDLE)
         {
-            vkDestroyPipelineLayout(this->context.device.logical, this->pipelineLayout, vulkan::VK_CPU_ALLOCATOR);
-        }
-        for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
-        {
-            if (this->framebuffers[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
-            }
+            vkDestroyPipelineLayout(this->context.device.logical, this->pipelineLayout, graphics::VK_CPU_ALLOCATOR);
         }
         if (this->renderPass != VK_NULL_HANDLE)
         {
-            vkDestroyRenderPass(this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR);
+            vkDestroyRenderPass(this->context.device.logical, this->renderPass, graphics::VK_CPU_ALLOCATOR);
         }
-        vulkan::freeContext(this->context);
+        graphics::freeContext(this->context);
     }
 
-    // TODO: optimize this heavily. Use old swapchain and don't query all the information again.
     void Renderer::recreateSwapchain()
     {
-        VkExtent2D extent{ globals::APPLICATION->getWindow()->getFramebufferSize() };
-        int32_t width{ static_cast<int32_t>(extent.width) };
-        int32_t height{ static_cast<int32_t>(extent.height) };
-        while (width == 0 || height == 0)
-        {
-            // TODO: don't pause the application.
-            // skip rendering instead.
-            glfwGetFramebufferSize(globals::APPLICATION->getWindow()->getNativeWindow(), &width, &height);
-            glfwWaitEvents();
-        }
-
-        VK_CHECK( vkDeviceWaitIdle(this->context.device.logical) );
-
-        for (uint32_t i{ 0 }; i < this->framebuffers.size(); i++)
-        {
-            if (this->framebuffers[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyFramebuffer(this->context.device.logical, this->framebuffers[i], vulkan::VK_CPU_ALLOCATOR);
-            }
-        }
-        // TODO: find out if renderpass requires recreation
-        // if (this->renderPass != VK_NULL_HANDLE)
-        // {
-        //     vkDestroyRenderPass( this->context.device.logical, this->renderPass, vulkan::VK_CPU_ALLOCATOR );
-        // }
-        for (uint32_t i{ 0 }; i < this->context.screen.swapchainImageViews.size(); i++)
-        {
-            if (this->context.screen.swapchainImageViews[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyImageView(this->context.device.logical, this->context.screen.swapchainImageViews[i], vulkan::VK_CPU_ALLOCATOR);
-            }
-        }
-        if (this->context.screen.swapchain != VK_NULL_HANDLE)
-        {
-            vkDestroySwapchainKHR(this->context.device.logical, this->context.screen.swapchain, vulkan::VK_CPU_ALLOCATOR);
-        }
-        vulkan::createSwapchain(this->context);
-        // TODO: find out if renderpass requires recreation
-        // createRenderPasses();
-        createFramebuffers();
+        this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
         this->recreateSwapchainThisFrame = false;
     }
 
-    const vulkan::Context& Renderer::getContext() const
+    const graphics::Context& Renderer::getContext() const
     {
         return this->context;
     }

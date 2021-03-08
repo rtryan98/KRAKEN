@@ -8,7 +8,7 @@
 #include <glslang/StandAlone/DirStackFileIncluder.h>
 #include <SPIRV/GlslangToSpv.h>
 
-namespace yggdrasil::shadercompiler
+namespace yggdrasil::graphics::shadercompiler
 {
     constexpr int32_t CLIENT_INPUT_SEMANTICS_VERSION                { 120                          }; // Vulkan 120
     constexpr glslang::EShTargetClientVersion VULKAN_CLIENT_VERSION { glslang::EShTargetVulkan_1_2 }; // Vulkan 1.2

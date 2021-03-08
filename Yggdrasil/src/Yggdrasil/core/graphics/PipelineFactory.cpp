@@ -1,10 +1,10 @@
 #include "Yggdrasil/pch.h"
 
-#include "Yggdrasil/core/graphics/vulkan/PipelineFactory.h"
-#include "Yggdrasil/core/graphics/vulkan/Util.h"
-#include "Yggdrasil/core/graphics/vulkan/Globals.h"
+#include "Yggdrasil/core/graphics/PipelineFactory.h"
+#include "Yggdrasil/core/graphics/Util.h"
+#include "Yggdrasil/core/graphics/Globals.h"
 
-namespace yggdrasil::vulkan
+namespace yggdrasil::graphics
 {
     void GraphicsPipelineFactory::clear(Context& context)
     {
@@ -153,60 +153,5 @@ namespace yggdrasil::vulkan
         VkPipeline result{};
         VK_CHECK( vkCreateGraphicsPipelines(context.device.logical, VK_NULL_HANDLE, 1, &createInfo, VK_CPU_ALLOCATOR, &result) );
         return result;
-    }
-
-    VkPipelineVertexInputStateCreateInfo& GraphicsPipelineFactory::getVertexInputStateCreateInfo()
-    {
-        return this->vertexInputStateCreateInfo;
-    }
-
-    VkPipelineInputAssemblyStateCreateInfo& GraphicsPipelineFactory::getInputAssemblyStateCreateInfo()
-    {
-        return this->inputAssemblyStateCreateInfo;
-    }
-
-    VkPipelineViewportStateCreateInfo& GraphicsPipelineFactory::getViewportStateCreateInfo()
-    {
-        return this->viewportStateCreateInfo;
-    }
-
-    VkPipelineRasterizationStateCreateInfo& GraphicsPipelineFactory::getRasterizationStateCreateInfo()
-    {
-        return this->rasterizationStateCreateInfo;
-    }
-
-    VkPipelineColorBlendStateCreateInfo& GraphicsPipelineFactory::getColorBlendStateCreateInfo()
-    {
-        return this->colorBlendStateCreateInfo;
-    }
-
-    VkPipelineMultisampleStateCreateInfo& GraphicsPipelineFactory::getMultisampleStateCreateInfo()
-    {
-        return this->multisampleStateCreateInfo;
-    }
-
-    VkPipelineLayoutCreateInfo& GraphicsPipelineFactory::getLayoutCreateInfo()
-    {
-        return this->pipelineLayoutCreateInfo;
-    }
-
-    VkPipelineTessellationStateCreateInfo& GraphicsPipelineFactory::getTessellationStateCreateInfo()
-    {
-        return this->tesselationStateCreateInfo;
-    }
-
-    VkPipelineDepthStencilStateCreateInfo& GraphicsPipelineFactory::getDepthStencilStateCreateInfo()
-    {
-        return this->depthStencilStateCreateInfo;
-    }
-
-    VkPipelineDynamicStateCreateInfo& GraphicsPipelineFactory::getDynamicStateCreateInfo()
-    {
-        return this->dynamicStateCreateInfo;
-    }
-
-    std::vector<VkDynamicState> GraphicsPipelineFactory::getDynamicStates()
-    {
-        return this->dynamicStates;
     }
 }

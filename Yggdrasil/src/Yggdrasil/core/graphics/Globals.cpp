@@ -1,8 +1,8 @@
 #include "Yggdrasil/pch.h"
 
-#include "Yggdrasil/core/graphics/vulkan/Globals.h"
+#include "Yggdrasil/core/graphics/Globals.h"
 
-namespace yggdrasil::vulkan
+namespace yggdrasil::graphics
 {
     VkAllocationCallbacks* VK_CPU_ALLOCATOR{ nullptr };
 }

@@ -1,10 +1,10 @@
 #pragma once
 #include "Yggdrasil/Types.h"
+#include "Yggdrasil/core/graphics/Renderer.h"
 
 namespace yggdrasil
 {
     class Application;
-    class Renderer;
 }
 
 namespace yggdrasil::constants
@@ -19,7 +19,7 @@ namespace yggdrasil::constants
 namespace yggdrasil::globals
 {
     extern yggdrasil::Application* APPLICATION;
-    extern Renderer* RENDERER;
+    extern yggdrasil::graphics::Renderer* RENDERER;
 
     extern float_t DELTA_FRAME_TIME;
     extern float_t LAST_FRAME_TIME;

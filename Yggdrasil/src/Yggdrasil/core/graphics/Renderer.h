@@ -1,17 +1,17 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "Yggdrasil/core/graphics/vulkan/Globals.h"
+#include "Yggdrasil/core/graphics/Globals.h"
 #include "Yggdrasil/Defines.h"
 #include <functional>
 #include "Yggdrasil/core/util/Log.h"
-#include "Yggdrasil/core/graphics/vulkan/Util.h"
-#include "Yggdrasil/core/graphics/vulkan/Context.h"
+#include "Yggdrasil/core/graphics/Util.h"
+#include "Yggdrasil/core/graphics/Context.h"
 #include "Yggdrasil/Types.h"
 
-namespace yggdrasil
-{
-    class Window;
+class yggdrasil::Window;
 
+namespace yggdrasil::graphics
+{
     struct PerFrame
     {
         VkCommandPool commandPool{};
@@ -37,7 +37,7 @@ namespace yggdrasil
         void present();
         void prepare();
 
-        const vulkan::Context& getContext() const;
+        const graphics::Context& getContext() const;
         const PerFrame& getPerFrameData() const;
 
     private:
@@ -50,9 +50,9 @@ namespace yggdrasil
         void recreateSwapchain();
 
     private:
-        vulkan::Context context{};
+        graphics::Context context{};
         VkRenderPass renderPass{};
-        std::vector<VkFramebuffer> framebuffers{};
+        // std::vector<VkFramebuffer> swapchainFramebuffers{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
         uint32_t currentImage{ 0 };

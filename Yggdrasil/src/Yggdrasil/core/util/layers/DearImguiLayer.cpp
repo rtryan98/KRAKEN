@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/util/layers/DearImguiLayer.h"
 #include "Yggdrasil/core/Globals.h"
 #include "Yggdrasil/core/Application.h"
-#include "Yggdrasil/core/graphics/vulkan/Util.h"
+#include "Yggdrasil/core/graphics/Util.h"
 #include "Yggdrasil/core/graphics/Renderer.h"
 
 #include <vulkan/vulkan.h>
@@ -40,7 +40,7 @@ namespace yggdrasil
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, maxSets }
         };
 
-        const vulkan::Context& context = globals::RENDERER->getContext();
+        const graphics::Context& context = globals::RENDERER->getContext();
 
         VkAttachmentDescription attachmentDescription{};
         attachmentDescription.format = context.screen.swapchainImageFormat;
@@ -67,14 +67,14 @@ namespace yggdrasil
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
-        VK_CHECK(vkCreateRenderPass(context.device.logical, &renderPassInfo, vulkan::VK_CPU_ALLOCATOR, &internal::imguiRenderPass));
+        VK_CHECK(vkCreateRenderPass(context.device.logical, &renderPassInfo, graphics::VK_CPU_ALLOCATOR, &internal::imguiRenderPass));
 
         VkDescriptorPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
         poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         poolCreateInfo.maxSets = maxSets;
         poolCreateInfo.poolSizeCount = static_cast<uint32_t>(std::size(poolSizes));
         poolCreateInfo.pPoolSizes = poolSizes;
-        VK_CHECK(vkCreateDescriptorPool(context.device.logical, &poolCreateInfo, vulkan::VK_CPU_ALLOCATOR, &internal::imguiPool));
+        VK_CHECK(vkCreateDescriptorPool(context.device.logical, &poolCreateInfo, graphics::VK_CPU_ALLOCATOR, &internal::imguiPool));
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -83,11 +83,11 @@ namespace yggdrasil
         ImGui_ImplGlfw_InitForVulkan(globals::APPLICATION->getWindow()->getNativeWindow(), true);
         ImGui_ImplVulkan_InitInfo initInfo{};
         initInfo.Instance = context.instance;
-        initInfo.Allocator = vulkan::VK_CPU_ALLOCATOR;
+        initInfo.Allocator = graphics::VK_CPU_ALLOCATOR;
         initInfo.PhysicalDevice = context.device.physical;
         initInfo.Device = context.device.logical;
-        initInfo.Queue = context.queues.rasterizerQueue;
-        initInfo.QueueFamily = context.queues.rasterizerQueueFamilyIndex;
+        initInfo.Queue = context.device.queues.rasterizerQueue;
+        initInfo.QueueFamily = context.device.queues.rasterizerQueueFamilyIndex;
         initInfo.ImageCount = static_cast<uint32_t>(context.screen.swapchainImages.size());
         initInfo.MinImageCount = 2;
         initInfo.DescriptorPool = internal::imguiPool;
@@ -95,10 +95,10 @@ namespace yggdrasil
         ImGui_ImplVulkan_Init(&initInfo, internal::imguiRenderPass);
 
         VkCommandPoolCreateInfo commandPoolCreateInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-        commandPoolCreateInfo.queueFamilyIndex = context.queues.rasterizerQueueFamilyIndex;
+        commandPoolCreateInfo.queueFamilyIndex = context.device.queues.rasterizerQueueFamilyIndex;
         commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
         VkCommandPool commandPool{};
-        vkCreateCommandPool(context.device.logical, &commandPoolCreateInfo, vulkan::VK_CPU_ALLOCATOR, &commandPool);
+        vkCreateCommandPool(context.device.logical, &commandPoolCreateInfo, graphics::VK_CPU_ALLOCATOR, &commandPool);
 
         VK_CHECK(vkResetCommandPool(context.device.logical, commandPool, 0));
         VkCommandBuffer commandBuffer{};
@@ -122,22 +122,22 @@ namespace yggdrasil
         endInfo.commandBufferCount = 1;
         endInfo.pCommandBuffers = &commandBuffer;
 
-        VK_CHECK(vkQueueSubmit(context.queues.rasterizerQueue, 1, &endInfo, VK_NULL_HANDLE));
+        VK_CHECK(vkQueueSubmit(context.device.queues.rasterizerQueue, 1, &endInfo, VK_NULL_HANDLE));
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
 
         ImGui_ImplVulkan_DestroyFontUploadObjects();
-        vkDestroyCommandPool(context.device.logical, commandPool, vulkan::VK_CPU_ALLOCATOR);
+        vkDestroyCommandPool(context.device.logical, commandPool, graphics::VK_CPU_ALLOCATOR);
     }
 
     void ImguiLayer::free()
     {
-        const vulkan::Context& context{ globals::RENDERER->getContext() };
+        const graphics::Context& context{ globals::RENDERER->getContext() };
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
-        vkDestroyDescriptorPool(context.device.logical, internal::imguiPool, vulkan::VK_CPU_ALLOCATOR);
-        vkDestroyRenderPass(context.device.logical, internal::imguiRenderPass, vulkan::VK_CPU_ALLOCATOR);
+        vkDestroyDescriptorPool(context.device.logical, internal::imguiPool, graphics::VK_CPU_ALLOCATOR);
+        vkDestroyRenderPass(context.device.logical, internal::imguiRenderPass, graphics::VK_CPU_ALLOCATOR);
     }
 
     void ImguiLayer::onAttach()
@@ -155,8 +155,8 @@ namespace yggdrasil
 
     void ImguiLayer::endFrame()
     {
-        const Renderer& renderer{ *globals::RENDERER };
-        const vulkan::Context& context{ renderer.getContext() };
+        const graphics::Renderer& renderer{ *globals::RENDERER };
+        const graphics::Context& context{ renderer.getContext() };
         ImGui::Render();
         VkRenderPassBeginInfo begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
         begin.renderPass = internal::imguiRenderPass;

@@ -4,6 +4,8 @@
 int32_t main()
 {
     yggdrasil::ApplicationCreateInfo createInfo{};
+    createInfo.width = 1920;
+    createInfo.height = 1080;
     createInfo.title = "Yggdrasil Sandbox";
     createInfo.imguiEnabled = true;
     createInfo.decorated = true;

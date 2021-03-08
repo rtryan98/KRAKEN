@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-namespace yggdrasil::shadercompiler
+namespace yggdrasil::graphics::shadercompiler
 {
     void init();
     void free();

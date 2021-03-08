@@ -1,11 +1,11 @@
 #include "Yggdrasil/pch.h"
 
-#include "Yggdrasil/core/graphics/vulkan/Util.h"
-#include "Yggdrasil/core/graphics/vulkan/Globals.h"
+#include "Yggdrasil/core/graphics/Util.h"
+#include "Yggdrasil/core/graphics/Globals.h"
 #include <fstream>
 #include <sstream>
 
-namespace yggdrasil::vulkan::util
+namespace yggdrasil::graphics::util
 {
     const char* toString(VkResult result)
     {

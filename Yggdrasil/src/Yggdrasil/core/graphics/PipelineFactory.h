@@ -1,11 +1,11 @@
 #pragma once
-#include "Yggdrasil/core/graphics/vulkan/Context.h"
+#include "Yggdrasil/core/graphics/Context.h"
 
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <queue>
 
-namespace yggdrasil::vulkan
+namespace yggdrasil::graphics
 {
     class GraphicsPipelineFactory
     {
@@ -50,19 +50,6 @@ namespace yggdrasil::vulkan
         /// <param name="context">The Context which the application uses.</param>
         void resetShaderStages(Context& context);
 
-        VkPipelineVertexInputStateCreateInfo&        getVertexInputStateCreateInfo();
-        VkPipelineInputAssemblyStateCreateInfo&      getInputAssemblyStateCreateInfo();
-        VkPipelineViewportStateCreateInfo&           getViewportStateCreateInfo();
-        VkPipelineRasterizationStateCreateInfo&      getRasterizationStateCreateInfo();
-        VkPipelineColorBlendStateCreateInfo&         getColorBlendStateCreateInfo();
-        VkPipelineMultisampleStateCreateInfo&        getMultisampleStateCreateInfo();
-        VkPipelineLayoutCreateInfo&                  getLayoutCreateInfo();
-        VkPipelineTessellationStateCreateInfo&       getTessellationStateCreateInfo();
-        VkPipelineDepthStencilStateCreateInfo&       getDepthStencilStateCreateInfo();
-        VkPipelineDynamicStateCreateInfo&            getDynamicStateCreateInfo();
-        std::vector<VkDynamicState>                  getDynamicStates();
-
-    private:
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos{};
         VkPipelineVertexInputStateCreateInfo         vertexInputStateCreateInfo   { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO   };
         VkPipelineInputAssemblyStateCreateInfo       inputAssemblyStateCreateInfo { VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
@@ -80,6 +67,7 @@ namespace yggdrasil::vulkan
         VkPipelineColorBlendAttachmentState          colorBlendAttachmentState{};
         std::vector<VkDynamicState>                  dynamicStates{};
 
+    private:
         std::queue<VkShaderModule>                   shaderModuleDeletionQueue{};
     };
 }

@@ -2,6 +2,7 @@
 
 #include "Yggdrasil/core/Application.h"
 #include "Yggdrasil/core/Globals.h"
+#include "Yggdrasil/core/window/Window.h"
 #include "Yggdrasil/core/event/WindowEvent.h"
 #include "Yggdrasil/core/input/Input.h"
 #include "Yggdrasil/core/util/layers/DearImguiLayer.h"
@@ -16,7 +17,7 @@ namespace yggdrasil
         : window{ nullptr }, imguiEnabled{ createInfo.imguiEnabled }
     {
         Logger::init();
-        shadercompiler::init();
+        graphics::shadercompiler::init();
         globals::APPLICATION = this;
         WindowData windowData{};
         if (createInfo.width > 0)
@@ -34,7 +35,7 @@ namespace yggdrasil
             };
         windowData.decorated = createInfo.decorated;
         window = Window::createWindow( windowData );
-        globals::RENDERER = new Renderer();
+        globals::RENDERER = new graphics::Renderer();
         globals::RENDERER->init(*this->window);
         ImguiLayer::init();
     }
@@ -45,7 +46,7 @@ namespace yggdrasil
         globals::RENDERER->free();
         delete globals::RENDERER;
         delete window;
-        shadercompiler::free();
+        graphics::shadercompiler::free();
         Logger::free();
     }
 

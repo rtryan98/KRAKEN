@@ -15,15 +15,17 @@ namespace yggdrasil::graphics
         void freeSurface(VkInstance instance);
         void createSwapchain(Device& device);
         void freeSwapchain(Device& device);
-        void createSwapchainFramebuffers(Device& device, VkRenderPass renderPass);
+        void createSwapchainRenderPass(Device& device);
+        void createSwapchainFramebuffers(Device& device);
         void freeSwapchainFramebuffers(Device& device);
 
-        void recreateSwapchain(Device& device, VkRenderPass renderPass);
+        void recreateSwapchain(Device& device);
 
         VkSurfaceKHR surface{};
         VkSwapchainKHR swapchain{};
         VkFormat swapchainImageFormat{};
         VkExtent2D swapchainImageExtent{};
+        VkRenderPass swapchainRenderPass{};
         std::vector<VkImage> swapchainImages{};
         std::vector<VkImageView> swapchainImageViews{};
         std::vector<VkFramebuffer> swapchainFramebuffers{};

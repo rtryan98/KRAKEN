@@ -182,11 +182,8 @@ namespace yggdrasil::graphics
         util::createDebugMessenger(context.instance);
         util::initDebugExtensions(context.instance);
 #endif
-        YGGDRASIL_CORE_TRACE("Creating Surface.");
         context.screen.createSurface(globals::APPLICATION->getWindow(), context.instance);
-        YGGDRASIL_CORE_TRACE("Creating Device.");
         context.device.create(context.instance, context.screen);
-        YGGDRASIL_CORE_TRACE("Creating Swapchain.");
         context.screen.createSwapchain(context.device);
         YGGDRASIL_CORE_TRACE("Creating Commandpools.");
         createCommandPools(context);

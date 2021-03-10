@@ -9,39 +9,6 @@
 
 namespace yggdrasil::graphics
 {
-    void Renderer::createRenderPasses()
-    {
-        VkAttachmentDescription attachmentDescription{};
-        attachmentDescription.format = this->context.screen.swapchainImageFormat;
-        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkAttachmentReference colorAttachmentReference{};
-        colorAttachmentReference.attachment = 0;
-        colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkSubpassDescription subpass{};
-        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorAttachmentReference;
-
-        VkRenderPassCreateInfo renderPassCreateInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-        renderPassCreateInfo.attachmentCount = 1;
-        renderPassCreateInfo.pAttachments = &attachmentDescription;
-        renderPassCreateInfo.subpassCount = 1;
-        renderPassCreateInfo.pSubpasses = &subpass;
-        renderPassCreateInfo.dependencyCount = 0;
-        renderPassCreateInfo.pDependencies = nullptr;
-
-        VK_CHECK(vkCreateRenderPass(this->context.device.logical, &renderPassCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->renderPass));
-        VK_SET_OBJECT_DEBUG_NAME(this->context.device, reinterpret_cast<uint64_t>(this->renderPass), VK_OBJECT_TYPE_RENDER_PASS, "Swapchain Renderpass");
-    }
-
     void Renderer::createPipeline()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -58,7 +25,7 @@ namespace yggdrasil::graphics
         factory.pushShaderStage(this->context, fragment, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::vector<uint32_t> vertex{ shadercompiler::compileGlsl("res/shader/main.vert") };
         factory.pushShaderStage(this->context, vertex, VK_SHADER_STAGE_VERTEX_BIT);
-        this->pipeline = factory.createPipeline(this->context, this->renderPass, this->pipelineLayout);
+        this->pipeline = factory.createPipeline(this->context, this->context.screen.swapchainRenderPass, this->pipelineLayout);
         factory.clear(this->context);
     }
 
@@ -76,7 +43,7 @@ namespace yggdrasil::graphics
         if (acquireNexImageResult == VK_ERROR_OUT_OF_DATE_KHR || acquireNexImageResult == VK_SUBOPTIMAL_KHR)
         {
             YGGDRASIL_CORE_TRACE("Recreating swapchain - vkAcquireNextImageKHR");
-            this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
+            this->context.screen.recreateSwapchain(this->context.device);
         }
         else if(acquireNexImageResult != VK_SUCCESS)
         {
@@ -109,7 +76,7 @@ namespace yggdrasil::graphics
         renderPassBeginInfo.framebuffer = this->perFrame.framebuffer;
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
-        renderPassBeginInfo.renderPass = this->renderPass;
+        renderPassBeginInfo.renderPass = this->context.screen.swapchainRenderPass;
         renderPassBeginInfo.renderArea.extent = this->context.screen.swapchainImageExtent;
         renderPassBeginInfo.renderArea.offset = {0, 0};
         vkCmdBeginRenderPass(this->perFrame.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -170,7 +137,7 @@ namespace yggdrasil::graphics
         if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
         {
             YGGDRASIL_CORE_TRACE("Recreating swapchain - vkQueuePresentKHR");
-            this->context.screen.recreateSwapchain(this->context.device, this->renderPass);
+            this->context.screen.recreateSwapchain(this->context.device);
         }
         else if(presentResult != VK_SUCCESS)
         {
@@ -183,8 +150,6 @@ namespace yggdrasil::graphics
     {
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
-        createRenderPasses();
-        this->context.screen.createSwapchainFramebuffers(this->context.device, this->renderPass);
         createPipeline();
     }
 
@@ -200,10 +165,7 @@ namespace yggdrasil::graphics
         {
             vkDestroyPipelineLayout(this->context.device.logical, this->pipelineLayout, graphics::VK_CPU_ALLOCATOR);
         }
-        if (this->renderPass != VK_NULL_HANDLE)
-        {
-            vkDestroyRenderPass(this->context.device.logical, this->renderPass, graphics::VK_CPU_ALLOCATOR);
-        }
+        YGGDRASIL_CORE_TRACE("Destroying Context.");
         graphics::freeContext(this->context);
     }
 

@@ -10,12 +10,15 @@ namespace yggdrasil::graphics
 {
     void Screen::createSurface(Window* win, VkInstance instance)
     {
+        YGGDRASIL_CORE_TRACE("Creating Surface.");
         this->window = win;
         this->surface = window->getSurface(instance);
     }
 
     void getImages(Screen* screen, Device& device)
     {
+        YGGDRASIL_CORE_TRACE("Acquiring Swapchain Images.");
+
         uint32_t swapchainImageCount{};
         VK_CHECK(vkGetSwapchainImagesKHR(device.logical, screen->swapchain, &swapchainImageCount, nullptr));
         screen->swapchainImages.resize(swapchainImageCount);
@@ -24,6 +27,8 @@ namespace yggdrasil::graphics
 
     void createImageViews(Screen* screen, Device& device)
     {
+        YGGDRASIL_CORE_TRACE("Creating Swapchain Image Views.");
+
         screen->swapchainImageViews.resize(screen->swapchainImages.size());
 
         VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -48,6 +53,7 @@ namespace yggdrasil::graphics
 
     void Screen::createSwapchain(Device& device)
     {
+        YGGDRASIL_CORE_TRACE("Creating Swapchain.");
         VkSurfaceCapabilitiesKHR surfaceCapabilities{};
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, this->surface, &surfaceCapabilities);
 
@@ -130,14 +136,53 @@ namespace yggdrasil::graphics
 
         getImages(this, device);
         createImageViews(this, device);
+        createSwapchainRenderPass(device);
+        createSwapchainFramebuffers(device);
     }
 
-    void Screen::createSwapchainFramebuffers(Device& device, VkRenderPass renderPass)
+    void Screen::createSwapchainRenderPass(Device& device)
     {
+        YGGDRASIL_CORE_TRACE("Creating Swapchain Render Pass.");
+
+        VkAttachmentDescription attachmentDescription{};
+        attachmentDescription.format = this->swapchainImageFormat;
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorAttachmentReference{};
+        colorAttachmentReference.attachment = 0;
+        colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentReference;
+
+        VkRenderPassCreateInfo renderPassCreateInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+        renderPassCreateInfo.attachmentCount = 1;
+        renderPassCreateInfo.pAttachments = &attachmentDescription;
+        renderPassCreateInfo.subpassCount = 1;
+        renderPassCreateInfo.pSubpasses = &subpass;
+        renderPassCreateInfo.dependencyCount = 0;
+        renderPassCreateInfo.pDependencies = nullptr;
+
+        VK_CHECK(vkCreateRenderPass(device.logical, &renderPassCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->swapchainRenderPass));
+        VK_SET_OBJECT_DEBUG_NAME(device, reinterpret_cast<uint64_t>(this->swapchainRenderPass), VK_OBJECT_TYPE_RENDER_PASS, "Swapchain Renderpass");
+    }
+
+    void Screen::createSwapchainFramebuffers(Device& device)
+    {
+        YGGDRASIL_CORE_TRACE("Creating Swapchain Framebuffers.");
+
         this->swapchainFramebuffers.resize(this->swapchainImageViews.size());
 
         VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-        framebufferCreateInfo.renderPass = renderPass;
+        framebufferCreateInfo.renderPass = this->swapchainRenderPass;
         framebufferCreateInfo.attachmentCount = 1;
         framebufferCreateInfo.width = this->swapchainImageExtent.width;
         framebufferCreateInfo.height = this->swapchainImageExtent.height;
@@ -147,6 +192,8 @@ namespace yggdrasil::graphics
         {
             framebufferCreateInfo.pAttachments = &this->swapchainImageViews[i];
             VK_CHECK(vkCreateFramebuffer(device.logical, &framebufferCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->swapchainFramebuffers[i]));
+            std::string framebufferName{ "Swapchain Framebuffer" + i };
+            VK_SET_OBJECT_DEBUG_NAME(device, reinterpret_cast<uint64_t>(this->swapchainFramebuffers[i]), VK_OBJECT_TYPE_FRAMEBUFFER, framebufferName.c_str());
         }
     }
 
@@ -156,6 +203,7 @@ namespace yggdrasil::graphics
         {
             if (this->swapchainFramebuffers[i] != VK_NULL_HANDLE)
             {
+                YGGDRASIL_CORE_TRACE("Destroying Swapchain Framebuffer '{0}'.", i);
                 vkDestroyFramebuffer(device.logical, this->swapchainFramebuffers[i], graphics::VK_CPU_ALLOCATOR);
             }
         }
@@ -163,15 +211,22 @@ namespace yggdrasil::graphics
 
     void Screen::freeSwapchain(Device& device)
     {
+        if (this->swapchainRenderPass != VK_NULL_HANDLE)
+        {
+            YGGDRASIL_CORE_TRACE("Destroying Swapchain Renderpass.");
+            vkDestroyRenderPass(device.logical, this->swapchainRenderPass, graphics::VK_CPU_ALLOCATOR);
+        }
         for (uint32_t i{ 0 }; i < this->swapchainImageViews.size(); i++)
         {
             if (this->swapchainImageViews[i] != VK_NULL_HANDLE)
             {
+                YGGDRASIL_CORE_TRACE("Destroying Swapchain Image View '{0}'.", i);
                 vkDestroyImageView(device.logical, this->swapchainImageViews[i], graphics::VK_CPU_ALLOCATOR);
             }
         }
         if (this->swapchain != VK_NULL_HANDLE)
         {
+            YGGDRASIL_CORE_TRACE("Destroying Swapchain.");
             vkDestroySwapchainKHR(device.logical, this->swapchain, graphics::VK_CPU_ALLOCATOR);
         }
     }
@@ -180,11 +235,12 @@ namespace yggdrasil::graphics
     {
         if (this->surface != VK_NULL_HANDLE)
         {
+            YGGDRASIL_CORE_TRACE("Destroying Surface.");
             vkDestroySurfaceKHR(instance, this->surface, graphics::VK_CPU_ALLOCATOR);
         }
     }
 
-    void Screen::recreateSwapchain(Device& device, VkRenderPass renderPass)
+    void Screen::recreateSwapchain(Device& device)
     {
         VkExtent2D extent{ window->getFramebufferSize() };
         int32_t width{ static_cast<int32_t>(extent.width) };
@@ -199,25 +255,10 @@ namespace yggdrasil::graphics
 
         VK_CHECK(vkDeviceWaitIdle(device.logical));
 
-        for (uint32_t i{ 0 }; i < this->swapchainFramebuffers.size(); i++)
-        {
-            if (this->swapchainFramebuffers[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyFramebuffer(device.logical, this->swapchainFramebuffers[i], graphics::VK_CPU_ALLOCATOR);
-            }
-        }
-        for (uint32_t i{ 0 }; i < this->swapchainImageViews.size(); i++)
-        {
-            if (this->swapchainImageViews[i] != VK_NULL_HANDLE)
-            {
-                vkDestroyImageView(device.logical, this->swapchainImageViews[i], graphics::VK_CPU_ALLOCATOR);
-            }
-        }
-        if (this->swapchain != VK_NULL_HANDLE)
-        {
-            vkDestroySwapchainKHR(device.logical, this->swapchain, graphics::VK_CPU_ALLOCATOR);
-        }
+        freeSwapchainFramebuffers(device);
+        freeSwapchain(device);
         createSwapchain(device);
-        createSwapchainFramebuffers(device, renderPass);
+        // createSwapchainRenderPass(device);
+        // createSwapchainFramebuffers(device);
     }
 }

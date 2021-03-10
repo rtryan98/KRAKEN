@@ -41,13 +41,11 @@ namespace yggdrasil::graphics
         const PerFrame& getPerFrameData() const;
 
     private:
-        void createRenderPasses();
         void createPipeline();
         void acquirePerFrameData();
 
     private:
         graphics::Context context{};
-        VkRenderPass renderPass{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
         uint32_t currentImage{ 0 };

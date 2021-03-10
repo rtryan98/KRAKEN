@@ -27,5 +27,10 @@ namespace yggdrasil::graphics
             uint32_t asyncComputeQueueFamilyIndex{};       // Does async compute if exists
             uint32_t presentQueueFamilyIndex{};            // Does present either on async compute or graphics depending on where post process is done
         } queues;
+
+        struct Memory
+        {
+            VkPhysicalDeviceMemoryProperties properties{};
+        } memory;
     };
 }

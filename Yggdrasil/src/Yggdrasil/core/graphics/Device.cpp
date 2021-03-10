@@ -46,6 +46,7 @@ namespace yggdrasil::graphics
 
     void Device::create(VkInstance instance, Screen& screen)
     {
+        YGGDRASIL_CORE_TRACE("Creating Device.");
         selectPhysicalDevice(instance, this);
 
         uint32_t queueFamilyCount{ 0 };
@@ -172,6 +173,8 @@ namespace yggdrasil::graphics
     
         YGGDRASIL_ASSERT_VALUE(this->queues.rasterizerQueue);
         YGGDRASIL_ASSERT_VALUE(this->queues.presentQueue);
+
+        vkGetPhysicalDeviceMemoryProperties(this->physical, &this->memory.properties);
     }
 
     void Device::free()

@@ -117,62 +117,7 @@ namespace yggdrasil::graphics
         }
     }
 
-    void printGpuMemoryInfo(Context& context)
-    {
-        VkPhysicalDeviceProperties deviceProperties{};
-        vkGetPhysicalDeviceProperties(context.device.physical, &deviceProperties);
-        VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
-        vkGetPhysicalDeviceMemoryProperties(context.device.physical, &deviceMemoryProperties);
 
-        YGGDRASIL_CORE_INFO("Selected Device: {0}", deviceProperties.deviceName);
-        YGGDRASIL_CORE_INFO("Driver Version: {0}", deviceProperties.driverVersion);
-        YGGDRASIL_CORE_INFO("Memory:");
-        for (uint32_t i{ 0 }; i < deviceMemoryProperties.memoryHeapCount; i++)
-        {
-            YGGDRASIL_CORE_INFO("\tHeap Size: {0:.6f} GB", deviceMemoryProperties.memoryHeaps[i].size * 1.0e-9);
-            std::stringstream heapTypeStringStream{};
-            heapTypeStringStream << "\t\tHeapType: ";
-            for (uint32_t j{ 0 }; j < deviceMemoryProperties.memoryTypeCount; j++)
-            {
-                if (deviceMemoryProperties.memoryTypes[j].heapIndex == i)
-                {
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-                    {
-                        heapTypeStringStream << "DEVICE_LOCAL\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD)
-                    {
-                        heapTypeStringStream << "DEVICE_DEVICE_COHERENT_AMD\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD)
-                    {
-                        heapTypeStringStream << "DEVICE_UNCACHED_AMD\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-                    {
-                        heapTypeStringStream << "HOST_VISIBLE\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-                    {
-                        heapTypeStringStream << "HOST_COHERENT\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
-                    {
-                        heapTypeStringStream << "HOST_CACHED\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
-                    {
-                        heapTypeStringStream << "LAZILY_ALLOCATED\t";
-                    }
-                    if (deviceMemoryProperties.memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT)
-                    {
-                        heapTypeStringStream << "PROTECTED\t";
-                    }
-                }
-            }
-            YGGDRASIL_CORE_INFO(heapTypeStringStream.str().c_str());
-        }
-    }
 
     void initContext(Context& context)
     {
@@ -189,8 +134,6 @@ namespace yggdrasil::graphics
         createCommandPools(context);
         YGGDRASIL_CORE_TRACE("Creating per-frame Sync-objects.");
         createSyncObjects(context);
-
-        printGpuMemoryInfo(context);
     }
     
     void freeContext(Context& context)

@@ -6,6 +6,7 @@
 #include "Yggdrasil/core/graphics/Globals.h"
 
 #include <vector>
+#include <iomanip>
 
 namespace yggdrasil::graphics
 {
@@ -44,6 +45,101 @@ namespace yggdrasil::graphics
         return presentationSupported;
     }
 
+    std::string PciToString(uint64_t id)
+    {
+        switch (id)
+        {
+        case 0x1002: return "AMD";
+        case 0x1010: return "ImgTec";
+        case 0x10DE: return "NVIDIA";
+        case 0x13B5: return "ARM";
+        case 0x5143: return "Qualcomm";
+        case 0x8086: return "INTEL";
+        default:     return "Unknown Vendor.";
+        }
+    }
+
+    void printGpuMemoryInfo(Device& device)
+    {
+        std::string seperator{ "------|------|--------------|--------------|---------------|-------------|------------------|-----------|--------------" };
+        std::stringstream table{};
+        table << "Memory Information.\n";
+        table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
+        for (uint32_t i{ 0 }; i < device.memory.properties.memoryHeapCount; i++)
+        {
+            table << "\n" << seperator;
+            auto& heap{ device.memory.properties.memoryHeaps[i] };
+            for (uint32_t j{ 0 }; j < device.memory.properties.memoryTypeCount; j++)
+            {
+                auto& memoryType{ device.memory.properties.memoryTypes[j] };
+                if (memoryType.heapIndex != i)
+                {
+                    continue;
+                }
+                table << "\n";
+                table <<  " " << i << "    ";
+                table << "| " << j << "    ";
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                {
+                    table << "| true         ";
+                }
+                else
+                {
+                    table << "| false        ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+                {
+                    table << "| true         ";
+                }
+                else
+                {
+                    table << "| false        ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                {
+                    table << "| true          ";
+                }
+                else
+                {
+                    table << "| false         ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+                {
+                    table << "| true        ";
+                }
+                else
+                {
+                    table << "| false       ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+                {
+                    table << "| true             ";
+                }
+                else
+                {
+                    table << "| false            ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT)
+                {
+                    table << "| true      ";
+                }
+                else
+                {
+                    table << "| false     ";
+                }
+                table << "| " << std::fixed << std::setprecision(3) << heap.size * 1.0e-9 << " GB";
+            }
+        }
+        YGGDRASIL_CORE_INFO(table.str());
+    }
+
+    void printGpuInfo(Device& device)
+    {
+        YGGDRASIL_CORE_INFO("Selected Device: {0} {1}", PciToString(device.properties.vendorID), device.properties.deviceName);
+        YGGDRASIL_CORE_INFO("Driver Version: {0}", device.properties.driverVersion);
+        printGpuMemoryInfo(device);
+    }
+
     void Device::create(VkInstance instance, Screen& screen)
     {
         YGGDRASIL_CORE_TRACE("Creating Device.");
@@ -79,7 +175,7 @@ namespace yggdrasil::graphics
                     this->queues.presentQueueFamilyIndex = i;
                 }
 
-                YGGDRASIL_CORE_TRACE("Found main rasterizer queue family with index {0}.", i);
+                YGGDRASIL_CORE_TRACE("Found rasterizer queue family with queue family index {0}.", i);
             }
             else if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT &&
                 queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
@@ -88,7 +184,7 @@ namespace yggdrasil::graphics
                 this->queues.asyncComputeQueueFamilyIndex = i;
                 asyncComputeQueueFamilyFound = true;
 
-                YGGDRASIL_CORE_TRACE("Found async compute queue family with index {0}.", i);
+                YGGDRASIL_CORE_TRACE("Found async compute queue family with queue family index {0}.", i);
             }
             else if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
                 !transferQueueFamilyFound)
@@ -96,7 +192,7 @@ namespace yggdrasil::graphics
                 this->queues.transferQueueFamilyIndex = i;
                 transferQueueFamilyFound = true;
 
-                YGGDRASIL_CORE_TRACE("Found transfer queue family with index {0}.", i);
+                YGGDRASIL_CORE_TRACE("Found transfer queue family with queue family index {0}.", i);
             }
         }
 
@@ -174,7 +270,10 @@ namespace yggdrasil::graphics
         YGGDRASIL_ASSERT_VALUE(this->queues.rasterizerQueue);
         YGGDRASIL_ASSERT_VALUE(this->queues.presentQueue);
 
+        vkGetPhysicalDeviceProperties(this->physical, &this->properties);
         vkGetPhysicalDeviceMemoryProperties(this->physical, &this->memory.properties);
+
+        printGpuInfo(*this);
     }
 
     void Device::free()

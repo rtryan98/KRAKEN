@@ -45,7 +45,7 @@ namespace yggdrasil::graphics
     private:
         void createPipeline();
         void acquirePerFrameData();
-        void createDescriptorSets();
+        void createDescriptorSetLayout();
         void createDescriptorPool();
         void freeDescriptorPool();
 

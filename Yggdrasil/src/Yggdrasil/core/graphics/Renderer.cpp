@@ -80,7 +80,7 @@ namespace yggdrasil::graphics
         this->perFrame.framebuffer = this->context.screen.swapchainFramebuffers[imageIndex];
     }
 
-    void Renderer::createDescriptorSets()
+    void Renderer::createDescriptorSetLayout()
     {
         VkDescriptorSetLayoutBinding binding{};
         binding.binding = 0;
@@ -260,7 +260,7 @@ namespace yggdrasil::graphics
     {
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
-        createDescriptorSets();
+        createDescriptorSetLayout();
         createPipeline();
         createDescriptorPool();
 

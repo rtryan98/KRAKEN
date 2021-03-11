@@ -8,6 +8,9 @@
 #include "Yggdrasil/core/graphics/PipelineFactory.h"
 #include "Yggdrasil/core/graphics/memory/Resource.h"
 
+#include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <array>
 
 namespace yggdrasil::graphics
@@ -15,8 +18,8 @@ namespace yggdrasil::graphics
     void Renderer::createPipeline()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-        pipelineLayoutCreateInfo.setLayoutCount = 0;
-        pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+        pipelineLayoutCreateInfo.setLayoutCount = 1;
+        pipelineLayoutCreateInfo.pSetLayouts = &this->descriptorSetLayout;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
         VK_CHECK(vkCreatePipelineLayout(this->context.device.logical, &pipelineLayoutCreateInfo, graphics::VK_CPU_ALLOCATOR, &this->pipelineLayout));
@@ -77,6 +80,62 @@ namespace yggdrasil::graphics
         this->perFrame.framebuffer = this->context.screen.swapchainFramebuffers[imageIndex];
     }
 
+    void Renderer::createDescriptorSets()
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = 0;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        binding.descriptorCount = 1;
+        binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        binding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+        createInfo.bindingCount = 1;
+        createInfo.pBindings = &binding;
+
+        VK_CHECK(vkCreateDescriptorSetLayout(this->context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &this->descriptorSetLayout));
+    }
+
+    void Renderer::createDescriptorPool()
+    {
+        VkDescriptorPoolSize size{};
+        size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        size.descriptorCount = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
+
+        VkDescriptorPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+        createInfo.poolSizeCount = 1;
+        createInfo.pPoolSizes = &size;
+        createInfo.maxSets = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
+
+        for (uint32_t i{ 0 }; i < this->context.screen.swapchainImages.size(); i++)
+        {
+            this->descriptorSets.push_back(VkDescriptorSet{});
+        }
+
+        VK_CHECK(vkCreateDescriptorPool(this->context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &this->descriptorPool));
+
+        std::vector<VkDescriptorSetLayout> setLayouts(this->context.screen.swapchainImages.size(), this->descriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        allocateInfo.descriptorSetCount = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
+        allocateInfo.pSetLayouts = setLayouts.data();
+        allocateInfo.descriptorPool = this->descriptorPool;
+
+        VK_CHECK(vkAllocateDescriptorSets(this->context.device.logical, &allocateInfo, this->descriptorSets.data()));
+    }
+
+    void Renderer::freeDescriptorPool()
+    {
+        if (this->descriptorPool != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorPool(this->context.device.logical, this->descriptorPool, VK_CPU_ALLOCATOR);
+        }
+        if (this->descriptorSetLayout != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorSetLayout(this->context.device.logical, this->descriptorSetLayout, VK_NULL_HANDLE);
+        }
+    }
+
     void Renderer::prepare()
     {
         acquirePerFrameData();
@@ -88,6 +147,34 @@ namespace yggdrasil::graphics
 
     void Renderer::onUpdate()
     {
+        glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
+        glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+        glm::vec3 pos{ 0.0f, 0.0f, 1.0f + glm::sin(glfwGetTime()) };
+
+        struct Camera
+        {
+            glm::mat4 projection{ glm::perspectiveFov<float_t>(glm::radians(75.0f), 1920.0f, 1080.0f, 0.001f, 1000.0f) };
+            glm::mat4 view{ 1.0f };
+        } camera;
+        camera.view = glm::lookAt(pos, forward, up);
+
+        memory::uploadDataToUniformBuffer(&camera, sizeof(Camera), this->ubo, this->perFrame.frame, this->perFrame.commandBuffer);
+
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = this->ubo.ubo.buffer;
+        bufferInfo.offset = this->ubo.perFrameOffset * this->perFrame.frame;
+        bufferInfo.range = this->ubo.ubo.size / static_cast<uint32_t>(this->context.screen.swapchainImages.size());
+
+        VkWriteDescriptorSet descriptorWrite{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstSet = this->descriptorSets[this->perFrame.frame];
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.dstArrayElement = 0;
+
+        vkUpdateDescriptorSets(this->context.device.logical, 1, &descriptorWrite, 0, nullptr);
+
         VkClearValue clearValue{};
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -110,6 +197,8 @@ namespace yggdrasil::graphics
         viewport.minDepth = 0.0f;
         vkCmdSetViewport(this->perFrame.commandBuffer, 0, 1, &viewport);
         VkDeviceSize offset{};
+        vkCmdBindDescriptorSets(this->perFrame.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout,
+            0, 1, &this->descriptorSets[this->perFrame.frame], 0, nullptr);
         vkCmdBindVertexBuffers(this->perFrame.commandBuffer, 0, 1, &this->vbo.buffer, &offset);
         vkCmdDraw(this->perFrame.commandBuffer, 3, 1, 0, 0);
         vkCmdEndRenderPass(this->perFrame.commandBuffer);
@@ -171,13 +260,15 @@ namespace yggdrasil::graphics
     {
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
+        createDescriptorSets();
         createPipeline();
+        createDescriptorPool();
 
         std::array<float_t, 9> vboData
         {
-            -0.5f, -0.5f, 0.0f,
-             0.5f, -0.5f, 0.0f,
-            -0.5f,  0.5f, 0.0f
+            -0.5f, -0.5f, -1.5f,
+             0.5f, -0.5f, -1.5f,
+            -0.5f,  0.5f, -1.5f
         };
 
         VkMemoryPropertyFlags vboFlags
@@ -196,17 +287,24 @@ namespace yggdrasil::graphics
             memory::createAllocatedBuffer(this->context.device, vboData.size() * sizeof(float_t), stagingFlags, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
         };
 
-        memory::uploadDataToBuffer(this->context.device, stagingBuffer, vboData.data(), 0, vboData.size() * sizeof(float_t));
+        memory::uploadDataToBuffer(stagingBuffer, vboData.data(), vboData.size() * sizeof(float_t));
         memory::copyAllocatedBuffer(this->context.device, stagingBuffer, this->vbo, this->context.commandPools[this->perFrame.frame], this->context.commandBuffers[this->perFrame.frame]);
         memory::destroyAllocatedBuffer(this->context.device, stagingBuffer);
+
+        this->ubo = memory::createUniformBuffer(this->context, 256);
     }
 
     void Renderer::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        memory::destroyUniformBuffer(this->context, this->ubo);
         memory::destroyAllocatedBuffer(this->context.device, this->vbo);
 
+        if (this->descriptorPool != VK_NULL_HANDLE)
+        {
+            freeDescriptorPool();
+        }
         if (this->pipeline != VK_NULL_HANDLE)
         {
             vkDestroyPipeline(this->context.device.logical, this->pipeline, graphics::VK_CPU_ALLOCATOR);

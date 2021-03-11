@@ -14,10 +14,16 @@ vec3 colors[3] = {
     vec3(0.0, 1.0, 0.0)
 };
 
+layout(binding = 0) uniform Camera
+{
+    mat4 proj;
+    mat4 view;
+} camera;
+
 layout(location = 0) out vec3 oColor;
 
 void main()
 {
     oColor = colors[gl_VertexIndex];
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position = camera.proj * camera.view * vec4(aPosition, 1.0);
 }

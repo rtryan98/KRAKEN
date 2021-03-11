@@ -8,6 +8,7 @@
 #include "Yggdrasil/core/graphics/Context.h"
 #include "Yggdrasil/Types.h"
 #include "Yggdrasil/core/graphics/memory/Resource.h"
+#include "Yggdrasil/core/graphics/memory/UniformBuffer.h"
 
 class yggdrasil::Window;
 
@@ -44,6 +45,9 @@ namespace yggdrasil::graphics
     private:
         void createPipeline();
         void acquirePerFrameData();
+        void createDescriptorSets();
+        void createDescriptorPool();
+        void freeDescriptorPool();
 
     private:
         graphics::Context context{};
@@ -51,5 +55,9 @@ namespace yggdrasil::graphics
         VkPipeline pipeline{};
         PerFrame perFrame{};
         memory::AllocatedBuffer vbo{};
+        memory::UniformBuffer ubo{};
+        VkDescriptorSetLayout descriptorSetLayout{};
+        VkDescriptorPool descriptorPool{};
+        std::vector<VkDescriptorSet> descriptorSets{};
     };
 }

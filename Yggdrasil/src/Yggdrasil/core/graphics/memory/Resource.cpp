@@ -48,6 +48,11 @@ namespace yggdrasil::graphics::memory
         VK_CHECK(vkAllocateMemory(device.logical, &memoryAllocateInfo, VK_CPU_ALLOCATOR, &result.memory));
         VK_CHECK(vkBindBufferMemory(device.logical, result.buffer, result.memory, 0));
 
+        if (flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+        {
+            vkMapMemory(device.logical, result.memory, 0, VK_WHOLE_SIZE, 0x0, &result.data);
+        }
+
         return result;
     }
 
@@ -55,20 +60,29 @@ namespace yggdrasil::graphics::memory
     {
         if (buffer.buffer != VK_NULL_HANDLE)
         {
+            YGGDRASIL_CORE_TRACE("Destroying Buffer.");
             vkDestroyBuffer(device.logical, buffer.buffer, VK_CPU_ALLOCATOR);
+        }
+        else
+        {
+            YGGDRASIL_CORE_WARN("Destroying Buffer [null].");
         }
         if (buffer.memory != VK_NULL_HANDLE)
         {
+            YGGDRASIL_CORE_TRACE("Freeing Vulkan Memory.");
             vkFreeMemory(device.logical, buffer.memory, VK_CPU_ALLOCATOR);
+        }
+        else
+        {
+            YGGDRASIL_CORE_WARN("Freeing Vulkan Memory [null].");
         }
     }
 
-    void uploadDataToBuffer(Device& device, AllocatedBuffer& dst, void* data, uint64_t offset, uint64_t size)
+    void uploadDataToBuffer(AllocatedBuffer& dst, void* data, uint64_t size)
     {
-        void* bufferPtr{ nullptr };
-        VK_CHECK(vkMapMemory(device.logical, dst.memory, offset, size, 0x0, &bufferPtr));
-        memcpy(bufferPtr, data, size);
-        vkUnmapMemory(device.logical, dst.memory);
+        // VK_CHECK(vkMapMemory(device.logical, dst.memory, offset, size, 0x0, &bufferPtr));
+        memcpy(dst.data, data, size);
+        // vkUnmapMemory(device.logical, dst.memory);
     }
 
     void copyAllocatedBuffer(Device& device, AllocatedBuffer& src, AllocatedBuffer& dst, VkCommandPool commandPool, VkCommandBuffer commandBuffer)

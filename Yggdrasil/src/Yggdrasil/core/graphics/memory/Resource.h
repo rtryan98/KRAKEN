@@ -10,10 +10,11 @@ namespace yggdrasil::graphics::memory
         VkDeviceMemory memory{};
         uint64_t size{};
         VkDeviceSize deviceSize{};
+        void* data{ nullptr };
     };
 
     AllocatedBuffer createAllocatedBuffer(Device& device, uint64_t size, VkMemoryPropertyFlags flags, VkBufferUsageFlags usageFlags);
     void destroyAllocatedBuffer(Device& device, AllocatedBuffer& buffer);
-    void uploadDataToBuffer(Device& device, AllocatedBuffer& dst, void* data, uint64_t offset, uint64_t size);
+    void uploadDataToBuffer(AllocatedBuffer& dst, void* data, uint64_t size);
     void copyAllocatedBuffer(Device& device, AllocatedBuffer& src, AllocatedBuffer& dst, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
 }

@@ -6,6 +6,9 @@
 #include "Yggdrasil/core/window/Window.h"
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
 #include "Yggdrasil/core/graphics/PipelineFactory.h"
+#include "Yggdrasil/core/graphics/memory/Resource.h"
+
+#include <array>
 
 namespace yggdrasil::graphics
 {
@@ -20,6 +23,22 @@ namespace yggdrasil::graphics
 
         graphics::GraphicsPipelineFactory factory{};
         factory.defaults(this->context);
+
+        VkVertexInputAttributeDescription attributeDescription{};
+        attributeDescription.binding = 0;
+        attributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescription.location = 0;
+        attributeDescription.offset = 0;
+
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        bindingDescription.stride = 3 * sizeof(float_t);
+
+        factory.vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 1;
+        factory.vertexInputStateCreateInfo.pVertexAttributeDescriptions = &attributeDescription;
+        factory.vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+        factory.vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
 
         std::vector<uint32_t> fragment{ shadercompiler::compileGlsl("res/shader/main.frag") };
         factory.pushShaderStage(this->context, fragment, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -50,7 +69,7 @@ namespace yggdrasil::graphics
             VK_CHECK(acquireNexImageResult);
         }
 
-        this->currentImage = imageIndex;
+        this->perFrame.frame = imageIndex;
         this->perFrame.commandPool = this->context.commandPools[imageIndex];
         this->perFrame.commandBuffer = this->context.commandBuffers[imageIndex];
         this->perFrame.swapchainImage = this->context.screen.swapchainImages[imageIndex];
@@ -90,6 +109,8 @@ namespace yggdrasil::graphics
         viewport.maxDepth = 1.0f;
         viewport.minDepth = 0.0f;
         vkCmdSetViewport(this->perFrame.commandBuffer, 0, 1, &viewport);
+        VkDeviceSize offset{};
+        vkCmdBindVertexBuffers(this->perFrame.commandBuffer, 0, 1, &this->vbo.buffer, &offset);
         vkCmdDraw(this->perFrame.commandBuffer, 3, 1, 0, 0);
         vkCmdEndRenderPass(this->perFrame.commandBuffer);
     }
@@ -131,7 +152,7 @@ namespace yggdrasil::graphics
         queuePresentInfo.pSwapchains = &this->context.screen.swapchain;
         queuePresentInfo.waitSemaphoreCount = 1;
         queuePresentInfo.pWaitSemaphores = &this->perFrame.releaseSemaphore;
-        queuePresentInfo.pImageIndices = &this->currentImage;
+        queuePresentInfo.pImageIndices = &this->perFrame.frame;
 
         VkResult presentResult{ vkQueuePresentKHR(this->context.device.queues.presentQueue, &queuePresentInfo) };
         if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
@@ -151,11 +172,40 @@ namespace yggdrasil::graphics
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
         createPipeline();
+
+        std::array<float_t, 9> vboData
+        {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f
+        };
+
+        VkMemoryPropertyFlags vboFlags
+        {
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        };
+        this->vbo = memory::createAllocatedBuffer(this->context.device, vboData.size() * sizeof(float_t), vboFlags, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+
+        VkMemoryPropertyFlags stagingFlags
+        {
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_CACHED_BIT
+        };
+        memory::AllocatedBuffer stagingBuffer
+        { 
+            memory::createAllocatedBuffer(this->context.device, vboData.size() * sizeof(float_t), stagingFlags, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
+        };
+
+        memory::uploadDataToBuffer(this->context.device, stagingBuffer, vboData.data(), 0, vboData.size() * sizeof(float_t));
+        memory::copyAllocatedBuffer(this->context.device, stagingBuffer, this->vbo, this->context.commandPools[this->perFrame.frame], this->context.commandBuffers[this->perFrame.frame]);
+        memory::destroyAllocatedBuffer(this->context.device, stagingBuffer);
     }
 
     void Renderer::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
+
+        memory::destroyAllocatedBuffer(this->context.device, this->vbo);
 
         if (this->pipeline != VK_NULL_HANDLE)
         {

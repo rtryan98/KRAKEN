@@ -7,6 +7,7 @@
 #include "Yggdrasil/core/graphics/Util.h"
 #include "Yggdrasil/core/graphics/Context.h"
 #include "Yggdrasil/Types.h"
+#include "Yggdrasil/core/graphics/memory/Resource.h"
 
 class yggdrasil::Window;
 
@@ -48,7 +49,7 @@ namespace yggdrasil::graphics
         graphics::Context context{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
-        uint32_t currentImage{ 0 };
         PerFrame perFrame{};
+        memory::AllocatedBuffer vbo{};
     };
 }

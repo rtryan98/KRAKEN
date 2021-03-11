@@ -32,8 +32,6 @@ namespace yggdrasil::graphics
         struct Memory
         {
             VkPhysicalDeviceMemoryProperties properties{};
-            uint32_t deviceLocalMemoryIndex{};
-            uint32_t hostVisibleHostCoherentIndex{};
         } memory;
     };
 }

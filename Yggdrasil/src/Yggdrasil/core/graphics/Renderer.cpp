@@ -290,7 +290,7 @@ namespace yggdrasil::graphics
         };
 
         this->uniformBuffer = this->buffers.allocate();
-        this->uniformBuffer->create(this, memory::BUFFER_TYPE_UNIFORM, memory::BUFFER_USAGE_UPDATE_EVERY_FRAME, 256);
+        this->uniformBuffer->create(this, memory::BUFFER_TYPE_UNIFORM, memory::BUFFER_USAGE_UPDATE_EVERY_FRAME, 128);
 
         this->vertexBuffer = this->buffers.allocate();
         this->vertexBuffer->create(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);

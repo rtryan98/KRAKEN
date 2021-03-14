@@ -23,8 +23,6 @@ namespace yggdrasil::graphics::memory
         if (this->type & BUFFER_TYPE_UNIFORM)
         {
             createInfo.usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            // TODO: alignment?
-            createInfo.size += createInfo.size & device.properties.limits.minUniformBufferOffsetAlignment;
             createInfo.size *= static_cast<uint32_t>(renderer->getContext().screen.swapchainImages.size());
         }
         else

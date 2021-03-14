@@ -20,7 +20,6 @@ namespace yggdrasil::graphics::memory
 
     enum BufferUsage : uint32_t
     {
-        BUFFER_USAGE_DEFAULT = 0,
         BUFFER_USAGE_UPDATE_EVERY_FRAME = 1
     };
 
@@ -31,12 +30,12 @@ namespace yggdrasil::graphics::memory
 
     private:
         VkDeviceMemory memory{};
-        BufferType     type{};
-        BufferUsage    usage{};
+        uint32_t       type{};
+        uint32_t       usage{};
         void*          data{};
 
     private:
-        void create(const Renderer* const renderer, BufferType bufferType, BufferUsage bufferUsage, uint64_t bufferSize);
+        void create(const Renderer* const renderer, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize);
         void bindMemory(const Device& device);
         void* map(const Device& device);
         void unmap(const Device& device);

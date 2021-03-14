@@ -295,7 +295,7 @@ namespace yggdrasil::graphics
         this->ubo = memory::createUniformBuffer(this->context, 256);
 
         memory::Buffer* buffer{ this->buffers.allocate() };
-        buffer->create(this, memory::BUFFER_TYPE_VERTEX, memory::BUFFER_USAGE_DEFAULT, 512);
+        buffer->create(this, memory::BUFFER_TYPE_VERTEX | memory::BUFFER_TYPE_INDEX, 0x0, 512);
         buffer->destroy(this->context.device);
     }
 

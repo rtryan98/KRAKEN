@@ -12,7 +12,7 @@ namespace yggdrasil::memory
         Pool()
             : data( static_cast<T*>(malloc(sizeof(T) * elementCount)) )
         {
-            stack.push(&data[0]);
+            this->stack.push(this->data);
         }
 
         ~Pool()
@@ -35,10 +35,12 @@ namespace yggdrasil::memory
                 YGGDRASIL_CORE_ERROR("Tried to allocate element from filled pool.");
                 return nullptr;
             }
-            T* result{ stack.top() };
-            memset(result, 0, sizeof(T));
-            stack.pop();
-            stack.push(result++);
+            T* result{ this->stack.top() };
+            this->stack.pop();
+            *result = T{};
+            T* next{ result };
+            next++;
+            this->stack.push( next );
             currentSize++;
             return result;
         }

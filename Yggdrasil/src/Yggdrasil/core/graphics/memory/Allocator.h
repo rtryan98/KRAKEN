@@ -8,5 +8,7 @@ namespace yggdrasil::graphics
 
 namespace yggdrasil::graphics::memory
 {
-    uint32_t getMemoryTypeIndex(const Device& device, VkMemoryPropertyFlags flags);
+    uint32_t getMemoryTypeIndex(const Device& device,
+        VkMemoryPropertyFlags required,
+        VkMemoryPropertyFlags excluded);
 }

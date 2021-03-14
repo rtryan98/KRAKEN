@@ -5,14 +5,19 @@
 
 namespace yggdrasil::graphics::memory
 {
-    uint32_t getMemoryTypeIndex(const Device& device, VkMemoryPropertyFlags flags)
+    uint32_t getMemoryTypeIndex(const Device& device, VkMemoryPropertyFlags required, VkMemoryPropertyFlags excluded)
     {
         auto& memoryProperties{ device.memory.properties };
         for (uint32_t i{ 0 }; i < memoryProperties.memoryTypeCount; i++)
         {
             auto& memoryType{ memoryProperties.memoryTypes[i] };
-            if ((memoryType.propertyFlags & flags) == flags)
+            if ((memoryType.propertyFlags & required) == required)
             {
+                if (excluded != 0 &&
+                    (memoryType.propertyFlags & excluded) == excluded)
+                {
+                    continue;
+                }
                 return i;
             }
         }

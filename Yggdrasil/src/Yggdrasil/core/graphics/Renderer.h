@@ -2,16 +2,15 @@
 #include <vulkan/vulkan.h>
 #include "Yggdrasil/core/graphics/Globals.h"
 #include "Yggdrasil/Defines.h"
-#include <functional>
 #include "Yggdrasil/core/util/Log.h"
 #include "Yggdrasil/core/graphics/Util.h"
 #include "Yggdrasil/core/graphics/Context.h"
 #include "Yggdrasil/Types.h"
-#include "Yggdrasil/core/graphics/memory/Resource.h"
-#include "Yggdrasil/core/graphics/memory/UniformBuffer.h"
 #include "Yggdrasil/core/memory/Pool.h"
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
 #include "Yggdrasil/core/graphics/memory/Image.h"
+
+#include <queue>
 
 class yggdrasil::Window;
 
@@ -41,6 +40,7 @@ namespace yggdrasil::graphics
         void onUpdate();
         void present();
         void prepare();
+        void uploadStagedData();
 
         const graphics::Context& getContext() const;
         const PerFrame& getPerFrameData() const;
@@ -53,18 +53,24 @@ namespace yggdrasil::graphics
         void freeDescriptorPool();
 
     private:
+        void stageBufferCopy(memory::Buffer* src, memory::Buffer* dst);
+
+    private:
         graphics::Context context{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
         PerFrame perFrame{};
-        memory::AllocatedBuffer vbo{};
-        memory::UniformBuffer ubo{};
         VkDescriptorSetLayout descriptorSetLayout{};
         VkDescriptorPool descriptorPool{};
         std::vector<VkDescriptorSet> descriptorSets{};
 
+        memory::Buffer* uniformBuffer{};
+        memory::Buffer* vertexBuffer{};
+        memory::Buffer* stagingBufferTest{};
+
     private:
         yggdrasil::memory::Pool<memory::Buffer, 8192> buffers{};
         yggdrasil::memory::Pool<memory::Image, 8192> images{};
+        std::queue<memory::BufferCopy> bufferCopyQueue{};
     };
 }

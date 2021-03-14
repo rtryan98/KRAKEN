@@ -26,13 +26,13 @@ namespace yggdrasil::graphics::util
     void insertDebugMarker(VkCommandBuffer commandBuffer, const char* name, glm::vec4 color);
     void endDebugRegion(VkCommandBuffer commandBuffer);
 
-    template<typename T> void destroy(T handle,
-        VKAPI_ATTR void(VKAPI_CALL* destroyFunction)(VkDevice, T, const VkAllocationCallbacks*),
-        VkDevice device)
+    template<typename T>
+    void destroy(T* handle, VKAPI_ATTR void(VKAPI_CALL* destroyFunction)(VkDevice, T, const VkAllocationCallbacks*), VkDevice device)
     {
         if (handle != VK_NULL_HANDLE)
         {
-            destroyFunction(device, handle, VK_CPU_ALLOCATOR);
+            destroyFunction(device, *handle, VK_CPU_ALLOCATOR);
+            *handle = VK_NULL_HANDLE;
         }
     }
 }

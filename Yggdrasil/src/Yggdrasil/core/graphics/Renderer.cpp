@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include <array>
 
+
 namespace yggdrasil::graphics
 {
     void Renderer::createPipeline()
@@ -292,6 +293,10 @@ namespace yggdrasil::graphics
         memory::destroyAllocatedBuffer(this->context.device, stagingBuffer);
 
         this->ubo = memory::createUniformBuffer(this->context, 256);
+
+        memory::Buffer* buffer{ this->buffers.allocate() };
+        buffer->create(this, memory::BUFFER_TYPE_VERTEX, memory::BUFFER_USAGE_DEFAULT, 512);
+        buffer->destroy(this->context.device);
     }
 
     void Renderer::free()
@@ -306,8 +311,8 @@ namespace yggdrasil::graphics
             freeDescriptorPool();
         }
 
-        util::destroy(this->pipeline, vkDestroyPipeline, this->context.device.logical);
-        util::destroy(this->pipelineLayout, vkDestroyPipelineLayout, this->context.device.logical);
+        util::destroy(&this->pipeline, vkDestroyPipeline, this->context.device.logical);
+        util::destroy(&this->pipelineLayout, vkDestroyPipelineLayout, this->context.device.logical);
         YGGDRASIL_CORE_TRACE("Destroying Context.");
         graphics::freeContext(this->context);
     }

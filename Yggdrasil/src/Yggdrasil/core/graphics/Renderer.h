@@ -9,6 +9,9 @@
 #include "Yggdrasil/Types.h"
 #include "Yggdrasil/core/graphics/memory/Resource.h"
 #include "Yggdrasil/core/graphics/memory/UniformBuffer.h"
+#include "Yggdrasil/core/memory/Pool.h"
+#include "Yggdrasil/core/graphics/memory/Buffer.h"
+#include "Yggdrasil/core/graphics/memory/Image.h"
 
 class yggdrasil::Window;
 
@@ -59,5 +62,9 @@ namespace yggdrasil::graphics
         VkDescriptorSetLayout descriptorSetLayout{};
         VkDescriptorPool descriptorPool{};
         std::vector<VkDescriptorSet> descriptorSets{};
+
+    private:
+        yggdrasil::memory::Pool<memory::Buffer, 8192> buffers{};
+        yggdrasil::memory::Pool<memory::Image, 8192> images{};
     };
 }

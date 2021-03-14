@@ -305,14 +305,9 @@ namespace yggdrasil::graphics
         {
             freeDescriptorPool();
         }
-        if (this->pipeline != VK_NULL_HANDLE)
-        {
-            vkDestroyPipeline(this->context.device.logical, this->pipeline, graphics::VK_CPU_ALLOCATOR);
-        }
-        if (this->pipelineLayout != VK_NULL_HANDLE)
-        {
-            vkDestroyPipelineLayout(this->context.device.logical, this->pipelineLayout, graphics::VK_CPU_ALLOCATOR);
-        }
+
+        util::destroy(this->pipeline, vkDestroyPipeline, this->context.device.logical);
+        util::destroy(this->pipelineLayout, vkDestroyPipelineLayout, this->context.device.logical);
         YGGDRASIL_CORE_TRACE("Destroying Context.");
         graphics::freeContext(this->context);
     }

@@ -8,7 +8,7 @@
 #include "Yggdrasil/Types.h"
 #include "Yggdrasil/core/memory/Pool.h"
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
-#include "Yggdrasil/core/graphics/memory/Image.h"
+#include "Yggdrasil/core/graphics/memory/Texture.h"
 
 #include <queue>
 
@@ -29,11 +29,11 @@ namespace yggdrasil::graphics
         uint32_t frame{ 0 };
     };
 
-    class Renderer
+    class GraphicsEngine
     {
     public:
-        Renderer() = default;
-        ~Renderer() = default;
+        GraphicsEngine() = default;
+        ~GraphicsEngine() = default;
 
         void init(const Window& window);
         void free();
@@ -66,11 +66,11 @@ namespace yggdrasil::graphics
 
         memory::Buffer* uniformBuffer{};
         memory::Buffer* vertexBuffer{};
-        memory::Buffer* stagingBufferTest{};
+        memory::Buffer* stagingBuffer{};
 
     private:
         yggdrasil::memory::Pool<memory::Buffer, 8192> buffers{};
-        yggdrasil::memory::Pool<memory::Image, 8192> images{};
+        yggdrasil::memory::Pool<memory::Texture, 8192> images{};
         std::queue<memory::BufferCopy> bufferCopyQueue{};
     };
 }

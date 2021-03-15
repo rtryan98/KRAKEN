@@ -9,7 +9,7 @@
 #include "Yggdrasil/core/event/MouseEvent.h"
 #include "Yggdrasil/core/event/KeyboardEvent.h"
 #include "Yggdrasil/core/Globals.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include <vulkan/vulkan_win32.h>
 
 namespace yggdrasil::windows

@@ -1,6 +1,6 @@
 #include "Yggdrasil/pch.h"
 
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include "Yggdrasil/core/Globals.h"
 #include "Yggdrasil/core/Application.h"
 #include "Yggdrasil/core/window/Window.h"
@@ -15,7 +15,7 @@
 
 namespace yggdrasil::graphics
 {
-    void Renderer::createPipeline()
+    void GraphicsEngine::createPipeline()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         pipelineLayoutCreateInfo.setLayoutCount = 1;
@@ -51,7 +51,7 @@ namespace yggdrasil::graphics
         factory.clear(this->context);
     }
 
-    void Renderer::acquirePerFrameData()
+    void GraphicsEngine::acquirePerFrameData()
     {
         this->perFrame.acquireSemaphore = this->context.syncObjects.acquireSemaphores[this->perFrame.frame];
         this->perFrame.releaseSemaphore = this->context.syncObjects.releaseSemaphores[this->perFrame.frame];
@@ -79,7 +79,7 @@ namespace yggdrasil::graphics
         this->perFrame.framebuffer = this->context.screen.swapchainFramebuffers[imageIndex];
     }
 
-    void Renderer::createDescriptorSetLayout()
+    void GraphicsEngine::createDescriptorSetLayout()
     {
         VkDescriptorSetLayoutBinding binding{};
         binding.binding = 0;
@@ -95,7 +95,7 @@ namespace yggdrasil::graphics
         VK_CHECK(vkCreateDescriptorSetLayout(this->context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &this->descriptorSetLayout));
     }
 
-    void Renderer::createDescriptorPool()
+    void GraphicsEngine::createDescriptorPool()
     {
         VkDescriptorPoolSize size{};
         size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -123,7 +123,7 @@ namespace yggdrasil::graphics
         VK_CHECK(vkAllocateDescriptorSets(this->context.device.logical, &allocateInfo, this->descriptorSets.data()));
     }
 
-    void Renderer::freeDescriptorPool()
+    void GraphicsEngine::freeDescriptorPool()
     {
         if (this->descriptorPool != VK_NULL_HANDLE)
         {
@@ -135,7 +135,7 @@ namespace yggdrasil::graphics
         }
     }
 
-    void Renderer::prepare()
+    void GraphicsEngine::prepare()
     {
         acquirePerFrameData();
         VK_CHECK(vkResetCommandPool(this->context.device.logical, this->perFrame.commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT));
@@ -145,25 +145,29 @@ namespace yggdrasil::graphics
         uploadStagedData();
     }
 
-    void Renderer::uploadStagedData()
+    void GraphicsEngine::uploadStagedData()
     {
-        while (!this->bufferCopyQueue.empty())
+        if (!this->bufferCopyQueue.empty())
         {
-            memory::BufferCopy& copy{ this->bufferCopyQueue.front() };
-            copy.src->copy(copy.dst, 0, 0, copy.src->size, this->perFrame.commandBuffer);
-            this->bufferCopyQueue.pop();
-        }
-        VkMemoryBarrier stagingBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
-        stagingBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        stagingBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            while (!this->bufferCopyQueue.empty())
+            {
+                memory::BufferCopy& copy{ this->bufferCopyQueue.front() };
+                copy.src->copy(copy.dst, 0, 0, copy.src->size, this->perFrame.commandBuffer);
+                this->bufferCopyQueue.pop();
+            }
+            VkMemoryBarrier stagingBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+            stagingBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            stagingBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-        vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT,
-            1, &stagingBarrier,
-            0, nullptr,
-            0, nullptr);
+            // TODO: Use more fine grained synchronization. That means VBO data -> VK_PIPELINE_STAGE_VERTEX_INPUT_STAGE etc.
+            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_DEPENDENCY_BY_REGION_BIT,
+                1, &stagingBarrier,
+                0, nullptr,
+                0, nullptr);
+        }
     }
 
-    void Renderer::onUpdate()
+    void GraphicsEngine::onUpdate()
     {
         glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
         glm::vec3 up{ 0.0f, 1.0f, 0.0f };
@@ -222,7 +226,7 @@ namespace yggdrasil::graphics
         vkCmdEndRenderPass(this->perFrame.commandBuffer);
     }
 
-    void Renderer::present()
+    void GraphicsEngine::present()
     {
         VkImageMemoryBarrier layoutBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
         layoutBarrier.image = this->perFrame.swapchainImage;
@@ -274,7 +278,7 @@ namespace yggdrasil::graphics
         this->perFrame.frame = (this->perFrame.frame + 1) % static_cast<uint32_t>(this->context.screen.swapchainImages.size());
     }
 
-    void Renderer::init(const Window& window)
+    void GraphicsEngine::init(const Window& window)
     {
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
@@ -295,20 +299,20 @@ namespace yggdrasil::graphics
         this->vertexBuffer = this->buffers.allocate();
         this->vertexBuffer->create(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);
 
-        this->stagingBufferTest = this->buffers.allocate();
-        this->stagingBufferTest->create(this, memory::BUFFER_TYPE_STAGING, 0, 256);
-        this->stagingBufferTest->upload(this, &vboData, vboData.size() * sizeof(float_t), 0);
+        this->stagingBuffer = this->buffers.allocate();
+        this->stagingBuffer->create(this, memory::BUFFER_TYPE_STAGING, 0, 256);
+        this->stagingBuffer->upload(this, &vboData, vboData.size() * sizeof(float_t), 0);
 
-        stageBufferCopy(this->stagingBufferTest, this->vertexBuffer);
+        stageBufferCopy(this->stagingBuffer, this->vertexBuffer);
     }
 
-    void Renderer::free()
+    void GraphicsEngine::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
         this->uniformBuffer->destroy(this->context.device);
         this->vertexBuffer->destroy(this->context.device);
-        this->stagingBufferTest->destroy(this->context.device);
+        this->stagingBuffer->destroy(this->context.device);
 
         if (this->descriptorPool != VK_NULL_HANDLE)
         {
@@ -321,17 +325,17 @@ namespace yggdrasil::graphics
         graphics::freeContext(this->context);
     }
 
-    const graphics::Context& Renderer::getContext() const
+    const graphics::Context& GraphicsEngine::getContext() const
     {
         return this->context;
     }
 
-    const PerFrame& Renderer::getPerFrameData() const
+    const PerFrame& GraphicsEngine::getPerFrameData() const
     {
         return this->perFrame;
     }
 
-    void Renderer::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst)
+    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst)
     {
         this->bufferCopyQueue.push({src, dst});
     }

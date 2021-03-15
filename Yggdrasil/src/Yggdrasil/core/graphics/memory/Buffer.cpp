@@ -2,12 +2,12 @@
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
 #include "Yggdrasil/core/graphics/memory/Allocator.h"
 #include "Yggdrasil/core/graphics/Util.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include "Yggdrasil/core/util/Log.h"
 
 namespace yggdrasil::graphics::memory
 {
-    void Buffer::create(const Renderer* const renderer, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize)
+    void Buffer::create(const GraphicsEngine* const renderer, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize)
     {
         const Device& device{ renderer->getContext().device };
         this->usage = bufferUsage;
@@ -50,9 +50,10 @@ namespace yggdrasil::graphics::memory
 
         VK_CHECK( vkCreateBuffer(device.logical, &createInfo, VK_CPU_ALLOCATOR, &this->handle) );
 
-        // TODO: allocate
         VkMemoryRequirements memoryRequirements{};
         vkGetBufferMemoryRequirements(device.logical, this->handle, &memoryRequirements);
+        this->alignment = memoryRequirements.alignment;
+
         // TODO: move to allocator
         VkMemoryAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
         allocateInfo.allocationSize = memoryRequirements.size;
@@ -166,7 +167,7 @@ namespace yggdrasil::graphics::memory
         vkCmdCopyBuffer(commandBuffer, this->handle, target->handle, 1, &region);
     }
 
-    void Buffer::upload(const Renderer* const renderer, void* bufferData, uint64_t dataSize, uint64_t bufferOffset)
+    void Buffer::upload(const GraphicsEngine* const renderer, void* bufferData, uint64_t dataSize, uint64_t bufferOffset)
     {
         if (this->data == nullptr)
         {

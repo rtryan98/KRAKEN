@@ -1,6 +1,6 @@
 #pragma once
 #include "Yggdrasil/Types.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
 namespace yggdrasil
 {
@@ -19,7 +19,7 @@ namespace yggdrasil::constants
 namespace yggdrasil::globals
 {
     extern yggdrasil::Application* APPLICATION;
-    extern yggdrasil::graphics::Renderer* RENDERER;
+    extern yggdrasil::graphics::GraphicsEngine* GRAPHICS_ENGINE;
 
     extern float_t DELTA_FRAME_TIME;
     extern float_t LAST_FRAME_TIME;

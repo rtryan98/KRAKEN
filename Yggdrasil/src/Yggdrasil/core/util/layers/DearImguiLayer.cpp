@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/Globals.h"
 #include "Yggdrasil/core/Application.h"
 #include "Yggdrasil/core/graphics/Util.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
 #include <vulkan/vulkan.h>
 #include <imgui/backends/imgui_impl_vulkan.h>
@@ -155,7 +155,7 @@ namespace yggdrasil
 
     void ImguiLayer::endFrame()
     {
-        const graphics::Renderer& renderer{ *globals::RENDERER };
+        const graphics::GraphicsEngine& renderer{ *globals::RENDERER };
         const graphics::Context& context{ renderer.getContext() };
         ImGui::Render();
         VkRenderPassBeginInfo begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };

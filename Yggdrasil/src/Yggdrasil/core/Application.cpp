@@ -7,7 +7,7 @@
 #include "Yggdrasil/core/input/Input.h"
 #include "Yggdrasil/core/util/layers/DearImguiLayer.h"
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
-#include "Yggdrasil/core/graphics/Renderer.h"
+#include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
 #include <glfw/glfw3.h>
 
@@ -35,7 +35,7 @@ namespace yggdrasil
             };
         windowData.decorated = createInfo.decorated;
         window = Window::createWindow( windowData );
-        globals::RENDERER = new graphics::Renderer();
+        globals::RENDERER = new graphics::GraphicsEngine();
         globals::RENDERER->init(*this->window);
         ImguiLayer::init();
     }

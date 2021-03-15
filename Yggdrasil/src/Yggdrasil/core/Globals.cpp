@@ -6,7 +6,7 @@ namespace yggdrasil::globals
 {
     /// Engine Globals
     yggdrasil::Application* APPLICATION{ nullptr };
-    yggdrasil::graphics::Renderer* RENDERER{ nullptr };
+    yggdrasil::graphics::GraphicsEngine* RENDERER{ nullptr };
 
     float_t DELTA_FRAME_TIME{ 0.0f };
     float_t LAST_FRAME_TIME{ 0.0f };

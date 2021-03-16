@@ -11,7 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <array>
-
+#include <stb/stb_image.h>
 
 namespace yggdrasil::graphics
 {
@@ -81,29 +81,41 @@ namespace yggdrasil::graphics
 
     void GraphicsEngine::createDescriptorSetLayout()
     {
-        VkDescriptorSetLayoutBinding binding{};
-        binding.binding = 0;
-        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding.descriptorCount = 1;
-        binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        binding.pImmutableSamplers = nullptr;
+        VkDescriptorSetLayoutBinding bindings[2]{};
+        bindings[0].binding = 0;
+        bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        bindings[0].descriptorCount = 1;
+        bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        bindings[0].pImmutableSamplers = nullptr;
+
+        bindings[1].binding = 1;
+        bindings[1].descriptorCount = 1;
+        bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        bindings[1].pImmutableSamplers = nullptr;
+        bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         VkDescriptorSetLayoutCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-        createInfo.bindingCount = 1;
-        createInfo.pBindings = &binding;
+        createInfo.bindingCount = 2;
+        createInfo.pBindings = bindings;
 
         VK_CHECK(vkCreateDescriptorSetLayout(this->context.device.logical, &createInfo, VK_CPU_ALLOCATOR, &this->descriptorSetLayout));
     }
 
     void GraphicsEngine::createDescriptorPool()
     {
-        VkDescriptorPoolSize size{};
-        size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        size.descriptorCount = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
+        VkDescriptorPoolSize poolSizes[]
+        {
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(this->context.screen.swapchainImages.size()) },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(this->context.screen.swapchainImages.size()) },
+        };
+
+        // VkDescriptorPoolSize size{};
+        // size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        // size.descriptorCount = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
 
         VkDescriptorPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-        createInfo.poolSizeCount = 1;
-        createInfo.pPoolSizes = &size;
+        createInfo.poolSizeCount = 2;
+        createInfo.pPoolSizes = poolSizes;
         createInfo.maxSets = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
 
         for (uint32_t i{ 0 }; i < this->context.screen.swapchainImages.size(); i++)
@@ -153,14 +165,14 @@ namespace yggdrasil::graphics
 
     void GraphicsEngine::handleStagedBufferCopies()
     {
-        if (!this->bufferCopyQueue.empty())
+        if (!this->bufferCopies.empty())
         {
-            while (!this->bufferCopyQueue.empty())
+            for (uint32_t i{ 0 }; i < this->bufferCopies.size(); i++)
             {
-                memory::BufferCopy& copy{ this->bufferCopyQueue.front() };
-                copy.src->copy(copy.dst, copy.srcOffset, copy.dstOffset, copy.src->size, this->perFrame.commandBuffer);
-                this->bufferCopyQueue.pop();
+                memory::BufferCopy& copy{ this->bufferCopies[i] };
+                copy.src->copy(copy.dst, copy.srcOffset, copy.dstOffset, copy.size, this->perFrame.commandBuffer);
             }
+            this->bufferCopies.clear();
             VkMemoryBarrier stagingBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
             stagingBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             stagingBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -175,28 +187,13 @@ namespace yggdrasil::graphics
 
     void GraphicsEngine::handleStagedBufferToTextureCopies()
     {
-        if (!this->bufferToTextureCopyQueue.empty())
+        if (!this->bufferToTextureCopies.empty())
         {
             std::vector<VkImageMemoryBarrier> layoutTransitionBarriers{};
-            layoutTransitionBarriers.reserve(32);
-            while (!this->bufferCopyQueue.empty())
+            std::vector<VkImageMemoryBarrier> transferDstOptimalBarriers{};
+            for (uint32_t i{ 0 }; i < this->bufferToTextureCopies.size(); i++)
             {
-                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopyQueue.front() };
-                copy.src->copy(copy.dst, copy.srcOffset, this->perFrame.commandBuffer, copy.dstOffsetX, copy.dstOffsetY, copy.dstOffsetZ );
-
-                VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-                barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                barrier.image = copy.dst->handle;
-                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                barrier.subresourceRange.layerCount = copy.dst->layers;
-                barrier.subresourceRange.baseArrayLayer = 0;
-                barrier.subresourceRange.levelCount = copy.dst->mipLevels;
-                barrier.subresourceRange.baseMipLevel = 0;
+                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopies[i] };
 
                 layoutTransitionBarriers.push_back( 
                     {
@@ -205,7 +202,7 @@ namespace yggdrasil::graphics
                         VK_ACCESS_TRANSFER_WRITE_BIT,             // srcAccessMask
                         VK_ACCESS_SHADER_READ_BIT,                // dstAccessMask
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,     // oldLayout
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // newLayout
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // newLayout              // TODO: upload and let gpu modify textures?
                         VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
                         VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
                         copy.dst->handle,                         // image
@@ -218,16 +215,51 @@ namespace yggdrasil::graphics
                         }                                         // }
                     }
                 );
-                this->bufferToTextureCopyQueue.pop();
+
+                transferDstOptimalBarriers.push_back(
+                    {
+                        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,   // sType
+                        nullptr,                                  // pNext
+                        0x0,                                      // srcAccessMask
+                        VK_ACCESS_TRANSFER_WRITE_BIT,             // dstAccessMask
+                        VK_IMAGE_LAYOUT_UNDEFINED,                // oldLayout
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,     // newLayout              // TODO: upload and let gpu modify textures?
+                        VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
+                        VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
+                        copy.dst->handle,                         // image
+                        {                                         // {
+                            VK_IMAGE_ASPECT_COLOR_BIT,            //     subresourceRange.aspectMask;
+                            0,                                    //     subresourceRange.baseMipLevel;
+                            copy.dst->mipLevels,                  //     subresourceRange.levelCount;
+                            0,                                    //     subresourceRange.baseArrayLayer;
+                            copy.dst->layers                      //     subresourceRange.layerCount;
+                        }                                         // }
+                    }
+                );
+
             }
             VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
             memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            memoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            memoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 
-            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT,
+            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0x0,
+                0, nullptr,
+                0, nullptr,
+                static_cast<uint32_t>(transferDstOptimalBarriers.size()), transferDstOptimalBarriers.data());
+
+            for (uint32_t i{ 0 }; i < this->bufferToTextureCopies.size(); i++)
+            {
+                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopies[i] };
+                copy.src->copy(copy.dst, copy.srcOffset, this->perFrame.commandBuffer, copy.dstOffsetX, copy.dstOffsetY, copy.dstOffsetZ);
+            }
+
+            // TODO: more fine grained pipeline dst mask?
+            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0x0,
                 1, &memoryBarrier,
                 0, nullptr,
                 static_cast<uint32_t>(layoutTransitionBarriers.size()), layoutTransitionBarriers.data());
+
+            this->bufferToTextureCopies.clear();
         }
     }
 
@@ -251,15 +283,35 @@ namespace yggdrasil::graphics
         bufferInfo.offset = this->uniformBuffer->size * this->perFrame.frame;
         bufferInfo.range  = this->uniformBuffer->size;
 
-        VkWriteDescriptorSet descriptorWrite{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstSet = this->descriptorSets[this->perFrame.frame];
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.pBufferInfo = &bufferInfo;
-        descriptorWrite.dstArrayElement = 0;
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = this->texture->view;
+        imageInfo.sampler = this->texture->sampler;
 
-        vkUpdateDescriptorSets(this->context.device.logical, 1, &descriptorWrite, 0, nullptr);
+        VkWriteDescriptorSet descriptorUniformBufferWrite{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        descriptorUniformBufferWrite.descriptorCount = 1;
+        descriptorUniformBufferWrite.dstBinding = 0;
+        descriptorUniformBufferWrite.dstSet = this->descriptorSets[this->perFrame.frame];
+        descriptorUniformBufferWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorUniformBufferWrite.pBufferInfo = &bufferInfo;
+        descriptorUniformBufferWrite.dstArrayElement = 0;
+
+        VkWriteDescriptorSet descriptorCombinedSamplerWrite{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        descriptorCombinedSamplerWrite.descriptorCount = 1;
+        descriptorCombinedSamplerWrite.dstBinding = 1;
+        descriptorCombinedSamplerWrite.dstSet = this->descriptorSets[this->perFrame.frame];
+        descriptorCombinedSamplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorCombinedSamplerWrite.pBufferInfo = nullptr;
+        descriptorCombinedSamplerWrite.dstArrayElement = 0;
+        descriptorCombinedSamplerWrite.pImageInfo = &imageInfo;
+
+        VkWriteDescriptorSet writes[]
+        {
+            descriptorUniformBufferWrite,
+            descriptorCombinedSamplerWrite
+        };
+
+        vkUpdateDescriptorSets(this->context.device.logical, 2, writes, 0, nullptr);
 
         VkClearValue clearValue{};
         clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -286,7 +338,7 @@ namespace yggdrasil::graphics
         vkCmdBindDescriptorSets(this->perFrame.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout,
             0, 1, &this->descriptorSets[this->perFrame.frame], 0, nullptr);
         vkCmdBindVertexBuffers(this->perFrame.commandBuffer, 0, 1, &this->vertexBuffer->handle, &offset);
-        vkCmdDraw(this->perFrame.commandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(this->perFrame.commandBuffer, 6, 1, 0, 0);
         vkCmdEndRenderPass(this->perFrame.commandBuffer);
     }
 
@@ -350,11 +402,14 @@ namespace yggdrasil::graphics
         createPipeline();
         createDescriptorPool();
 
-        std::array<float_t, 9> vboData
+        std::array<float_t, 18> vboData
         {
             -0.5f, -0.5f, -1.5f,
              0.5f, -0.5f, -1.5f,
-            -0.5f,  0.5f, -1.5f
+            -0.5f,  0.5f, -1.5f,
+            -0.5f,  0.5f, -1.5f,
+             0.5f, -0.5f, -1.5f,
+             0.5f,  0.5f, -1.5f
         };
 
         this->uniformBuffer = this->buffers.allocate();
@@ -364,21 +419,32 @@ namespace yggdrasil::graphics
         this->vertexBuffer->create(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);
 
         this->stagingBuffer = this->buffers.allocate();
-        this->stagingBuffer->create(this, memory::BUFFER_TYPE_STAGING, 0, 256);
-        this->stagingBuffer->upload(this, &vboData, vboData.size() * sizeof(float_t), 0);
+        this->stagingBuffer->create(this, memory::BUFFER_TYPE_STAGING, 0, 1024 * 1024 * 256);
+        this->stagingBuffer->upload(this, vboData.data(), vboData.size() * sizeof(float_t), 0);
 
-        stageBufferCopy(this->stagingBuffer, this->vertexBuffer);
+        stageBufferCopy(this->stagingBuffer, this->vertexBuffer, sizeof(float_t) * vboData.size());
 
-        memory::Texture* texture{ this->images.allocate() };
-        texture->create(this, memory::TEXTURE_TYPE_2D,
-            100, 100, 1, 1, VK_FORMAT_R8G8B8A8_UNORM);
-        texture->destroy(this->context.device);
+        this->texture = this->images.allocate();
+
+        int32_t x, y, channels;
+        uint8_t* textureData{ stbi_load("res/texture/Rock030_1K_Color_Test_Downscaled.png", &x, &y, &channels, STBI_rgb_alpha) };
+
+        this->texture->create(this, memory::TEXTURE_TYPE_2D,
+            x, y, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
+            memory::TextureTiling::TEXTURE_TILING_OPTIMAL);
+
+        this->stagingBuffer->upload(this, textureData, 4 * sizeof(uint8_t) * x * y, sizeof(float_t) * vboData.size());
+
+        stageBufferToImageCopy(this->stagingBuffer, this->texture, static_cast<uint32_t>(sizeof(float_t) * vboData.size()));
+
+        stbi_image_free(textureData);
     }
 
     void GraphicsEngine::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        this->texture->destroy(this->context.device);
         this->uniformBuffer->destroy(this->context.device);
         this->vertexBuffer->destroy(this->context.device);
         this->stagingBuffer->destroy(this->context.device);
@@ -404,14 +470,14 @@ namespace yggdrasil::graphics
         return this->perFrame;
     }
 
-    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t srcOffset, uint64_t dstOffset)
+    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t size, uint64_t srcOffset, uint64_t dstOffset)
     {
-        this->bufferCopyQueue.push({src, dst, srcOffset, dstOffset});
+        this->bufferCopies.push_back({src, dst, srcOffset, dstOffset, size});
     }
 
     void GraphicsEngine::stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
         uint32_t srcOffset, uint32_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ)
     {
-        this->bufferToTextureCopyQueue.push({src, dst, srcOffset, dstOffsetX, dstOffsetY, dstOffsetZ});
+        this->bufferToTextureCopies.push_back({src, dst, srcOffset, dstOffsetX, dstOffsetY, dstOffsetZ});
     }
 }

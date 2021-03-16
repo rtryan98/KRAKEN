@@ -16,7 +16,6 @@ namespace yggdrasil::graphics::memory
         TEXTURE_TYPE_2D,
         TEXTURE_TYPE_2D_ARRAY,
         TEXTURE_TYPE_3D,
-        TEXTURE_TYPE_3D_ARRAY,
         TEXTURE_TYPE_CUBEMAP
     };
 
@@ -41,13 +40,13 @@ namespace yggdrasil::graphics::memory
         uint32_t              depth{};
         uint32_t              layers{};
         uint32_t              mipLevels{};
+        VkImageLayout         currentLayout{};
         void*                 data{};
 
     private:
         void create(const GraphicsEngine* const graphicsEngine, TextureType textureType,
             uint32_t width, uint32_t height, uint32_t depth, uint32_t layers,
-            VkFormat textureFormat, TextureTiling textureTiling = TextureTiling::TEXTURE_TILING_OPTIMAL,
-            VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
+            VkFormat textureFormat, TextureTiling textureTiling = TextureTiling::TEXTURE_TILING_OPTIMAL);
         void destroy(const Device& device);
         void createView(const GraphicsEngine* const graphicsEngine);
         void createSampler(const GraphicsEngine* const graphicsEngine);

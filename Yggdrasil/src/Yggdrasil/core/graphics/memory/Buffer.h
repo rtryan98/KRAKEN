@@ -61,6 +61,7 @@ namespace yggdrasil::graphics::memory
         Buffer* dst{};
         uint64_t srcOffset{};
         uint64_t dstOffset{};
+        uint64_t size{};
     };
 
     struct BufferToTextureCopy

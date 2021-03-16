@@ -40,7 +40,9 @@ namespace yggdrasil::graphics
         void onUpdate();
         void present();
         void prepare();
-        void uploadStagedData();
+        void handleStagedData();
+        void handleStagedBufferCopies();
+        void handleStagedBufferToTextureCopies();
 
         const graphics::Context& getContext() const;
         const PerFrame& getPerFrameData() const;
@@ -53,7 +55,9 @@ namespace yggdrasil::graphics
         void freeDescriptorPool();
 
     private:
-        void stageBufferCopy(memory::Buffer* src, memory::Buffer* dst);
+        void stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t srcOffset = 0, uint64_t dstOffset = 0);
+        void stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
+            uint32_t srcOffset = 0, uint32_t dstOffsetX = 0, uint32_t dstOffsetY = 0, uint32_t dstOffsetZ = 0);
 
     private:
         graphics::Context context{};
@@ -72,5 +76,6 @@ namespace yggdrasil::graphics
         yggdrasil::memory::Pool<memory::Buffer, 8192> buffers{};
         yggdrasil::memory::Pool<memory::Texture, 8192> images{};
         std::queue<memory::BufferCopy> bufferCopyQueue{};
+        std::queue<memory::BufferToTextureCopy> bufferToTextureCopyQueue{};
     };
 }

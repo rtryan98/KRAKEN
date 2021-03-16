@@ -3,7 +3,7 @@
 
 namespace yggdrasil::graphics
 {
-    class Renderer;
+    class GraphicsEngine;
     class Device;
 }
 
@@ -17,13 +17,13 @@ namespace yggdrasil::graphics::memory
         TEXTURE_TYPE_2D_ARRAY,
         TEXTURE_TYPE_3D,
         TEXTURE_TYPE_3D_ARRAY,
-        TEXTURE_TYPE_CUBEMAP,
-        TEXTURE_TYPE_CUBEMAP_ARRAY
+        TEXTURE_TYPE_CUBEMAP
     };
 
-    enum TextureFormat : uint32_t
+    enum class TextureTiling : uint32_t
     {
-
+        TEXTURE_TILING_OPTIMAL,
+        TEXTURE_TILING_LINEAR
     };
 
     class Texture
@@ -34,6 +34,7 @@ namespace yggdrasil::graphics::memory
         VkImageView           view{};
         VkDescriptorImageInfo descriptor{};
         VkSampler             sampler{};
+        VkFormat              format{};
         TextureType           type{};
         uint32_t              width{};
         uint32_t              height{};
@@ -43,10 +44,17 @@ namespace yggdrasil::graphics::memory
         void*                 data{};
 
     private:
-        void create(const Renderer* const renderer, TextureType textureType);
+        void create(const GraphicsEngine* const graphicsEngine, TextureType textureType,
+            uint32_t width, uint32_t height, uint32_t depth, uint32_t layers,
+            VkFormat textureFormat, TextureTiling textureTiling = TextureTiling::TEXTURE_TILING_OPTIMAL,
+            VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED);
         void destroy(const Device& device);
-        void createSampler(const Renderer* const renderer, TextureType textureType);
+        void createView(const GraphicsEngine* const graphicsEngine);
+        void createSampler(const GraphicsEngine* const graphicsEngine);
+        void allocate(const GraphicsEngine* const graphicsEngine);
+        VkImageMemoryBarrier getLayoutTransitionBarrier(VkImageLayout dst);
     private:
-        friend class yggdrasil::graphics::Renderer;
+        friend class yggdrasil::graphics::GraphicsEngine;
+        friend class Buffer;
     };
 }

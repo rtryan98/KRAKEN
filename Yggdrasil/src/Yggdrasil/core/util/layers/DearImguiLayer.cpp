@@ -40,7 +40,7 @@ namespace yggdrasil
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, maxSets }
         };
 
-        const graphics::Context& context = globals::RENDERER->getContext();
+        const graphics::Context& context = globals::GRAPHICS_ENGINE->getContext();
 
         VkAttachmentDescription attachmentDescription{};
         attachmentDescription.format = context.screen.swapchainImageFormat;
@@ -131,7 +131,7 @@ namespace yggdrasil
 
     void ImguiLayer::free()
     {
-        const graphics::Context& context{ globals::RENDERER->getContext() };
+        const graphics::Context& context{ globals::GRAPHICS_ENGINE->getContext() };
         VK_CHECK(vkDeviceWaitIdle(context.device.logical));
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -155,7 +155,7 @@ namespace yggdrasil
 
     void ImguiLayer::endFrame()
     {
-        const graphics::GraphicsEngine& renderer{ *globals::RENDERER };
+        const graphics::GraphicsEngine& renderer{ *globals::GRAPHICS_ENGINE };
         const graphics::Context& context{ renderer.getContext() };
         ImGui::Render();
         VkRenderPassBeginInfo begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
@@ -164,8 +164,8 @@ namespace yggdrasil
         begin.renderArea.extent = context.screen.swapchainImageExtent;
         begin.clearValueCount = 0;
         begin.pClearValues = nullptr;
-        vkCmdBeginRenderPass(globals::RENDERER->getPerFrameData().commandBuffer, &begin, VK_SUBPASS_CONTENTS_INLINE);
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), globals::RENDERER->getPerFrameData().commandBuffer);
-        vkCmdEndRenderPass(globals::RENDERER->getPerFrameData().commandBuffer);
+        vkCmdBeginRenderPass(globals::GRAPHICS_ENGINE->getPerFrameData().commandBuffer, &begin, VK_SUBPASS_CONTENTS_INLINE);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), globals::GRAPHICS_ENGINE->getPerFrameData().commandBuffer);
+        vkCmdEndRenderPass(globals::GRAPHICS_ENGINE->getPerFrameData().commandBuffer);
     }
 }

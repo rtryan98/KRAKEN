@@ -35,16 +35,16 @@ namespace yggdrasil
             };
         windowData.decorated = createInfo.decorated;
         window = Window::createWindow( windowData );
-        globals::RENDERER = new graphics::GraphicsEngine();
-        globals::RENDERER->init(*this->window);
+        globals::GRAPHICS_ENGINE = new graphics::GraphicsEngine();
+        globals::GRAPHICS_ENGINE->init(*this->window);
         ImguiLayer::init();
     }
 
     Application::~Application()
     {
         ImguiLayer::free();
-        globals::RENDERER->free();
-        delete globals::RENDERER;
+        globals::GRAPHICS_ENGINE->free();
+        delete globals::GRAPHICS_ENGINE;
         delete window;
         graphics::shadercompiler::free();
         Logger::free();
@@ -95,14 +95,14 @@ namespace yggdrasil
                 deltaAccumulator = 1.0f;
             }
             window->onUpdate();
-            globals::RENDERER->prepare();
+            globals::GRAPHICS_ENGINE->prepare();
             onUpdate();
-            globals::RENDERER->onUpdate();
+            globals::GRAPHICS_ENGINE->onUpdate();
             if (this->imguiEnabled)
             {
                 onImguiUpdate();
             }
-            globals::RENDERER->present();
+            globals::GRAPHICS_ENGINE->present();
             frames++;
         }
         for (Layer* layer : this->layerStack)

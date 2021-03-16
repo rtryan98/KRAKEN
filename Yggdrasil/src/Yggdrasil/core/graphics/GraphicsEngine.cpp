@@ -142,17 +142,23 @@ namespace yggdrasil::graphics
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         VK_CHECK(vkBeginCommandBuffer(this->perFrame.commandBuffer, &commandBufferBeginInfo));
-        uploadStagedData();
+        handleStagedData();
     }
 
-    void GraphicsEngine::uploadStagedData()
+    void GraphicsEngine::handleStagedData()
+    {
+        handleStagedBufferCopies();
+        handleStagedBufferToTextureCopies();
+    }
+
+    void GraphicsEngine::handleStagedBufferCopies()
     {
         if (!this->bufferCopyQueue.empty())
         {
             while (!this->bufferCopyQueue.empty())
             {
                 memory::BufferCopy& copy{ this->bufferCopyQueue.front() };
-                copy.src->copy(copy.dst, 0, 0, copy.src->size, this->perFrame.commandBuffer);
+                copy.src->copy(copy.dst, copy.srcOffset, copy.dstOffset, copy.src->size, this->perFrame.commandBuffer);
                 this->bufferCopyQueue.pop();
             }
             VkMemoryBarrier stagingBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
@@ -164,6 +170,64 @@ namespace yggdrasil::graphics
                 1, &stagingBarrier,
                 0, nullptr,
                 0, nullptr);
+        }
+    }
+
+    void GraphicsEngine::handleStagedBufferToTextureCopies()
+    {
+        if (!this->bufferToTextureCopyQueue.empty())
+        {
+            std::vector<VkImageMemoryBarrier> layoutTransitionBarriers{};
+            layoutTransitionBarriers.reserve(32);
+            while (!this->bufferCopyQueue.empty())
+            {
+                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopyQueue.front() };
+                copy.src->copy(copy.dst, copy.srcOffset, this->perFrame.commandBuffer, copy.dstOffsetX, copy.dstOffsetY, copy.dstOffsetZ );
+
+                VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+                barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                barrier.image = copy.dst->handle;
+                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.subresourceRange.layerCount = copy.dst->layers;
+                barrier.subresourceRange.baseArrayLayer = 0;
+                barrier.subresourceRange.levelCount = copy.dst->mipLevels;
+                barrier.subresourceRange.baseMipLevel = 0;
+
+                layoutTransitionBarriers.push_back( 
+                    {
+                        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,   // sType
+                        nullptr,                                  // pNext
+                        VK_ACCESS_TRANSFER_WRITE_BIT,             // srcAccessMask
+                        VK_ACCESS_SHADER_READ_BIT,                // dstAccessMask
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,     // oldLayout
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // newLayout
+                        VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
+                        VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
+                        copy.dst->handle,                         // image
+                        {                                         // {
+                            VK_IMAGE_ASPECT_COLOR_BIT,            //     subresourceRange.aspectMask;
+                            0,                                    //     subresourceRange.baseMipLevel;
+                            copy.dst->mipLevels,                  //     subresourceRange.levelCount;
+                            0,                                    //     subresourceRange.baseArrayLayer;
+                            copy.dst->layers                      //     subresourceRange.layerCount;
+                        }                                         // }
+                    }
+                );
+                this->bufferToTextureCopyQueue.pop();
+            }
+            VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+            memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            memoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT,
+                1, &memoryBarrier,
+                0, nullptr,
+                static_cast<uint32_t>(layoutTransitionBarriers.size()), layoutTransitionBarriers.data());
         }
     }
 
@@ -304,6 +368,11 @@ namespace yggdrasil::graphics
         this->stagingBuffer->upload(this, &vboData, vboData.size() * sizeof(float_t), 0);
 
         stageBufferCopy(this->stagingBuffer, this->vertexBuffer);
+
+        memory::Texture* texture{ this->images.allocate() };
+        texture->create(this, memory::TEXTURE_TYPE_2D,
+            100, 100, 1, 1, VK_FORMAT_R8G8B8A8_UNORM);
+        texture->destroy(this->context.device);
     }
 
     void GraphicsEngine::free()
@@ -335,8 +404,14 @@ namespace yggdrasil::graphics
         return this->perFrame;
     }
 
-    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst)
+    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t srcOffset, uint64_t dstOffset)
     {
-        this->bufferCopyQueue.push({src, dst});
+        this->bufferCopyQueue.push({src, dst, srcOffset, dstOffset});
+    }
+
+    void GraphicsEngine::stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
+        uint32_t srcOffset, uint32_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ)
+    {
+        this->bufferToTextureCopyQueue.push({src, dst, srcOffset, dstOffsetX, dstOffsetY, dstOffsetZ});
     }
 }

@@ -1,5 +1,6 @@
 #include "Yggdrasil/pch.h"
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
+#include "Yggdrasil/core/graphics/memory/Texture.h"
 #include "Yggdrasil/core/graphics/memory/Allocator.h"
 #include "Yggdrasil/core/graphics/Util.h"
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
@@ -165,6 +166,27 @@ namespace yggdrasil::graphics::memory
         region.srcOffset = srcOffset;
         region.size = copySize;
         vkCmdCopyBuffer(commandBuffer, this->handle, target->handle, 1, &region);
+    }
+
+    void Buffer::copy(Texture* target, uint64_t srcOffset, VkCommandBuffer commandBuffer,
+        uint32_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ,
+        uint32_t mipLevel, uint32_t layerCount, uint32_t baseLayer)
+    {
+        VkBufferImageCopy region{};
+        region.bufferOffset = srcOffset;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageOffset.x = dstOffsetX;
+        region.imageOffset.y = dstOffsetY;
+        region.imageOffset.z = dstOffsetZ;
+        region.imageExtent.width = target->width;
+        region.imageExtent.height = target->height;
+        region.imageExtent.depth = target->depth;
+        region.imageSubresource.mipLevel = mipLevel;
+        region.imageSubresource.layerCount = layerCount;
+        region.imageSubresource.baseArrayLayer = baseLayer;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vkCmdCopyBufferToImage(commandBuffer, this->handle, target->handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
     }
 
     void Buffer::upload(const GraphicsEngine* const renderer, void* bufferData, uint64_t dataSize, uint64_t bufferOffset)

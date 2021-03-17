@@ -8,9 +8,9 @@
 
 namespace yggdrasil::graphics::memory
 {
-    void Buffer::create(const GraphicsEngine* const renderer, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize)
+    void Buffer::create(const GraphicsEngine* const graphicsEngine, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize)
     {
-        const Device& device{ renderer->getContext().device };
+        const Device& device{ graphicsEngine->getContext().device };
         this->usage = bufferUsage;
         this->type = bufferType;
         this->size = bufferSize;
@@ -24,7 +24,7 @@ namespace yggdrasil::graphics::memory
         if (this->type & BUFFER_TYPE_UNIFORM)
         {
             createInfo.usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            createInfo.size *= static_cast<uint32_t>(renderer->getContext().screen.swapchainImages.size());
+            createInfo.size *= static_cast<uint32_t>(graphicsEngine->getContext().screen.swapchainImages.size());
         }
         else
         {

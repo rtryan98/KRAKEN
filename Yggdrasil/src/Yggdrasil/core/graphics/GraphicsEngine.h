@@ -9,6 +9,7 @@
 #include "Yggdrasil/core/memory/Pool.h"
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
 #include "Yggdrasil/core/graphics/memory/Texture.h"
+#include "Yggdrasil/core/graphics/resources/ResourceManager.h"
 
 #include <queue>
 
@@ -41,7 +42,6 @@ namespace yggdrasil::graphics
         void present();
         void prepare();
         void handleStagedData();
-        void handleStagedBufferCopies();
         void handleStagedBufferToTextureCopies();
 
         const graphics::Context& getContext() const;
@@ -55,7 +55,6 @@ namespace yggdrasil::graphics
         void freeDescriptorPool();
 
     private:
-        void stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t size, uint64_t srcOffset = 0, uint64_t dstOffset = 0);
         void stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
             uint32_t srcOffset = 0, uint32_t dstOffsetX = 0, uint32_t dstOffsetY = 0, uint32_t dstOffsetZ = 0);
 
@@ -74,9 +73,8 @@ namespace yggdrasil::graphics
         memory::Texture* texture{};
 
     private:
-        yggdrasil::memory::Pool<memory::Buffer, 8192> buffers{};
+        ResourceManager resourceManager{};
         yggdrasil::memory::Pool<memory::Texture, 8192> images{};
-        std::vector<memory::BufferCopy> bufferCopies{};
         std::vector<memory::BufferToTextureCopy> bufferToTextureCopies{};
     };
 }

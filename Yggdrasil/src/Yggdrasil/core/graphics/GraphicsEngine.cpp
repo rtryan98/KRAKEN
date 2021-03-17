@@ -159,30 +159,8 @@ namespace yggdrasil::graphics
 
     void GraphicsEngine::handleStagedData()
     {
-        handleStagedBufferCopies();
+        this->resourceManager.handleStagedResources(this);
         handleStagedBufferToTextureCopies();
-    }
-
-    void GraphicsEngine::handleStagedBufferCopies()
-    {
-        if (!this->bufferCopies.empty())
-        {
-            for (uint32_t i{ 0 }; i < this->bufferCopies.size(); i++)
-            {
-                memory::BufferCopy& copy{ this->bufferCopies[i] };
-                copy.src->copy(copy.dst, copy.srcOffset, copy.dstOffset, copy.size, this->perFrame.commandBuffer);
-            }
-            this->bufferCopies.clear();
-            VkMemoryBarrier stagingBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
-            stagingBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            stagingBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            // TODO: Use more fine grained synchronization. That means VBO data -> VK_PIPELINE_STAGE_VERTEX_INPUT_STAGE etc.
-            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_DEPENDENCY_BY_REGION_BIT,
-                1, &stagingBarrier,
-                0, nullptr,
-                0, nullptr);
-        }
     }
 
     void GraphicsEngine::handleStagedBufferToTextureCopies()
@@ -401,6 +379,8 @@ namespace yggdrasil::graphics
         createDescriptorSetLayout();
         createPipeline();
         createDescriptorPool();
+        this->resourceManager.bufferManager.create(this);
+        // this->resourceManager.textureManager.create(this);
 
         std::array<float_t, 18> vboData
         {
@@ -412,17 +392,13 @@ namespace yggdrasil::graphics
              0.5f,  0.5f, -1.5f
         };
 
-        this->uniformBuffer = this->buffers.allocate();
-        this->uniformBuffer->create(this, memory::BUFFER_TYPE_UNIFORM, memory::BUFFER_USAGE_UPDATE_EVERY_FRAME, 128);
 
-        this->vertexBuffer = this->buffers.allocate();
-        this->vertexBuffer->create(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);
+        this->uniformBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_UNIFORM, memory::BUFFER_USAGE_UPDATE_EVERY_FRAME, 128);
 
-        this->stagingBuffer = this->buffers.allocate();
-        this->stagingBuffer->create(this, memory::BUFFER_TYPE_STAGING, 0, 1024 * 1024 * 256);
-        this->stagingBuffer->upload(this, vboData.data(), vboData.size() * sizeof(float_t), 0);
+        this->vertexBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);
+        this->resourceManager.bufferManager.uploadDataToBuffer(this, this->vertexBuffer, vboData.data(), vboData.size() * sizeof(float_t), 0);
 
-        stageBufferCopy(this->stagingBuffer, this->vertexBuffer, sizeof(float_t) * vboData.size());
+        this->stagingBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_STAGING, 0, 1024 * 1024 * 256);
 
         this->texture = this->images.allocate();
 
@@ -449,6 +425,8 @@ namespace yggdrasil::graphics
         this->vertexBuffer->destroy(this->context.device);
         this->stagingBuffer->destroy(this->context.device);
 
+        this->resourceManager.bufferManager.destroy(this->context.device);
+
         if (this->descriptorPool != VK_NULL_HANDLE)
         {
             freeDescriptorPool();
@@ -468,11 +446,6 @@ namespace yggdrasil::graphics
     const PerFrame& GraphicsEngine::getPerFrameData() const
     {
         return this->perFrame;
-    }
-
-    void GraphicsEngine::stageBufferCopy(memory::Buffer* src, memory::Buffer* dst, uint64_t size, uint64_t srcOffset, uint64_t dstOffset)
-    {
-        this->bufferCopies.push_back({src, dst, srcOffset, dstOffset, size});
     }
 
     void GraphicsEngine::stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,

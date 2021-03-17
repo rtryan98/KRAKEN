@@ -153,7 +153,7 @@ namespace yggdrasil::graphics::util
         vkCmdDebugMarkerInsertEXT    = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT   >(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT"));
     }
 
-    void setObjectDebugName(Device& device, uint64_t handle, VkObjectType type, const char* name)
+    void setObjectDebugName(const Device& device, uint64_t handle, VkObjectType type, const char* name)
     {
         VkDebugUtilsObjectNameInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
         info.objectType = type;

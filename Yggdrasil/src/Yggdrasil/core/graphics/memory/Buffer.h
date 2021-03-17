@@ -4,6 +4,7 @@
 namespace yggdrasil::graphics
 {
     class GraphicsEngine;
+    class BufferManager;
     class Device;
 }
 
@@ -38,7 +39,7 @@ namespace yggdrasil::graphics::memory
         void*          data{};
 
     private:
-        void create(const GraphicsEngine* const renderer, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize);
+        void create(const GraphicsEngine* const graphicsEngine, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize);
         void bindMemory(const Device& device);
         void map(const Device& device);
         void unmap(const Device& device);
@@ -53,6 +54,7 @@ namespace yggdrasil::graphics::memory
 
     private:
         friend class yggdrasil::graphics::GraphicsEngine;
+        friend class yggdrasil::graphics::BufferManager;
     };
 
     struct BufferCopy

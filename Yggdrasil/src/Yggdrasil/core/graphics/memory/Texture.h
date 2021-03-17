@@ -4,6 +4,7 @@
 namespace yggdrasil::graphics
 {
     class GraphicsEngine;
+    class TextureManager;
     class Device;
 }
 
@@ -55,5 +56,6 @@ namespace yggdrasil::graphics::memory
     private:
         friend class yggdrasil::graphics::GraphicsEngine;
         friend class Buffer;
+        friend class yggdrasil::graphics::TextureManager;
     };
 }

@@ -21,7 +21,7 @@ namespace yggdrasil::graphics::util
 
     void initDebugExtensions(VkInstance instance);
 
-    void setObjectDebugName(Device& device, uint64_t handle, VkObjectType type, const char* name);
+    void setObjectDebugName(const Device& device, uint64_t handle, VkObjectType type, const char* name);
     void beginDebugRegion(VkCommandBuffer commandBuffer, const char* name, glm::vec4 color);
     void insertDebugMarker(VkCommandBuffer commandBuffer, const char* name, glm::vec4 color);
     void endDebugRegion(VkCommandBuffer commandBuffer);

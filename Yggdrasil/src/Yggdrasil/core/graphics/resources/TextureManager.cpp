@@ -2,6 +2,7 @@
 #include "Yggdrasil/core/graphics/resources/TextureManager.h"
 #include "Yggdrasil/core/graphics/resources/BufferManager.h"
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
+#include <stb/stb_image.h>
 
 namespace yggdrasil::graphics
 {
@@ -111,11 +112,10 @@ namespace yggdrasil::graphics
     }
 
     memory::Texture* TextureManager::createTexture(const GraphicsEngine* const graphicsEngine, memory::TextureType textureType,
-        uint32_t width, uint32_t height, uint32_t depth, uint32_t layers,
-        VkFormat textureFormat, memory::TextureTiling textureTiling)
+        uint32_t width, uint32_t height, uint32_t depth, uint32_t layers, VkFormat textureFormat, memory::TextureTiling textureTiling, bool_t createTextureSampler)
     {
         memory::Texture* result{ this->texturePool.allocate() };
-        result->create(graphicsEngine, textureType, width, height, depth, layers, textureFormat, textureTiling);
+        result->create(graphicsEngine, textureType, width, height, depth, layers, textureFormat, textureTiling, createTextureSampler);
         return result;
     }
 
@@ -140,5 +140,37 @@ namespace yggdrasil::graphics
             }
         );
         this->currentStagingOffset += textureSize;
+    }
+
+    memory::Texture* TextureManager::createTexture2DFromFile(GraphicsEngine* const graphicsEngine, const char* fileName)
+    {
+        memory::Texture* texture{ this->texturePool.allocate() };
+
+        int32_t x, y, channels;
+        uint8_t* textureData{ stbi_load(fileName, &x, &y, &channels, STBI_rgb_alpha) };
+
+        VkFormat format{};
+
+        switch (channels)
+        {
+        case 1:
+            format = VK_FORMAT_R8_UNORM;
+            break;
+        case 2:
+            format = VK_FORMAT_R8G8_UNORM;
+            break;
+        case 3:
+            format = VK_FORMAT_R8G8B8_UNORM;
+            break;
+        default:
+            format = VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+        }
+
+        texture = createTexture(graphicsEngine, memory::TEXTURE_TYPE_2D,
+            x, y, 1, 1, format,
+            memory::TextureTiling::TEXTURE_TILING_OPTIMAL);
+        uploadTexture(graphicsEngine, texture, textureData, channels * sizeof(uint8_t) * x * y);
+        return texture;
     }
 }

@@ -15,6 +15,8 @@
 
 namespace yggdrasil::graphics
 {
+    GraphicsEngine* GraphicsEngine::instance = nullptr;
+
     void GraphicsEngine::createPipeline()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -314,7 +316,7 @@ namespace yggdrasil::graphics
         this->resourceManager.bufferManager.uploadDataToBuffer(this, this->vertexBuffer, vboData.data(), vboData.size() * sizeof(float_t), 0);
 
         int32_t x, y, channels;
-        uint8_t* textureData{ stbi_load("res/texture/Rock030_1K_Color_Test_Downscaled.png", &x, &y, &channels, STBI_rgb_alpha) };
+        uint8_t* textureData{ stbi_load("res/texture/Rock030_1K_Color_Test_Downscaled.png", &x, &y, &channels, 0) };
 
         this->texture = this->resourceManager.textureManager.createTexture(this, memory::TEXTURE_TYPE_2D,
             x, y, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
@@ -352,5 +354,15 @@ namespace yggdrasil::graphics
     const PerFrame& GraphicsEngine::getPerFrameData() const
     {
         return this->perFrame;
+    }
+
+    GraphicsEngine* GraphicsEngine::get()
+    {
+        return instance;
+    }
+
+    ResourceManager& GraphicsEngine::getResourceManager()
+    {
+        return this->resourceManager;
     }
 }

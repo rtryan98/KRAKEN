@@ -9,7 +9,7 @@ namespace yggdrasil::graphics::memory
 {
     void Texture::create(const GraphicsEngine* const graphicsEngine, TextureType textureType,
         uint32_t textureWidth, uint32_t textureHeight, uint32_t textureDepth, uint32_t textureLayers,
-        VkFormat textureFormat, TextureTiling textureTiling)
+        VkFormat textureFormat, TextureTiling textureTiling, bool_t createTextureSampler)
     {
         this->width = textureWidth;
         this->height = textureHeight;
@@ -75,7 +75,10 @@ namespace yggdrasil::graphics::memory
 
         allocate(graphicsEngine);
         createView(graphicsEngine);
-        createSampler(graphicsEngine);
+        if (createTextureSampler)
+        {
+            createSampler(graphicsEngine);
+        }
     }
 
     void Texture::allocate(const GraphicsEngine* const graphicsEngine)

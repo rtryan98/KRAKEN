@@ -1,5 +1,6 @@
 #pragma once
 #include "Yggdrasil/Defines.h"
+#include "Yggdrasil/core/graphics/memory/MemoryEnums.h"
 #include <vulkan/vulkan.h>
 
 namespace yggdrasil::graphics
@@ -13,21 +14,6 @@ namespace yggdrasil::graphics
 namespace yggdrasil::graphics::memory
 {
     class Texture;
-
-    enum BufferType : uint32_t
-    {
-        BUFFER_TYPE_VERTEX   = 1,
-        BUFFER_TYPE_INDEX    = 2,
-        BUFFER_TYPE_INDIRECT = 4,
-        BUFFER_TYPE_STORAGE  = 8,
-        BUFFER_TYPE_UNIFORM  = 16,
-        BUFFER_TYPE_STAGING  = 32
-    };
-
-    enum BufferUsage : uint32_t
-    {
-        BUFFER_USAGE_UPDATE_EVERY_FRAME = 1
-    };
 
     class Buffer
     {

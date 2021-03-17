@@ -44,6 +44,9 @@ namespace yggdrasil::graphics
 
         const graphics::Context& getContext() const;
         const PerFrame& getPerFrameData() const;
+        ResourceManager& getResourceManager();
+
+        static GraphicsEngine* get();
 
     private:
         void createPipeline();
@@ -67,6 +70,7 @@ namespace yggdrasil::graphics
 
     private:
         ResourceManager resourceManager{};
+        static GraphicsEngine* instance;
 
     private:
         friend class BufferManager;

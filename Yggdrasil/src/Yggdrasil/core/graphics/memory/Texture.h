@@ -1,4 +1,6 @@
 #pragma once
+#include "Yggdrasil/Types.h"
+#include "Yggdrasil/core/graphics/memory/MemoryEnums.h"
 #include <vulkan/vulkan.h>
 
 namespace yggdrasil::graphics
@@ -10,22 +12,6 @@ namespace yggdrasil::graphics
 
 namespace yggdrasil::graphics::memory
 {
-    enum TextureType : uint32_t
-    {
-        TEXTURE_TYPE_1D = 0,
-        TEXTURE_TYPE_1D_ARRAY,
-        TEXTURE_TYPE_2D,
-        TEXTURE_TYPE_2D_ARRAY,
-        TEXTURE_TYPE_3D,
-        TEXTURE_TYPE_CUBEMAP
-    };
-
-    enum class TextureTiling : uint32_t
-    {
-        TEXTURE_TILING_OPTIMAL,
-        TEXTURE_TILING_LINEAR
-    };
-
     class Texture
     {
     private:
@@ -48,7 +34,8 @@ namespace yggdrasil::graphics::memory
     private:
         void create(const GraphicsEngine* const graphicsEngine, TextureType textureType,
             uint32_t width, uint32_t height, uint32_t depth, uint32_t layers,
-            VkFormat textureFormat, TextureTiling textureTiling = TextureTiling::TEXTURE_TILING_OPTIMAL);
+            VkFormat textureFormat, TextureTiling textureTiling = TextureTiling::TEXTURE_TILING_OPTIMAL,
+            bool_t createTextureSampler = true);
         void destroy(const Device& device);
         void createView(const GraphicsEngine* const graphicsEngine);
         void createSampler(const GraphicsEngine* const graphicsEngine);

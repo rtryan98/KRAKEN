@@ -1,10 +1,12 @@
 #pragma once
+#include "Yggdrasil/Defines.h"
 #include <vulkan/vulkan.h>
 
 namespace yggdrasil::graphics
 {
     class GraphicsEngine;
     class BufferManager;
+    class TextureManager;
     class Device;
 }
 
@@ -50,11 +52,12 @@ namespace yggdrasil::graphics::memory
         void copy(Texture* target, uint64_t srcOffset, VkCommandBuffer commandBuffer,
             uint32_t dstOffsetX = 0, uint32_t dstOffsetY = 0, uint32_t dstOffsetZ = 0,
             uint32_t mipLevel = 0, uint32_t layerCount = 1, uint32_t baseLayer = 0);
-        void upload(const GraphicsEngine* const renderer, void* bufferData, uint64_t dataSize, uint64_t bufferOffset);
+        void upload(const GraphicsEngine* const graphicsEngine, void* bufferData, uint64_t dataSize, uint64_t bufferOffset);
 
     private:
         friend class yggdrasil::graphics::GraphicsEngine;
         friend class yggdrasil::graphics::BufferManager;
+        friend class yggdrasil::graphics::TextureManager;
     };
 
     struct BufferCopy

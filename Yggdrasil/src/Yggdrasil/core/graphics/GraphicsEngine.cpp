@@ -154,91 +154,7 @@ namespace yggdrasil::graphics
         VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         VK_CHECK(vkBeginCommandBuffer(this->perFrame.commandBuffer, &commandBufferBeginInfo));
-        handleStagedData();
-    }
-
-    void GraphicsEngine::handleStagedData()
-    {
         this->resourceManager.handleStagedResources(this);
-        handleStagedBufferToTextureCopies();
-    }
-
-    void GraphicsEngine::handleStagedBufferToTextureCopies()
-    {
-        if (!this->bufferToTextureCopies.empty())
-        {
-            std::vector<VkImageMemoryBarrier> layoutTransitionBarriers{};
-            std::vector<VkImageMemoryBarrier> transferDstOptimalBarriers{};
-            for (uint32_t i{ 0 }; i < this->bufferToTextureCopies.size(); i++)
-            {
-                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopies[i] };
-
-                layoutTransitionBarriers.push_back( 
-                    {
-                        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,   // sType
-                        nullptr,                                  // pNext
-                        VK_ACCESS_TRANSFER_WRITE_BIT,             // srcAccessMask
-                        VK_ACCESS_SHADER_READ_BIT,                // dstAccessMask
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,     // oldLayout
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // newLayout              // TODO: upload and let gpu modify textures?
-                        VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
-                        VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
-                        copy.dst->handle,                         // image
-                        {                                         // {
-                            VK_IMAGE_ASPECT_COLOR_BIT,            //     subresourceRange.aspectMask;
-                            0,                                    //     subresourceRange.baseMipLevel;
-                            copy.dst->mipLevels,                  //     subresourceRange.levelCount;
-                            0,                                    //     subresourceRange.baseArrayLayer;
-                            copy.dst->layers                      //     subresourceRange.layerCount;
-                        }                                         // }
-                    }
-                );
-
-                transferDstOptimalBarriers.push_back(
-                    {
-                        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,   // sType
-                        nullptr,                                  // pNext
-                        0x0,                                      // srcAccessMask
-                        VK_ACCESS_TRANSFER_WRITE_BIT,             // dstAccessMask
-                        VK_IMAGE_LAYOUT_UNDEFINED,                // oldLayout
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,     // newLayout              // TODO: upload and let gpu modify textures?
-                        VK_QUEUE_FAMILY_IGNORED,                  // srcQueueFamilyIndex
-                        VK_QUEUE_FAMILY_IGNORED,                  // dstQueueFamilyIndex
-                        copy.dst->handle,                         // image
-                        {                                         // {
-                            VK_IMAGE_ASPECT_COLOR_BIT,            //     subresourceRange.aspectMask;
-                            0,                                    //     subresourceRange.baseMipLevel;
-                            copy.dst->mipLevels,                  //     subresourceRange.levelCount;
-                            0,                                    //     subresourceRange.baseArrayLayer;
-                            copy.dst->layers                      //     subresourceRange.layerCount;
-                        }                                         // }
-                    }
-                );
-
-            }
-            VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
-            memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            memoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-
-            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0x0,
-                0, nullptr,
-                0, nullptr,
-                static_cast<uint32_t>(transferDstOptimalBarriers.size()), transferDstOptimalBarriers.data());
-
-            for (uint32_t i{ 0 }; i < this->bufferToTextureCopies.size(); i++)
-            {
-                memory::BufferToTextureCopy& copy{ this->bufferToTextureCopies[i] };
-                copy.src->copy(copy.dst, copy.srcOffset, this->perFrame.commandBuffer, copy.dstOffsetX, copy.dstOffsetY, copy.dstOffsetZ);
-            }
-
-            // TODO: more fine grained pipeline dst mask?
-            vkCmdPipelineBarrier(this->perFrame.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0x0,
-                1, &memoryBarrier,
-                0, nullptr,
-                static_cast<uint32_t>(layoutTransitionBarriers.size()), layoutTransitionBarriers.data());
-
-            this->bufferToTextureCopies.clear();
-        }
     }
 
     void GraphicsEngine::onUpdate()
@@ -379,7 +295,7 @@ namespace yggdrasil::graphics
         createDescriptorSetLayout();
         createPipeline();
         createDescriptorPool();
-        this->resourceManager.bufferManager.create(this);
+        this->resourceManager.create(this);
         // this->resourceManager.textureManager.create(this);
 
         std::array<float_t, 18> vboData
@@ -392,26 +308,18 @@ namespace yggdrasil::graphics
              0.5f,  0.5f, -1.5f
         };
 
-
         this->uniformBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_UNIFORM, memory::BUFFER_USAGE_UPDATE_EVERY_FRAME, 128);
 
         this->vertexBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_VERTEX, 0x0, 256);
         this->resourceManager.bufferManager.uploadDataToBuffer(this, this->vertexBuffer, vboData.data(), vboData.size() * sizeof(float_t), 0);
 
-        this->stagingBuffer = this->resourceManager.bufferManager.createBuffer(this, memory::BUFFER_TYPE_STAGING, 0, 1024 * 1024 * 256);
-
-        this->texture = this->images.allocate();
-
         int32_t x, y, channels;
         uint8_t* textureData{ stbi_load("res/texture/Rock030_1K_Color_Test_Downscaled.png", &x, &y, &channels, STBI_rgb_alpha) };
 
-        this->texture->create(this, memory::TEXTURE_TYPE_2D,
+        this->texture = this->resourceManager.textureManager.createTexture(this, memory::TEXTURE_TYPE_2D,
             x, y, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
             memory::TextureTiling::TEXTURE_TILING_OPTIMAL);
-
-        this->stagingBuffer->upload(this, textureData, 4 * sizeof(uint8_t) * x * y, sizeof(float_t) * vboData.size());
-
-        stageBufferToImageCopy(this->stagingBuffer, this->texture, static_cast<uint32_t>(sizeof(float_t) * vboData.size()));
+        this->resourceManager.textureManager.uploadTexture(this, this->texture, textureData, 4 * sizeof(uint8_t) * x * y);
 
         stbi_image_free(textureData);
     }
@@ -423,9 +331,7 @@ namespace yggdrasil::graphics
         this->texture->destroy(this->context.device);
         this->uniformBuffer->destroy(this->context.device);
         this->vertexBuffer->destroy(this->context.device);
-        this->stagingBuffer->destroy(this->context.device);
-
-        this->resourceManager.bufferManager.destroy(this->context.device);
+        this->resourceManager.destroy(this);
 
         if (this->descriptorPool != VK_NULL_HANDLE)
         {

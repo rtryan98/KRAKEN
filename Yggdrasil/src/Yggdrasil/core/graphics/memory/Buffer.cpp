@@ -189,15 +189,15 @@ namespace yggdrasil::graphics::memory
         vkCmdCopyBufferToImage(commandBuffer, this->handle, target->handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
     }
 
-    void Buffer::upload(const GraphicsEngine* const renderer, void* bufferData, uint64_t dataSize, uint64_t bufferOffset)
+    void Buffer::upload(const GraphicsEngine* const graphicsEngine, void* bufferData, uint64_t dataSize, uint64_t bufferOffset)
     {
         if (this->data == nullptr)
         {
-            map(renderer->getContext().device);
+            map(graphicsEngine->getContext().device);
         }
         if ((this->type & BUFFER_TYPE_UNIFORM) || (this->type & BUFFER_TYPE_STAGING))
         {
-            uint64_t offset{ bufferOffset + (this->size * renderer->getPerFrameData().frame) };
+            uint64_t offset{ bufferOffset + (this->size * graphicsEngine->getPerFrameData().frame) };
             void* dst{ &static_cast<uint8_t*>(this->data)[offset] };
             memcpy(dst, bufferData, dataSize);
         }

@@ -7,7 +7,9 @@ namespace yggdrasil::graphics
     class ResourceManager
     {
     public:
-        void handleStagedResources(const GraphicsEngine* const graphicsEngine);
+        void handleStagedResources(GraphicsEngine* const graphicsEngine);
+        void create(GraphicsEngine* const graphicsEngine);
+        void destroy(GraphicsEngine* const graphicsEngine);
 
         BufferManager bufferManager{};
         TextureManager textureManager{};

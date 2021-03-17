@@ -23,11 +23,11 @@ namespace yggdrasil::graphics
         }
     }
 
-    void BufferManager::destroy(Device& device)
+    void BufferManager::destroy(const GraphicsEngine* const graphicsEngine)
     {
         for (memory::Buffer* stagingBuffer : this->stagingBuffers)
         {
-            stagingBuffer->destroy(device);
+            stagingBuffer->destroy(graphicsEngine->getContext().device);
         }
     }
 
@@ -71,7 +71,7 @@ namespace yggdrasil::graphics
         else
         {
             memory::Buffer* currentStagingBuffer{ this->stagingBuffers[graphicsEngine->getPerFrameData().frame] };
-            currentStagingBuffer->upload(graphicsEngine, bufferData, dataSize, bufferOffset);
+            currentStagingBuffer->upload(graphicsEngine, bufferData, dataSize, this->currentStagingOffset);
             this->stagedBufferCopies.push_back(
                 {
                     currentStagingBuffer,
@@ -85,9 +85,9 @@ namespace yggdrasil::graphics
         }
     }
 
-    void BufferManager::destroyBuffer(const GraphicsEngine* const graphicsEngine, memory::Buffer* target)
+    void BufferManager::destroyBuffer(const GraphicsEngine* const graphicsEngine, memory::Buffer* buffer)
     {
-        target->destroy(graphicsEngine->getContext().device);
-        this->bufferPool.free(target);
+        buffer->destroy(graphicsEngine->getContext().device);
+        this->bufferPool.free(buffer);
     }
 }

@@ -41,8 +41,6 @@ namespace yggdrasil::graphics
         void onUpdate();
         void present();
         void prepare();
-        void handleStagedData();
-        void handleStagedBufferToTextureCopies();
 
         const graphics::Context& getContext() const;
         const PerFrame& getPerFrameData() const;
@@ -69,12 +67,16 @@ namespace yggdrasil::graphics
 
         memory::Buffer* uniformBuffer{};
         memory::Buffer* vertexBuffer{};
-        memory::Buffer* stagingBuffer{};
         memory::Texture* texture{};
 
     private:
         ResourceManager resourceManager{};
         yggdrasil::memory::Pool<memory::Texture, 8192> images{};
         std::vector<memory::BufferToTextureCopy> bufferToTextureCopies{};
+
+    private:
+        friend class BufferManager;
+        friend class ResourceManager;
+        friend class TextureManager;
     };
 }

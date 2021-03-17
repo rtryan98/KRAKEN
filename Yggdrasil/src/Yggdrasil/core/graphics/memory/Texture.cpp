@@ -89,6 +89,8 @@ namespace yggdrasil::graphics::memory
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
+        this->size = allocateInfo.allocationSize;
+
         VK_CHECK( vkAllocateMemory(graphicsEngine->getContext().device.logical, &allocateInfo, VK_CPU_ALLOCATOR, &this->memory) );
         VK_CHECK( vkBindImageMemory(graphicsEngine->getContext().device.logical, this->handle, this->memory, 0) );
     }

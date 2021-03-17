@@ -30,10 +30,10 @@ namespace yggdrasil::graphics::util
         case VK_ERROR_FORMAT_NOT_SUPPORTED:                         return "VK_ERROR_FORMAT_NOT_SUPPORTED";
         case VK_ERROR_FRAGMENTED_POOL:                              return "VK_ERROR_FRAGMENTED_POOL";
         case VK_ERROR_UNKNOWN:                                      return "VK_ERROR_UNKNOWN";
-        case VK_ERROR_OUT_OF_POOL_MEMORY:                           return "VK_ERROR_OUT_OF_POOL_MEMORY | VK_ERROR_OUT_OF_POOL_MEMORY_KHR";
-        case VK_ERROR_INVALID_EXTERNAL_HANDLE:                      return "VK_ERROR_INVALID_EXTERNAL_HANDLE | VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR";
-        case VK_ERROR_FRAGMENTATION:                                return "VK_ERROR_FRAGMENTATION | VK_ERROR_FRAGMENTATION_EXT";
-        case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS:               return "VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS | VK_ERROR_INVALID_DEVICE_ADDRESS_EXT | VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR";
+        case VK_ERROR_OUT_OF_POOL_MEMORY:                           return "VK_ERROR_OUT_OF_POOL_MEMORY";
+        case VK_ERROR_INVALID_EXTERNAL_HANDLE:                      return "VK_ERROR_INVALID_EXTERNAL_HANDLE";
+        case VK_ERROR_FRAGMENTATION:                                return "VK_ERROR_FRAGMENTATION";
+        case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS:               return "VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS";
         case VK_ERROR_SURFACE_LOST_KHR:                             return "VK_ERROR_SURFACE_LOST_KHR";
         case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:                     return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
         case VK_SUBOPTIMAL_KHR:                                     return "VK_SUBOPTIMAL_KHR";
@@ -48,7 +48,7 @@ namespace yggdrasil::graphics::util
         case VK_THREAD_DONE_KHR:                                    return "VK_THREAD_DONE_KHR";
         case VK_OPERATION_DEFERRED_KHR:                             return "VK_OPERATION_DEFERRED_KHR";
         case VK_OPERATION_NOT_DEFERRED_KHR:                         return "VK_OPERATION_NOT_DEFERRED_KHR";
-        case VK_PIPELINE_COMPILE_REQUIRED_EXT:                      return "VK_PIPELINE_COMPILE_REQUIRED_EXT | VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT";
+        case VK_PIPELINE_COMPILE_REQUIRED_EXT:                      return "VK_PIPELINE_COMPILE_REQUIRED_EXT";
         default:                                                    return "UNKNOWN VULKAN ERROR";
         }
     }

@@ -353,10 +353,4 @@ namespace yggdrasil::graphics
     {
         return this->perFrame;
     }
-
-    void GraphicsEngine::stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
-        uint32_t srcOffset, uint32_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ)
-    {
-        this->bufferToTextureCopies.push_back({src, dst, srcOffset, dstOffsetX, dstOffsetY, dstOffsetZ});
-    }
 }

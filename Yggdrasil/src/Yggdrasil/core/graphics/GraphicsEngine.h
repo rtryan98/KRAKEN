@@ -53,10 +53,6 @@ namespace yggdrasil::graphics
         void freeDescriptorPool();
 
     private:
-        void stageBufferToImageCopy(memory::Buffer* src, memory::Texture* dst,
-            uint32_t srcOffset = 0, uint32_t dstOffsetX = 0, uint32_t dstOffsetY = 0, uint32_t dstOffsetZ = 0);
-
-    private:
         graphics::Context context{};
         VkPipelineLayout pipelineLayout{};
         VkPipeline pipeline{};
@@ -71,8 +67,6 @@ namespace yggdrasil::graphics
 
     private:
         ResourceManager resourceManager{};
-        yggdrasil::memory::Pool<memory::Texture, 8192> images{};
-        std::vector<memory::BufferToTextureCopy> bufferToTextureCopies{};
 
     private:
         friend class BufferManager;

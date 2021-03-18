@@ -22,6 +22,6 @@ namespace yggdrasil::globals
     extern yggdrasil::graphics::GraphicsEngine* GRAPHICS_ENGINE;
 
     extern float_t DELTA_FRAME_TIME;
-    extern float_t LAST_FRAME_TIME;
-    extern float_t CURRENT_FRAME_TIME;
+    extern double_t LAST_FRAME_TIME;
+    extern double_t CURRENT_FRAME_TIME;
 }

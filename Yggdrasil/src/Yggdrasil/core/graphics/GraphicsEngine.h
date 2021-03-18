@@ -10,6 +10,7 @@
 #include "Yggdrasil/core/graphics/memory/Buffer.h"
 #include "Yggdrasil/core/graphics/memory/Texture.h"
 #include "Yggdrasil/core/graphics/resources/ResourceManager.h"
+#include "Yggdrasil/core/graphics/Camera.h"
 
 #include <queue>
 
@@ -38,7 +39,7 @@ namespace yggdrasil::graphics
 
         void init(const Window& window);
         void free();
-        void onUpdate();
+        void onUpdate(float_t dt);
         void present();
         void prepare();
 
@@ -67,6 +68,7 @@ namespace yggdrasil::graphics
         memory::Buffer* uniformBuffer{};
         memory::Buffer* vertexBuffer{};
         memory::Texture* texture{};
+        CameraController cameraController{};
 
     private:
         ResourceManager resourceManager{};

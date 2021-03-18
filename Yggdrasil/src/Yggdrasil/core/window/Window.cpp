@@ -36,9 +36,6 @@ namespace yggdrasil
 
     void Window::onUpdate()
     {
-        globals::CURRENT_FRAME_TIME = static_cast<float>(glfwGetTime());
-        globals::DELTA_FRAME_TIME = globals::CURRENT_FRAME_TIME - globals::LAST_FRAME_TIME;
-        globals::LAST_FRAME_TIME = globals::CURRENT_FRAME_TIME;
         glfwPollEvents();
     }
 

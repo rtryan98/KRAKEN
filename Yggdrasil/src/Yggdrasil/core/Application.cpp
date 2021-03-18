@@ -83,8 +83,8 @@ namespace yggdrasil
         uint32_t frames{ 0 };
         while (window->isRunning())
         {
-            globals::CURRENT_FRAME_TIME = static_cast<float_t>(glfwGetTime());
-            globals::DELTA_FRAME_TIME = globals::CURRENT_FRAME_TIME - globals::LAST_FRAME_TIME;
+            globals::CURRENT_FRAME_TIME = glfwGetTime();
+            globals::DELTA_FRAME_TIME = static_cast<float_t>(globals::CURRENT_FRAME_TIME - globals::LAST_FRAME_TIME);
             globals::LAST_FRAME_TIME = globals::CURRENT_FRAME_TIME;
             deltaAccumulator -= globals::DELTA_FRAME_TIME;
             if (deltaAccumulator < 0.0f)
@@ -97,7 +97,7 @@ namespace yggdrasil
             window->onUpdate();
             globals::GRAPHICS_ENGINE->prepare();
             onUpdate();
-            globals::GRAPHICS_ENGINE->onUpdate();
+            globals::GRAPHICS_ENGINE->onUpdate(globals::DELTA_FRAME_TIME);
             if (this->imguiEnabled)
             {
                 onImguiUpdate();

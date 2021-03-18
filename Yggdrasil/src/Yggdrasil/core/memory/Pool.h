@@ -20,17 +20,17 @@ namespace yggdrasil::memory
 
         T& operator[](uint64_t index)
         {
-            return data[index];
+            return this->data[index];
         }
 
         const T& at(uint64_t index) const
         {
-            return data[index];
+            return this->data[index];
         }
 
         T* allocate()
         {
-            if (currentSize == elementCount)
+            if (this->currentSize == elementCount)
             {
                 YGGDRASIL_CORE_ERROR("Tried to allocate element from filled pool.");
                 return nullptr;
@@ -41,7 +41,7 @@ namespace yggdrasil::memory
             T* next{ result };
             next++;
             this->stack.push( next );
-            currentSize++;
+            this->currentSize++;
             return result;
         }
 
@@ -52,13 +52,14 @@ namespace yggdrasil::memory
                 YGGDRASIL_CORE_WARN("Tried to free nullptr from pool.");
                 return;
             }
-            if (ptr < &data[0] || ptr >= &data[elementCount])
+            if (ptr < &this->data[0] || ptr >= &this->data[elementCount])
             {
                 YGGDRASIL_CORE_WARN("Tried to free unrelated memory from pool.");
                 return;
             }
-            stack.push(ptr);
-            currentSize--;
+            ptr->~T();
+            this->stack.push(ptr);
+            this->currentSize--;
         }
 
     private:

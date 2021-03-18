@@ -159,25 +159,32 @@ namespace yggdrasil::graphics
         this->resourceManager.handleStagedResources(this);
     }
 
-    void GraphicsEngine::onUpdate()
+    void GraphicsEngine::onUpdate(float_t dt)
     {
-        glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
-        glm::vec3 up{ 0.0f, 1.0f, 0.0f };
-        glm::vec3 pos{ 0.0f, 0.0f, 1.0f + glm::sin(glfwGetTime()) };
+        this->cameraController.onUpdate(dt);
+        this->cameraController.camera.onUpdate();
 
-        struct Camera
-        {
-            glm::mat4 projection{ glm::perspectiveFov<float_t>(glm::radians(75.0f), 1920.0f, 1080.0f, 0.001f, 1000.0f) };
-            glm::mat4 view{ 1.0f };
-        } camera;
-        camera.view = glm::lookAt(pos, forward, up);
-        this->uniformBuffer->upload(this, &camera, sizeof(camera), 0);
+        // glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
+        // glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+        // glm::vec3 pos{ 0.0f, 0.0f, 1.0f + glm::sin(glfwGetTime()) };
+        // 
+        // struct Camera
+        // {
+        //     glm::mat4 projection{ glm::perspectiveFov<float_t>(glm::radians(75.0f), 1920.0f, 1080.0f, 0.001f, 1000.0f) };
+        //     glm::mat4 view{ 1.0f };
+        // } camera;
+        // camera.view = glm::lookAt(pos, forward, up);
+        // this->uniformBuffer->upload(this, &camera, sizeof(camera), 0);
 
         VkDescriptorBufferInfo bufferInfo{};
 
-        bufferInfo.buffer = this->uniformBuffer->handle;
-        bufferInfo.offset = this->uniformBuffer->size * this->perFrame.frame;
-        bufferInfo.range  = this->uniformBuffer->size;
+        // bufferInfo.buffer = this->uniformBuffer->handle;
+        // bufferInfo.offset = this->uniformBuffer->size * this->perFrame.frame;
+        // bufferInfo.range  = this->uniformBuffer->size;
+
+        bufferInfo.buffer = this->cameraController.camera.cameraUniformBuffer->handle;
+        bufferInfo.offset = this->cameraController.camera.cameraUniformBuffer->size * this->perFrame.frame;
+        bufferInfo.range  = this->cameraController.camera.cameraUniformBuffer->size;
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -292,12 +299,15 @@ namespace yggdrasil::graphics
 
     void GraphicsEngine::init(const Window& window)
     {
+        GraphicsEngine::instance = this;
         YGGDRASIL_UNUSED_VARIABLE(window);
         graphics::initContext(this->context);
         createDescriptorSetLayout();
         createPipeline();
         createDescriptorPool();
         this->resourceManager.create(this);
+        this->cameraController.create();
+        this->cameraController.setPerspective(75.0f);
         // this->resourceManager.textureManager.create(this);
 
         std::array<float_t, 18> vboData
@@ -330,6 +340,7 @@ namespace yggdrasil::graphics
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        this->cameraController.destroy();
         this->texture->destroy(this->context.device);
         this->uniformBuffer->destroy(this->context.device);
         this->vertexBuffer->destroy(this->context.device);

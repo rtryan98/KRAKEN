@@ -41,7 +41,12 @@ set_target_properties(spirv-reflect PROPERTIES FOLDER vendor/SPIRV-Reflect)
 # Yggdrasil library
 file(GLOB_RECURSE "ENGINE_SOURCE" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.cpp")
 file(GLOB_RECURSE "ENGINE_HEADER" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.h")
-yggdrasil_group_files(${ENGINE_SOURCE} ${ENGINE_HEADER})
+foreach(item IN ITEMS ${ENGINE_SOURCE} ${ENGINE_HEADER})
+    get_filename_component(src_path "${item}" PATH)
+    string(REPLACE "${CMAKE_SOURCE_DIR}" "" group_path "${src_path}")
+    string(REPLACE "/" "\\" group_path "${group_path}")
+    source_group("${group_path}" FILES "${item}")
+endforeach()
 
 # Add Library
 set(ENGINE_NAME "Yggdrasil")
@@ -74,7 +79,12 @@ endif()
 
 # Yggdrasil Sandbox
 file(GLOB_RECURSE "ENGINE_SANDBOX_SOURCE" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.cpp" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.h")
-yggdrasil_group_files(${ENGINE_SANDBOX_SOURCE})
+foreach(item IN ITEMS ${ENGINE_SANDBOX_SOURCE})
+    get_filename_component(src_path "${item}" PATH)
+    string(REPLACE "${CMAKE_SOURCE_DIR}" "" group_path "${src_path}")
+    string(REPLACE "/" "\\" group_path "${group_path}")
+    source_group("${group_path}" FILES "${item}")
+endforeach()
 
 set(ENGINE_SANDBOX_NAME "Yggdrasil-Sandbox")
 add_executable(${ENGINE_SANDBOX_NAME} ${ENGINE_SANDBOX_SOURCE})

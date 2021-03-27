@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 set(ENGINE_PROJECT_NAME "Yggdrasil")
 project(${ENGINE_PROJECT_NAME})
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/scripts")
+include(YggdrasilUtils)
+
 # Add dependencies
 # Header only dependencies are added via target_include_dirs
 # All dependencies are located in /vendor unless they are
@@ -35,21 +38,10 @@ set_target_properties(glfw PROPERTIES FOLDER vendor/glfw)
 set_target_properties(spdlog PROPERTIES FOLDER vendor/spdlog)
 set_target_properties(spirv-reflect PROPERTIES FOLDER vendor/SPIRV-Reflect)
 
-set(OUTPUT_DIR_DEBUG "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
-set(OUTPUT_DIR_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
-set(OUTPUT_DIR_MINSIZEREL "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
-set(OUTPUT_DIR_RELEASE "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug")
-
 # Yggdrasil library
 file(GLOB_RECURSE "ENGINE_SOURCE" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.cpp")
 file(GLOB_RECURSE "ENGINE_HEADER" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.h")
-
-foreach(item IN ITEMS ${ENGINE_SOURCE} ${ENGINE_HEADER})
-    get_filename_component(src_path "${item}" PATH)
-    string(REPLACE "${CMAKE_SOURCE_DIR}" "" group_path "${src_path}")
-    string(REPLACE "/" "\\" group_path "${group_path}")
-    source_group("${group_path}" FILES "${item}")
-endforeach()
+yggdrasil_group_files(${ENGINE_SOURCE} ${ENGINE_HEADER})
 
 # Add Library
 set(ENGINE_NAME "Yggdrasil")
@@ -61,11 +53,7 @@ if (MSVC)
     set_source_files_properties(${CMAKE_SOURCE_DIR}/Yggdrasil/src/Yggdrasil/pch.cpp PROPERTIES COMPILE_FLAGS "/YcYggdrasil/pch.h")
 endif (MSVC)
 
-# Output Directories
-set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug/")
-set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/relwithdebinfo/")
-set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/minsizerel/")
-set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/release/")
+yggdrasil_set_dirs(${ENGINE_NAME})
 
 # Include Libraries to Yggdrasil
 target_link_libraries(${ENGINE_NAME} PUBLIC glslang
@@ -86,27 +74,18 @@ endif()
 
 # Yggdrasil Sandbox
 file(GLOB_RECURSE "ENGINE_SANDBOX_SOURCE" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.cpp" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.h")
-foreach(item IN ITEMS ${ENGINE_SANDBOX_SOURCE})
-    get_filename_component(src_path "${item}" PATH)
-    string(REPLACE "${CMAKE_SOURCE_DIR}" "" group_path "${src_path}")
-    string(REPLACE "/" "\\" group_path "${group_path}")
-    source_group("${group_path}" FILES "${item}")
-endforeach()
+yggdrasil_group_files(${ENGINE_SANDBOX_SOURCE})
 
 set(ENGINE_SANDBOX_NAME "Yggdrasil-Sandbox")
 add_executable(${ENGINE_SANDBOX_NAME} ${ENGINE_SANDBOX_SOURCE})
 
-# Output Directories
-set_target_properties(${ENGINE_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/debug/")
-set_target_properties(${ENGINE_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/relwithdebinfo/")
-set_target_properties(${ENGINE_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/minsizerel/")
-set_target_properties(${ENGINE_SANDBOX_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/release/")
+yggdrasil_set_dirs(${ENGINE_SANDBOX_NAME})
 
 if(MSVC)
     set_target_properties(${ENGINE_SANDBOX_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/Sandbox")
 endif()
 
-# Include Libraries to KRAKEN-Sandbox
+# Include Libraries to YGGDRASIL-Sandbox
 target_link_libraries(${ENGINE_SANDBOX_NAME} PRIVATE ${ENGINE_NAME})
 target_include_directories(${ENGINE_SANDBOX_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/Sandbox/src")
 

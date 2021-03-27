@@ -117,8 +117,6 @@ namespace yggdrasil::graphics
         }
     }
 
-
-
     void initContext(Context& context)
     {
         createInstance(context);

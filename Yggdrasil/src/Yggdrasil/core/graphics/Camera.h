@@ -44,7 +44,7 @@ namespace yggdrasil::graphics
         virtual void setPerspective(float_t fov);
     private:
         Camera camera{};
-        float_t speed{ 10.0f };
+        float_t speed{ 4.5f };
         float_t sensitivity{ 0.25f };
         double_t lastX{ 0.0 };
         double_t lastY{ 0.0 };

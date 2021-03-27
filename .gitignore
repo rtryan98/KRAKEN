@@ -2,3 +2,4 @@
 *.spv
 imgui.ini
 Sandbox/res/texture
+Sandbox/res/model

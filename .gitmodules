@@ -22,3 +22,9 @@
 [submodule "vendor/stb"]
 	path = vendor/stb
 	url = https://github.com/nothings/stb
+[submodule "vendor/tinygltf"]
+	path = vendor/tinygltf
+	url = https://github.com/syoyo/tinygltf
+[submodule "vendor/tinyobj"]
+	path = vendor/tinyobj
+	url = https://github.com/tinyobjloader/tinyobjloader

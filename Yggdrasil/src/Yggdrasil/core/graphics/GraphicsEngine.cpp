@@ -12,6 +12,14 @@
 #include <glm/glm.hpp>
 #include <array>
 #include <stb/stb_image.h>
+#include <tinygltf/tiny_gltf.h>
+
+// TODO: remove
+tinygltf::Model model{};
+tinygltf::TinyGLTF loader{};
+std::string tinygltfError{};
+std::string tinygltfWarning{};
+// TODO: remove
 
 namespace yggdrasil::graphics
 {
@@ -334,6 +342,24 @@ namespace yggdrasil::graphics
         this->resourceManager.textureManager.uploadTexture(this, this->texture, textureData, 4 * sizeof(uint8_t) * x * y);
 
         stbi_image_free(textureData);
+
+        // TODO: remove
+        bool_t loadResult{ loader.LoadBinaryFromFile(&model, &tinygltfError, &tinygltfWarning, "res/model/DamagedHelmet.glb") };
+        if (!tinygltfWarning.empty())
+        {
+            YGGDRASIL_CORE_WARN(tinygltfWarning);
+        }
+        if (!tinygltfError.empty())
+        {
+            YGGDRASIL_CORE_ERROR(tinygltfError);
+        }
+        if (!loadResult)
+        {
+            YGGDRASIL_CORE_ERROR("Failed to load model.");
+        }
+        // TODO: remove
+        
+        // TODO: remove
     }
 
     void GraphicsEngine::free()

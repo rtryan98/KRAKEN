@@ -22,6 +22,7 @@ set(GLFW_BUILD_TESTS OFF)
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/spdlog")
 add_subdirectory("vendor/glslang")
+add_subdirectory("ThirdParty")
 # add_subdirectory("vendor/SPIRV-Tools")
 add_library(spirv-reflect vendor/spirv-reflect/spirv_reflect.c vendor/spirv-reflect/spirv_reflect.h)
 
@@ -67,7 +68,13 @@ set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_MINSIZE
 set_target_properties(${ENGINE_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/${ENGINE_PROJECT_NAME}/release/")
 
 # Include Libraries to Yggdrasil
-target_link_libraries(${ENGINE_NAME} PUBLIC glslang glfw Vulkan::Vulkan spdlog spirv-reflect SPIRV)
+target_link_libraries(${ENGINE_NAME} PUBLIC glslang
+                                            glfw
+                                            Vulkan::Vulkan
+                                            spdlog
+                                            spirv-reflect
+                                            SPIRV
+                                            Yggdrasil-ThirdParty)
 target_include_directories(${ENGINE_NAME} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src/" "vendor/glm/"
                                                                                       "vendor/"
                                                                                       "vendor/imgui/")

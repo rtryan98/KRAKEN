@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/graphics/memory/MemoryEnums.h"
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class GraphicsEngine;
     class BufferManager;
@@ -11,7 +11,7 @@ namespace yggdrasil::graphics
     class Device;
 }
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     class Texture;
 
@@ -41,9 +41,9 @@ namespace yggdrasil::graphics::memory
         void upload(const GraphicsEngine* const graphicsEngine, void* bufferData, uint64_t dataSize, uint64_t bufferOffset);
 
     private:
-        friend class yggdrasil::graphics::GraphicsEngine;
-        friend class yggdrasil::graphics::BufferManager;
-        friend class yggdrasil::graphics::TextureManager;
+        friend class ygg::graphics::GraphicsEngine;
+        friend class ygg::graphics::BufferManager;
+        friend class ygg::graphics::TextureManager;
     };
 
     struct BufferCopy

@@ -7,7 +7,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void Camera::create()
     {

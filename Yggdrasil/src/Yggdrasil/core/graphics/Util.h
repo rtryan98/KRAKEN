@@ -6,7 +6,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-namespace yggdrasil::graphics::util
+namespace ygg::graphics::util
 {
     const char* toString(VkResult result);
 
@@ -41,20 +41,20 @@ namespace yggdrasil::graphics::util
     #define VK_CHECK(fun)                                                                                        \
     do {                                                                                                         \
         VkResult vkCheckResult{ fun };                                                                           \
-        YGGDRASIL_ASSERT_MSG( vkCheckResult == VK_SUCCESS, yggdrasil::graphics::util::toString(vkCheckResult) ); \
+        YGGDRASIL_ASSERT_MSG( vkCheckResult == VK_SUCCESS, ygg::graphics::util::toString(vkCheckResult) ); \
     } while( 0 )
 
     #define VK_SET_OBJECT_DEBUG_NAME( device, handle, type, name )                                               \
-    yggdrasil::graphics::util::setObjectDebugName(device, handle, type, name)
+    ygg::graphics::util::setObjectDebugName(device, handle, type, name)
 
     #define VK_BEGIN_DEBUG_REGION( cmdbuf, name, col )                                                           \
-    yggdrasil::graphics::util::beginDebugRegion(cmdbuf, name, col)
+    ygg::graphics::util::beginDebugRegion(cmdbuf, name, col)
 
     #define VK_INSERT_DEBUG_MARKER( cmdbuf, name, col )                                                          \
-    yggdrasil::graphics::util::insertDebugMarker( cmdbuf, name, col )
+    ygg::graphics::util::insertDebugMarker( cmdbuf, name, col )
 
     #define VK_END_DEBUG_REGION( cmdbuf )                                                                        \
-    yggdrasil::graphics::util::endDebugRegion( cmdbuf )
+    ygg::graphics::util::endDebugRegion( cmdbuf )
 #else
     #define VK_CHECK(fun) fun
     #define VK_SET_OBJECT_DEBUG_NAME( device, handle, type, name )

@@ -12,9 +12,9 @@
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include <vulkan/vulkan_win32.h>
 
-namespace yggdrasil::windows
+namespace ygg::windows
 {
-    WindowsWindow::WindowsWindow(const yggdrasil::WindowData& windowData)
+    WindowsWindow::WindowsWindow(const ygg::WindowData& windowData)
         : Window{ windowData }, hInstance{ GetModuleHandle( NULL ) }
     {
         YGGDRASIL_ASSERT(glfwInit());

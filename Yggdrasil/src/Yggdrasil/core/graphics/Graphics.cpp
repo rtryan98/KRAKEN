@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/graphics/Graphics.h"
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     memory::Buffer* createBuffer(uint32_t size, uint32_t type, uint32_t usage)
     {

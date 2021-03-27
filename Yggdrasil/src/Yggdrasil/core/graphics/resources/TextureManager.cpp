@@ -4,7 +4,7 @@
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include <stb/stb_image.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void TextureManager::create(GraphicsEngine* const graphicsEngine)
     {

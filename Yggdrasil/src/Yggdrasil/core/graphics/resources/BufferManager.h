@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class Device;
     class GraphicsEngine;
@@ -19,7 +19,7 @@ namespace yggdrasil::graphics
         void uploadDataToBuffer(const GraphicsEngine* const graphicsEngine, memory::Buffer* target, void* bufferData, uint64_t dataSize, uint64_t bufferOffset = 0);
         void destroyBuffer(const GraphicsEngine* const graphicsEngine, memory::Buffer* buffer);
     private:
-        ::yggdrasil::memory::Pool<memory::Buffer, 8192> bufferPool{};
+        ::ygg::memory::Pool<memory::Buffer, 8192> bufferPool{};
         std::vector<memory::BufferCopy> stagedBufferCopies{};
         std::vector<memory::Buffer*> stagingBuffers{};
         uint64_t currentStagingOffset{ 0 };

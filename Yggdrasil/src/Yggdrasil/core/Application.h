@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/window/Window.h"
 #include "Yggdrasil/core/util/LayerStack.h"
 
-namespace yggdrasil
+namespace ygg
 {
     struct ApplicationCreateInfo
     {

@@ -4,7 +4,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void BufferManager::create(const GraphicsEngine* const graphicsEngine)
     {

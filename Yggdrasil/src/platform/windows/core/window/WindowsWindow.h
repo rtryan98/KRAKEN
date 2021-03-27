@@ -4,12 +4,12 @@
 #include "Yggdrasil/core/window/Window.h"
 #include <Windows.h>
 
-namespace yggdrasil::windows
+namespace ygg::windows
 {
-    class WindowsWindow : public yggdrasil::Window
+    class WindowsWindow : public ygg::Window
     {
     public:
-        WindowsWindow(const yggdrasil::WindowData& windowData);
+        WindowsWindow(const ygg::WindowData& windowData);
         virtual ~WindowsWindow() override;
 
         virtual void getRequiredPlatformExtensions(uint32_t* count, const char*** platformExtensions) const override;

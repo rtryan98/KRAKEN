@@ -6,7 +6,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void Screen::createSurface(Window* win, VkInstance instance)
     {

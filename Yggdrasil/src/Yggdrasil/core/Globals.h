@@ -2,12 +2,12 @@
 #include "Yggdrasil/Types.h"
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
-namespace yggdrasil
+namespace ygg
 {
     class Application;
 }
 
-namespace yggdrasil::constants
+namespace ygg::constants
 {
     constexpr uint32_t VERSION_MAJOR{ 1 };
     constexpr uint32_t VERSION_MINOR{ 0 };
@@ -16,10 +16,10 @@ namespace yggdrasil::constants
     constexpr char* ENGINE_NAME{ "Yggdrasil Engine" };
 }
 
-namespace yggdrasil::globals
+namespace ygg::globals
 {
-    extern yggdrasil::Application* APPLICATION;
-    extern yggdrasil::graphics::GraphicsEngine* GRAPHICS_ENGINE;
+    extern ygg::Application* APPLICATION;
+    extern ygg::graphics::GraphicsEngine* GRAPHICS_ENGINE;
 
     extern float_t DELTA_FRAME_TIME;
     extern double_t LAST_FRAME_TIME;

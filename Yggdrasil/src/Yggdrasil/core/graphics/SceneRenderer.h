@@ -1,6 +1,6 @@
 #pragma once
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
 
 }

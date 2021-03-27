@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class Device;
 

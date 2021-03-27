@@ -5,7 +5,7 @@
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include "Yggdrasil/core/graphics/memory/Allocator.h"
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     void Texture::create(const GraphicsEngine* const graphicsEngine, TextureType textureType,
         uint32_t textureWidth, uint32_t textureHeight, uint32_t textureDepth, uint32_t textureLayers,

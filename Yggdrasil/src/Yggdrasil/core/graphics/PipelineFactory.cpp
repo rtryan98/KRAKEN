@@ -4,7 +4,7 @@
 #include "Yggdrasil/core/graphics/Util.h"
 #include "Yggdrasil/core/graphics/Globals.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void GraphicsPipelineFactory::clear(Context& context)
     {

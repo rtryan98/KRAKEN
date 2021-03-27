@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class TextureManager
     {
@@ -23,7 +23,7 @@ namespace yggdrasil::graphics
             void* textureData, uint32_t textureSize);
 
     private:
-        ::yggdrasil::memory::Pool<memory::Texture, 8192> texturePool{};
+        ::ygg::memory::Pool<memory::Texture, 8192> texturePool{};
         std::vector<memory::Buffer*> stagingBuffers{};
         std::vector<memory::BufferToTextureCopy> bufferToTextureCopies{};
         uint32_t currentStagingOffset{ 0 };

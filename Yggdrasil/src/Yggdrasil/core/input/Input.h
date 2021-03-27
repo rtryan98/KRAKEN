@@ -3,7 +3,7 @@
 #include "Yggdrasil/Types.h"
 #include <glm/glm.hpp>
 
-namespace yggdrasil
+namespace ygg
 {
     namespace input
     {

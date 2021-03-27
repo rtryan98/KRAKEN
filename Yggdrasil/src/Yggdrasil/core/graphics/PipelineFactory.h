@@ -5,7 +5,7 @@
 #include <vector>
 #include <queue>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class GraphicsPipelineFactory
     {

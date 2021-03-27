@@ -1,7 +1,7 @@
 #pragma once
 #include "Yggdrasil/core/event/Event.h"
 
-namespace yggdrasil
+namespace ygg
 {
     class AppUpdateEvent : public Event
     {

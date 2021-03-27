@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     namespace memory
     {

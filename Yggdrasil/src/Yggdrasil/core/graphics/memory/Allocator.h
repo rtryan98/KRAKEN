@@ -1,12 +1,12 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class Device;
 }
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     uint32_t getMemoryTypeIndex(const Device& device,
         VkMemoryPropertyFlags required,

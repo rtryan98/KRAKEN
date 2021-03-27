@@ -14,9 +14,9 @@
 
 #include <queue>
 
-class yggdrasil::Window;
+class ygg::Window;
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     struct PerFrame
     {

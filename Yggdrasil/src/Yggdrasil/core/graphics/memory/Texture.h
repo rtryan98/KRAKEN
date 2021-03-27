@@ -3,14 +3,14 @@
 #include "Yggdrasil/core/graphics/memory/MemoryEnums.h"
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class GraphicsEngine;
     class TextureManager;
     class Device;
 }
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     class Texture
     {
@@ -42,8 +42,8 @@ namespace yggdrasil::graphics::memory
         void allocate(const GraphicsEngine* const graphicsEngine);
         VkImageMemoryBarrier getLayoutTransitionBarrier(VkImageLayout dst);
     private:
-        friend class yggdrasil::graphics::GraphicsEngine;
+        friend class ygg::graphics::GraphicsEngine;
         friend class Buffer;
-        friend class yggdrasil::graphics::TextureManager;
+        friend class ygg::graphics::TextureManager;
     };
 }

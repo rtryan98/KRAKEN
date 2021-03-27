@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/graphics/resources/BufferManager.h"
 #include "Yggdrasil/core/graphics/resources/TextureManager.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class ResourceManager
     {

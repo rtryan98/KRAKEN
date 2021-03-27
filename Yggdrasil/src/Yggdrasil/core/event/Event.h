@@ -1,6 +1,6 @@
 #pragma once
 
-namespace yggdrasil
+namespace ygg
 {
     enum EventCategory
     {

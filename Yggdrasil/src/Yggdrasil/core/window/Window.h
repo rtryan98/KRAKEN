@@ -8,7 +8,7 @@
 
 struct GLFWwindow;
 
-namespace yggdrasil
+namespace ygg
 {
     struct WindowData
     {

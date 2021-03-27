@@ -2,7 +2,7 @@
 
 #include "Yggdrasil/core/util/Layer.h"
 
-namespace yggdrasil
+namespace ygg
 {
     Layer::Layer(const std::string& debugName)
         : debugName( debugName )

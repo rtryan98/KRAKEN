@@ -8,7 +8,7 @@
 #include <vector>
 #include <iomanip>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void selectPhysicalDevice(VkInstance instance, Device* device)
     {

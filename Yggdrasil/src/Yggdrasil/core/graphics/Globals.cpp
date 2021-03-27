@@ -2,7 +2,7 @@
 
 #include "Yggdrasil/core/graphics/Globals.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     VkAllocationCallbacks* VK_CPU_ALLOCATOR{ nullptr };
 }

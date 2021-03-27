@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/graphics/resources/ResourceManager.h"
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void ResourceManager::create(GraphicsEngine* const graphicsEngine)
     {

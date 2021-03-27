@@ -1,7 +1,7 @@
 #pragma once
 #include <Yggdrasil/core/util/layers/DearImguiLayer.h>
 
-class SandboxLayer : public yggdrasil::ImguiLayer
+class SandboxLayer : public ygg::ImguiLayer
 {
 public:
     SandboxLayer(const std::string& debugName);
@@ -9,7 +9,7 @@ public:
 
     virtual void onImguiUpdate() override;
     virtual void onUpdate() override;
-    virtual void onEvent(yggdrasil::Event& event) override;
+    virtual void onEvent(ygg::Event& event) override;
 private:
     void showPerformance();
 };

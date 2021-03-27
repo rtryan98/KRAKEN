@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace yggdrasil::fileutil
+namespace ygg::fileutil
 {
     std::string readStringFromFile(const std::string& filename);
 }

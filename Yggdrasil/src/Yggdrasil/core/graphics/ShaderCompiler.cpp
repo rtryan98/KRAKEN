@@ -8,7 +8,7 @@
 #include <glslang/StandAlone/DirStackFileIncluder.h>
 #include <SPIRV/GlslangToSpv.h>
 
-namespace yggdrasil::graphics::shadercompiler
+namespace ygg::graphics::shadercompiler
 {
     constexpr int32_t CLIENT_INPUT_SEMANTICS_VERSION                { 120                          }; // Vulkan 120
     constexpr glslang::EShTargetClientVersion VULKAN_CLIENT_VERSION { glslang::EShTargetVulkan_1_2 }; // Vulkan 1.2
@@ -259,7 +259,7 @@ namespace yggdrasil::graphics::shadercompiler
         std::vector<uint32_t> spirv{};
         if (!isInitialized)
         {
-            YGGDRASIL_CORE_ERROR("Tried to compile GLSL shader without initializing the shader compiler.\nUse yggdrasil::shadercompiler::init() to initialize the shader compiler.");
+            YGGDRASIL_CORE_ERROR("Tried to compile GLSL shader without initializing the shader compiler.\nUse ygg::shadercompiler::init() to initialize the shader compiler.");
             return spirv;
         }
         std::string glsl{ fileutil::readStringFromFile(fileName) };
@@ -295,7 +295,7 @@ namespace yggdrasil::graphics::shadercompiler
         std::vector<uint32_t> spirv{};
         if (!isInitialized)
         {
-            YGGDRASIL_CORE_ERROR("Tried to compile GLSL shader without initializing the shader compiler.\nUse yggdrasil::shadercompiler::init() to initialize the shader compiler.");
+            YGGDRASIL_CORE_ERROR("Tried to compile GLSL shader without initializing the shader compiler.\nUse ygg::shadercompiler::init() to initialize the shader compiler.");
             return spirv;
         }
 

@@ -4,7 +4,7 @@
 #include "Yggdrasil/core/graphics/Device.h"
 #include "Yggdrasil/core/graphics/Screen.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     struct Context
     {

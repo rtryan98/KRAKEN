@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/graphics/Screen.h"
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     class Device
     {

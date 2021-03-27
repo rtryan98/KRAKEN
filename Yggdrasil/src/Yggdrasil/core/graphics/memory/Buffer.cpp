@@ -6,7 +6,7 @@
 #include "Yggdrasil/core/graphics/GraphicsEngine.h"
 #include "Yggdrasil/core/util/Log.h"
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     void Buffer::create(const GraphicsEngine* const graphicsEngine, uint32_t bufferType, uint32_t bufferUsage, uint64_t bufferSize)
     {

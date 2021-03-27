@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/util/Log.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace yggdrasil
+namespace ygg
 {
     std::shared_ptr<spdlog::logger> Logger::coreLogger;
     std::shared_ptr<spdlog::logger> Logger::clientLogger;

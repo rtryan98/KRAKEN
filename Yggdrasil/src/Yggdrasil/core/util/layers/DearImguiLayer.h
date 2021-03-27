@@ -1,7 +1,7 @@
 #pragma once
 #include "Yggdrasil/core/util/Layer.h"
 
-namespace yggdrasil
+namespace ygg
 {
     class ImguiLayer : public Layer
     {

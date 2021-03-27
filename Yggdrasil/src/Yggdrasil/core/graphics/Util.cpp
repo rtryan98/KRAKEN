@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace yggdrasil::graphics::util
+namespace ygg::graphics::util
 {
     const char* toString(VkResult result)
     {
@@ -99,16 +99,16 @@ namespace yggdrasil::graphics::util
         YGGDRASIL_UNUSED_VARIABLE(type);
         if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
         {
-            ::yggdrasil::Logger::getValidationErrorLogger()->error("{0}", pCallbackData->pMessage);
+            ::ygg::Logger::getValidationErrorLogger()->error("{0}", pCallbackData->pMessage);
             debugBreak();
         }
         else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            ::yggdrasil::Logger::getValidationErrorLogger()->warn("{0}", pCallbackData->pMessage);
+            ::ygg::Logger::getValidationErrorLogger()->warn("{0}", pCallbackData->pMessage);
         }
         else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            ::yggdrasil::Logger::getValidationErrorLogger()->trace("{0}", pCallbackData->pMessage);
+            ::ygg::Logger::getValidationErrorLogger()->trace("{0}", pCallbackData->pMessage);
         }
         return VK_FALSE;
     }

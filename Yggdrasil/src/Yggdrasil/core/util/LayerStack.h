@@ -2,7 +2,7 @@
 #include <vector>
 #include "Yggdrasil/core/util/Layer.h"
 
-namespace yggdrasil
+namespace ygg
 {
     class LayerStack
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     enum TextureType : uint32_t
     {

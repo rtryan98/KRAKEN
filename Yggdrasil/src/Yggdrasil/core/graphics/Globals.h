@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     extern VkAllocationCallbacks* VK_CPU_ALLOCATOR;
 }

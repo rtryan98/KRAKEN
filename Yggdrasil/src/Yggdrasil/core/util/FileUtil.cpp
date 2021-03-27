@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace yggdrasil::fileutil
+namespace ygg::fileutil
 {
     std::string readStringFromFile(const std::string& filename)
     {

@@ -11,7 +11,7 @@
 #include <sstream>
 #include <set>
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     void createInstance(Context& context)
     {

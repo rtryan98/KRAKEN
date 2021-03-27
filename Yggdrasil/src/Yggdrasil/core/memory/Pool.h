@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/util/Log.h"
 #include <stack>
 
-namespace yggdrasil::memory
+namespace ygg::memory
 {
     template<class T, uint64_t elementCount>
     class Pool

@@ -1,7 +1,7 @@
 #pragma once
 #include "Yggdrasil/core/graphics/memory/MemoryEnums.h"
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     namespace memory
     {

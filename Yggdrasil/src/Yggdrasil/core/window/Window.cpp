@@ -7,12 +7,12 @@
 #endif
 #include <GLFW/glfw3.h>
 
-namespace yggdrasil
+namespace ygg
 {
     Window* Window::createWindow(const WindowData& windowData)
     {
 #if YGGDRASIL_PLATFORM_WINDOWS
-        return new yggdrasil::windows::WindowsWindow(windowData);
+        return new ygg::windows::WindowsWindow(windowData);
 #else
     #error "Non-Windows Window not yet impletmented!"
         return nullptr;

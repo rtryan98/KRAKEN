@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/event/Event.h"
 #include "Yggdrasil/Types.h"
 
-namespace yggdrasil
+namespace ygg
 {
     class Layer
     {

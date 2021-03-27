@@ -5,24 +5,24 @@
 #include "Yggdrasil/core/Application.h"
 #include <GLFW/glfw3.h>
 
-namespace yggdrasil
+namespace ygg
 {
     namespace input
     {
         bool_t isKeyPressed(uint32_t keycode)
         {
-            return glfwGetKey(yggdrasil::globals::APPLICATION->getWindow()->getNativeWindow(), keycode);
+            return glfwGetKey(ygg::globals::APPLICATION->getWindow()->getNativeWindow(), keycode);
         }
 
         bool_t isMouseButtonPressed(uint32_t mouseButton)
         {
-            return glfwGetMouseButton(yggdrasil::globals::APPLICATION->getWindow()->getNativeWindow(), mouseButton);
+            return glfwGetMouseButton(ygg::globals::APPLICATION->getWindow()->getNativeWindow(), mouseButton);
         }
 
         glm::vec2 getMousePosition()
         {
             glm::dvec2 result{};
-            glfwGetCursorPos(yggdrasil::globals::APPLICATION->getWindow()->getNativeWindow(), &result.x, &result.y);
+            glfwGetCursorPos(ygg::globals::APPLICATION->getWindow()->getNativeWindow(), &result.x, &result.y);
             return glm::vec2{ static_cast<float>(result.x), static_cast<float>(result.y) };
         }
     }

@@ -11,7 +11,7 @@
 
 #include <glfw/glfw3.h>
 
-namespace yggdrasil
+namespace ygg
 {
     Application::Application(const ApplicationCreateInfo& createInfo)
         : window{ nullptr }, imguiEnabled{ createInfo.imguiEnabled }

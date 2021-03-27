@@ -21,7 +21,7 @@ std::string tinygltfError{};
 std::string tinygltfWarning{};
 // TODO: remove
 
-namespace yggdrasil::graphics
+namespace ygg::graphics
 {
     GraphicsEngine* GraphicsEngine::instance = nullptr;
 

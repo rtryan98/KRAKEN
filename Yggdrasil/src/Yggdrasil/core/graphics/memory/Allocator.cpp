@@ -3,7 +3,7 @@
 #include "Yggdrasil/core/graphics/Device.h"
 #include "Yggdrasil/core/util/Log.h"
 
-namespace yggdrasil::graphics::memory
+namespace ygg::graphics::memory
 {
     uint32_t getMemoryTypeIndex(const Device& device, VkMemoryPropertyFlags required, VkMemoryPropertyFlags excluded)
     {

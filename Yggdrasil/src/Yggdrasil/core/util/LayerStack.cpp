@@ -2,7 +2,7 @@
 #include "Yggdrasil/core/util/Log.h"
 #include "Yggdrasil/core/util/LayerStack.h"
 
-namespace yggdrasil
+namespace ygg
 {
     LayerStack::~LayerStack()
     {

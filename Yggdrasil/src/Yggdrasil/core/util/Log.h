@@ -2,7 +2,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
-namespace yggdrasil
+namespace ygg
 {
     class Logger
     {
@@ -25,14 +25,14 @@ namespace yggdrasil
     };
 }
 
-#define YGGDRASIL_CORE_TRACE(...)    ::yggdrasil::Logger::getCoreLogger()->trace(__VA_ARGS__);
-#define YGGDRASIL_CORE_INFO(...)     ::yggdrasil::Logger::getCoreLogger()->info(__VA_ARGS__);
-#define YGGDRASIL_CORE_WARN(...)     ::yggdrasil::Logger::getCoreLogger()->warn(__VA_ARGS__);
-#define YGGDRASIL_CORE_ERROR(...)    ::yggdrasil::Logger::getCoreLogger()->error(__VA_ARGS__);
-#define YGGDRASIL_CORE_CRITICAL(...) ::yggdrasil::Logger::getCoreLogger()->critical(__VA_ARGS__);
+#define YGGDRASIL_CORE_TRACE(...)    ::ygg::Logger::getCoreLogger()->trace(__VA_ARGS__);
+#define YGGDRASIL_CORE_INFO(...)     ::ygg::Logger::getCoreLogger()->info(__VA_ARGS__);
+#define YGGDRASIL_CORE_WARN(...)     ::ygg::Logger::getCoreLogger()->warn(__VA_ARGS__);
+#define YGGDRASIL_CORE_ERROR(...)    ::ygg::Logger::getCoreLogger()->error(__VA_ARGS__);
+#define YGGDRASIL_CORE_CRITICAL(...) ::ygg::Logger::getCoreLogger()->critical(__VA_ARGS__);
 
-#define YGGDRASIL_TRACE(...)         ::yggdrasil::Logger::getClientLogger()->trace(__VA_ARGS__);
-#define YGGDRASIL_INFO(...)          ::yggdrasil::Logger::getClientLogger()->info(__VA_ARGS__);
-#define YGGDRASIL_WARN(...)          ::yggdrasil::Logger::getClientLogger()->warn(__VA_ARGS__);
-#define YGGDRASIL_ERROR(...)         ::yggdrasil::Logger::getClientLogger()->error(__VA_ARGS__);
-#define YGGDRASIL_CRITICAL(...)      ::yggdrasil::Logger::getClientLogger()->critical(__VA_ARGS__);
+#define YGGDRASIL_TRACE(...)         ::ygg::Logger::getClientLogger()->trace(__VA_ARGS__);
+#define YGGDRASIL_INFO(...)          ::ygg::Logger::getClientLogger()->info(__VA_ARGS__);
+#define YGGDRASIL_WARN(...)          ::ygg::Logger::getClientLogger()->warn(__VA_ARGS__);
+#define YGGDRASIL_ERROR(...)         ::ygg::Logger::getClientLogger()->error(__VA_ARGS__);
+#define YGGDRASIL_CRITICAL(...)      ::ygg::Logger::getClientLogger()->critical(__VA_ARGS__);

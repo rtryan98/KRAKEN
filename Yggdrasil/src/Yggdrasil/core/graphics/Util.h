@@ -1,6 +1,7 @@
 #pragma once
 #include "Yggdrasil/Defines.h"
 #include "Yggdrasil/core/graphics/Device.h"
+#include "Yggdrasil/core/graphics/Globals.h"
 
 #include <vulkan/vulkan.h>
 #include <vector>

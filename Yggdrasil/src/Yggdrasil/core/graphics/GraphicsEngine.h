@@ -11,6 +11,7 @@
 #include "Yggdrasil/core/graphics/memory/Texture.h"
 #include "Yggdrasil/core/graphics/resources/ResourceManager.h"
 #include "Yggdrasil/core/graphics/Camera.h"
+#include "Yggdrasil/core/graphics/memory/Descriptor.h"
 
 #include <queue>
 
@@ -69,6 +70,11 @@ namespace ygg::graphics
         memory::Buffer* vertexBuffer{};
         memory::Texture* texture{};
         CameraController cameraController{};
+
+        VkDescriptorSetLayout globalDescriptorSetLayout{};
+        VkDescriptorSet globalDescriptorSet{};
+        memory::DescriptorLayoutCache descriptorLayoutCache{};
+        memory::DescriptorAllocator descriptorAllocator{};
 
     private:
         ResourceManager resourceManager{};

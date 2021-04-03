@@ -6,20 +6,13 @@
 #include "Yggdrasil/core/window/Window.h"
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
 #include "Yggdrasil/core/graphics/PipelineFactory.h"
+#include "Yggdrasil/core/graphics/memory/Descriptor.h"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <array>
 #include <stb/stb_image.h>
-#include <tinygltf/tiny_gltf.h>
-
-// TODO: remove
-tinygltf::Model model{};
-tinygltf::TinyGLTF loader{};
-std::string tinygltfError{};
-std::string tinygltfWarning{};
-// TODO: remove
 
 namespace ygg::graphics
 {
@@ -172,23 +165,7 @@ namespace ygg::graphics
         this->cameraController.onUpdate(dt);
         this->cameraController.camera.onUpdate();
 
-        // glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
-        // glm::vec3 up{ 0.0f, 1.0f, 0.0f };
-        // glm::vec3 pos{ 0.0f, 0.0f, 1.0f + glm::sin(glfwGetTime()) };
-        // 
-        // struct Camera
-        // {
-        //     glm::mat4 projection{ glm::perspectiveFov<float_t>(glm::radians(75.0f), 1920.0f, 1080.0f, 0.001f, 1000.0f) };
-        //     glm::mat4 view{ 1.0f };
-        // } camera;
-        // camera.view = glm::lookAt(pos, forward, up);
-        // this->uniformBuffer->upload(this, &camera, sizeof(camera), 0);
-
         VkDescriptorBufferInfo bufferInfo{};
-
-        // bufferInfo.buffer = this->uniformBuffer->handle;
-        // bufferInfo.offset = this->uniformBuffer->size * this->perFrame.frame;
-        // bufferInfo.range  = this->uniformBuffer->size;
 
         bufferInfo.buffer = this->cameraController.camera.cameraUniformBuffer->handle;
         bufferInfo.offset = this->cameraController.camera.cameraUniformBuffer->size * this->perFrame.frame;
@@ -343,29 +320,28 @@ namespace ygg::graphics
 
         stbi_image_free(textureData);
 
-        // TODO: remove
-        bool_t loadResult{ loader.LoadBinaryFromFile(&model, &tinygltfError, &tinygltfWarning, "res/model/DamagedHelmet.glb") };
-        if (!tinygltfWarning.empty())
-        {
-            YGGDRASIL_CORE_WARN(tinygltfWarning);
-        }
-        if (!tinygltfError.empty())
-        {
-            YGGDRASIL_CORE_ERROR(tinygltfError);
-        }
-        if (!loadResult)
-        {
-            YGGDRASIL_CORE_ERROR("Failed to load model.");
-        }
-        // TODO: remove
-        
-        // TODO: remove
+        // TODO: test
+        this->descriptorAllocator.create(&this->context.device);
+        this->descriptorLayoutCache.create(&this->context.device);
+
+        VkDescriptorBufferInfo info{};
+        info.buffer = this->uniformBuffer->handle;
+        info.offset = 0;
+        info.range = VK_WHOLE_SIZE;
+        memory::DescriptorFactory::begin(&this->descriptorLayoutCache, &this->descriptorAllocator)
+            .bindBuffer(0, &info, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL)
+            .build(&this->globalDescriptorSet, &this->globalDescriptorSetLayout);
+        // TODO: test
     }
 
     void GraphicsEngine::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        // TODO: test
+        util::destroy(&this->globalDescriptorSetLayout, vkDestroyDescriptorSetLayout, this->context.device.logical);
+        this->descriptorAllocator.destroy();
+        // TODO: test
         this->cameraController.destroy();
         this->texture->destroy(this->context.device);
         this->uniformBuffer->destroy(this->context.device);

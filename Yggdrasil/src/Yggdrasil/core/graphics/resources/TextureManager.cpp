@@ -147,30 +147,37 @@ namespace ygg::graphics
         memory::Texture* texture{ this->texturePool.allocate() };
 
         int32_t x, y, channels;
-        uint8_t* textureData{ stbi_load(fileName, &x, &y, &channels, STBI_rgb_alpha) };
-
         VkFormat format{};
+        stbi_info(fileName, &x, &y, &channels);
+
+        uint32_t desiredChannels{};
 
         switch (channels)
         {
         case 1:
             format = VK_FORMAT_R8_UNORM;
+            desiredChannels = 1;
             break;
         case 2:
             format = VK_FORMAT_R8G8_UNORM;
+            desiredChannels = 2;
             break;
         case 3:
-            format = VK_FORMAT_R8G8B8_UNORM;
+            format = VK_FORMAT_R8G8B8A8_UNORM;
+            desiredChannels = 4;
             break;
         default:
             format = VK_FORMAT_R8G8B8A8_UNORM;
+            desiredChannels = 4;
             break;
         }
+
+        uint8_t* textureData{ stbi_load(fileName, &x, &y, &channels, desiredChannels) };
 
         texture = createTexture(graphicsEngine, memory::TEXTURE_TYPE_2D,
             x, y, 1, 1, format,
             memory::TextureTiling::TEXTURE_TILING_OPTIMAL);
-        uploadTexture(graphicsEngine, texture, textureData, channels * sizeof(uint8_t) * x * y);
+        uploadTexture(graphicsEngine, texture, textureData, desiredChannels * sizeof(uint8_t) * x * y);
         return texture;
     }
 }

@@ -7,6 +7,7 @@
 #include "Yggdrasil/core/graphics/ShaderCompiler.h"
 #include "Yggdrasil/core/graphics/PipelineFactory.h"
 #include "Yggdrasil/core/graphics/memory/Descriptor.h"
+#include "Yggdrasil/core/graphics/model/Mesh.h"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,6 +18,8 @@
 namespace ygg::graphics
 {
     GraphicsEngine* GraphicsEngine::instance = nullptr;
+
+    Model model{}; // TODO: remove asap!
 
     void GraphicsEngine::createPipeline()
     {
@@ -111,10 +114,6 @@ namespace ygg::graphics
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(this->context.screen.swapchainImages.size()) },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(this->context.screen.swapchainImages.size()) },
         };
-
-        // VkDescriptorPoolSize size{};
-        // size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        // size.descriptorCount = static_cast<uint32_t>(this->context.screen.swapchainImages.size());
 
         VkDescriptorPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
         createInfo.poolSizeCount = 2;
@@ -332,12 +331,18 @@ namespace ygg::graphics
             .bindBuffer(0, &info, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL)
             .build(&this->globalDescriptorSet, &this->globalDescriptorSetLayout);
         // TODO: test
+
+        model = createModelFromObj("res\\model\\sponza.obj");
+
+        // TODO: remove
     }
 
     void GraphicsEngine::free()
     {
         VK_CHECK(vkDeviceWaitIdle(this->context.device.logical));
 
+        // TODO: remove
+        destroyModel(&model);
         // TODO: test
         util::destroy(&this->globalDescriptorSetLayout, vkDestroyDescriptorSetLayout, this->context.device.logical);
         this->descriptorAllocator.destroy();

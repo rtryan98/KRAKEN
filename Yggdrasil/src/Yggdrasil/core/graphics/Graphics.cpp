@@ -24,6 +24,7 @@ namespace ygg::graphics
 
     memory::Texture* createTexture2DFromFile(const char* fileName)
     {
+        YGGDRASIL_CORE_TRACE("Loading Texture2D '{0}'", fileName);
         return GraphicsEngine::get()->getResourceManager()
             .textureManager.createTexture2DFromFile(GraphicsEngine::get(), fileName);
     }

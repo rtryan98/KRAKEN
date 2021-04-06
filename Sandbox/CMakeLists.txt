@@ -28,18 +28,14 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+file(GLOB_RECURSE "YGG_SANDBOX_SRC" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.h" "${CMAKE_SOURCE_DIR}/Sandbox/src/*.cpp")
+ygg_group_files("${YGG_SANDBOX_SRC}")
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/scripts")
-include(Yggdrasil)
+add_executable(${YGG_SANDBOX} ${YGG_SANDBOX_SRC})
+ygg_set_dirs(${YGG_SANDBOX})
 
-set(YGG_ENGINE "Yggdrasil")
-set(YGG_SANDBOX "Yggdrasil-Sandbox")
-
-project(Yggdrasil)
-add_subdirectory("${CMAKE_SOURCE_DIR}/Yggdrasil")
-add_subdirectory("${CMAKE_SOURCE_DIR}/Sandbox")
+target_link_libraries(${YGG_SANDBOX} PRIVATE ${YGG_ENGINE})
 
 if(MSVC)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${YGG_SANDBOX})
+    target_compile_options(${YGG_SANDBOX} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
 endif()

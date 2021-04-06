@@ -28,8 +28,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set(YGG_ENGINE "Yggdrasil")
-
 file(GLOB_RECURSE "YGG_ENGINE_SRC" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.h" "${CMAKE_SOURCE_DIR}/Yggdrasil/src/*.cpp")
 ygg_group_files("${YGG_ENGINE_SRC}")
 
@@ -43,3 +41,7 @@ if (MSVC)
 endif (MSVC)
 
 target_include_directories(${YGG_ENGINE} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src")
+
+if(MSVC)
+    target_compile_options(${YGG_ENGINE} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
+endif()

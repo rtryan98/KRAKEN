@@ -39,9 +39,6 @@
     #ifndef NOMINMAX
         #define NOMINMAX
     #endif
-    #ifndef UNICODE
-        #define UNICODE
-    #endif
     #ifndef STRICT
         #define STRICT
     #endif

@@ -4,12 +4,11 @@
 
 int32_t main()
 {
-    Ygg::Window win{};
-    Ygg::WindowCreateInfo winCreateInfo{};
-    win.Create(&winCreateInfo);
-    while (true)
-    {
-        win.Update();
-    }
+    Ygg::InitInfo initInfo{};
+    initInfo.windowCreateInfo.title = "Yggdrasil Sandbox";
+
+    Ygg::Init(&initInfo);
+    Ygg::Run();
+    Ygg::Shutdown();
     return 0;
 }

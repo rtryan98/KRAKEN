@@ -18,6 +18,7 @@ namespace Ygg
         void Create(const WindowCreateInfo* windowCreateInfo) noexcept;
         void Destroy() noexcept;
         void Update() noexcept;
+        bool IsClosed() noexcept;
 
     private:
         using HINSTANCE = void*;
@@ -30,7 +31,7 @@ namespace Ygg
             uint32_t width;
             uint32_t height;
             std::string title;
-            std::wstring wCharTitle;
+            bool isClosed;
         } data;
     };
 }

@@ -37,5 +37,5 @@ ygg_set_dirs(${YGG_SANDBOX})
 target_link_libraries(${YGG_SANDBOX} PRIVATE ${YGG_ENGINE})
 
 if(MSVC)
-    target_compile_options(${YGG_SANDBOX} PRIVATE "/W4" "/MP" "/std:c++17" "/WX")
+    target_compile_options(${YGG_SANDBOX} PRIVATE "/W4" "/MP" "/std:c++17" "/WX" "/wd26812")
 endif()

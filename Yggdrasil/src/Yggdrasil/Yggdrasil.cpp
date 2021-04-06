@@ -35,7 +35,6 @@ namespace Ygg
     void Shutdown()
     {
         Engine::instance->game->Shutdown();
-        Engine::instance->window.Destroy();
         delete Engine::instance;
     }
 }

@@ -10,8 +10,8 @@ namespace Ygg
     struct Engine
     {
         static Engine* instance;
-        Window window;
+        Window window{};
         bool isRunning{ false };
-        Game* game;
+        Game* game{ nullptr };
     };
 }

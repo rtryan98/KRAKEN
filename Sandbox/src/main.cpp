@@ -1,5 +1,5 @@
 #include <Yggdrasil/Yggdrasil.h>
-#include <Yggdrasil/Common/Window/Window.h>
+#include <Yggdrasil/Common/Window/Input.h>
 #include <cstdint>
 
 class Game : public Ygg::Game

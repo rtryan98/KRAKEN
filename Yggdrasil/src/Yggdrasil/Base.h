@@ -29,4 +29,22 @@
 /// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#include "Yggdrasil/Base.h"
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || defined(_WIN64)
+    #ifndef YGG_PLATFORM_WINDOWS
+        #define YGG_PLATFORM_WINDOWS 1
+    #endif
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #ifndef UNICODE
+        #define UNICODE
+    #endif
+    #ifndef STRICT
+        #define STRICT
+    #endif
+#else
+    #error "Unsupported Platform!"
+#endif

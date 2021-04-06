@@ -5,15 +5,18 @@
 
 namespace Ygg
 {
+    class Game
+    {
+    public:
+        virtual void Init();
+        virtual void Update();
+        virtual void Shutdown();
+    };
+
     struct InitInfo
     {
         WindowCreateInfo windowCreateInfo{};
-        struct FunctionInfo
-        {
-            std::vector<void(*)()> updateFunctions{};
-            std::vector<void(*)()> initFunctions{};
-            std::vector<void(*)()> shutdownFunctions{};
-        } functionInfo;
+        Game* game{};
     };
 
     void Init(const InitInfo* initInfo);

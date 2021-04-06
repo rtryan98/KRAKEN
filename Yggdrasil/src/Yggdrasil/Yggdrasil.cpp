@@ -8,14 +8,14 @@ namespace Ygg
 
     void Init(const InitInfo* initInfo)
     {
+        if (initInfo->game == nullptr)
+        {
+            std::terminate();
+        }
         Engine::instance = new Engine();
         Engine::instance->window.Create(&initInfo->windowCreateInfo);
-        Engine::instance->updateFunctions = initInfo->functionInfo.updateFunctions;
-        Engine::instance->shutdownFunctions = initInfo->functionInfo.shutdownFunctions;
-        for (auto& fn : initInfo->functionInfo.initFunctions)
-        {
-            fn();
-        }
+        Engine::instance->game = initInfo->game;
+        Engine::instance->game->Init();
     }
 
     void Run()
@@ -24,10 +24,7 @@ namespace Ygg
         while (Engine::instance->isRunning)
         {
             Engine::instance->window.Update();
-            for (auto& fn : Engine::instance->updateFunctions)
-            {
-                fn();
-            }
+            Engine::instance->game->Update();
             if (Engine::instance->window.IsClosed())
             {
                 Engine::instance->isRunning = false;
@@ -37,10 +34,7 @@ namespace Ygg
 
     void Shutdown()
     {
-        for (auto& fn : Engine::instance->shutdownFunctions)
-        {
-            fn();
-        }
+        Engine::instance->game->Shutdown();
         Engine::instance->window.Destroy();
         delete Engine::instance;
     }

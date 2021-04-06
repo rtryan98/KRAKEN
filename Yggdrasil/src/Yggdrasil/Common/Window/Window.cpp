@@ -51,7 +51,7 @@ namespace Ygg
 
         this->hwnd = ::CreateWindowEx(0, wc.lpszClassName, wc.lpszClassName, style, 0, 0,
             wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr,
-            ::GetModuleHandleW(nullptr), 0);
+            ::GetModuleHandle(nullptr), 0);
 
         ::ShowWindow(static_cast<::HWND>(this->hwnd), SW_SHOWDEFAULT);
         ::SetForegroundWindow(static_cast<::HWND>(this->hwnd));
@@ -67,10 +67,10 @@ namespace Ygg
     {
         MSG msg;
         ZeroMemory(&msg, sizeof(MSG));
-        if (::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
+        if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             ::TranslateMessage(&msg);
-            ::DispatchMessageW(&msg);
+            ::DispatchMessage(&msg);
         }
     }
 

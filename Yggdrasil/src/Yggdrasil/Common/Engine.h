@@ -5,13 +5,13 @@
 
 namespace Ygg
 {
+    class Game;
+
     struct Engine
     {
         static Engine* instance;
         Window window;
         bool isRunning{ false };
-
-        std::vector<void(*)()> updateFunctions;
-        std::vector<void(*)()> shutdownFunctions;
+        Game* game;
     };
 }

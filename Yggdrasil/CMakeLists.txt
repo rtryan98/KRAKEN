@@ -41,6 +41,8 @@ if (MSVC)
 endif (MSVC)
 
 target_include_directories(${YGG_ENGINE} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src")
+target_link_libraries(${YGG_ENGINE} PUBLIC spdlog)
+target_link_libraries(${YGG_ENGINE} PUBLIC Vulkan::Vulkan)
 
 if(MSVC)
     target_compile_options(${YGG_ENGINE} PRIVATE "/W4" "/MP" "/std:c++17" "/WX" "/wd26812")

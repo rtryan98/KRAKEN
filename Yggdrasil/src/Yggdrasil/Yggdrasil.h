@@ -1,5 +1,6 @@
 #pragma once
 #include "Yggdrasil/Common/Window/Window.h"
+#include "Yggdrasil/RenderEngine/RenderEngine.h"
 
 #include <vector>
 
@@ -16,10 +17,11 @@ namespace Ygg
     struct InitInfo
     {
         WindowCreateInfo windowCreateInfo{};
-        Game* game{};
+        RenderEngineFeatures* pRenderEngineFeatures{ nullptr };
+        Game* pGame{};
     };
 
-    void Init(const InitInfo* initInfo);
+    void Init(const InitInfo* pInitInfo);
     void Run();
     void Shutdown();
 }

@@ -22,12 +22,15 @@ class Game : public Ygg::Game
 
 int32_t main()
 {
+    Ygg::RenderEngineFeatures renderEngineFeatures{};
+    renderEngineFeatures.enableAllFeatures = false;
+
     Ygg::InitInfo initInfo{};
     initInfo.windowCreateInfo.title = "Yggdrasil Sandbox";
-    initInfo.game = &game;
+    initInfo.pGame = &game;
+    initInfo.pRenderEngineFeatures = &renderEngineFeatures;
 
     Ygg::Init(&initInfo);
     Ygg::Run();
-    Ygg::Shutdown();
     return 0;
 }

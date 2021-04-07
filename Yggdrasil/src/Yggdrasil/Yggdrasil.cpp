@@ -1,20 +1,26 @@
 #include "Yggdrasil/pch.h"
 #include "Yggdrasil/Yggdrasil.h"
 #include "Yggdrasil/Common/Engine.h"
+#include "Yggdrasil/RenderEngine/RenderEngine.h"
+#include "Yggdrasil/Common/Util/Logger.h"
 
 namespace Ygg
 {
     Engine* Engine::instance = nullptr;
+    RenderEngine* RenderEngine::instance = nullptr;
 
     void Init(const InitInfo* initInfo)
     {
-        if (initInfo->game == nullptr)
+        if (initInfo->pGame == nullptr)
         {
             std::terminate();
         }
+        Logger::Init();
         Engine::instance = new Engine();
         Engine::instance->window.Create(&initInfo->windowCreateInfo);
-        Engine::instance->game = initInfo->game;
+        RenderEngine::instance = new RenderEngine();
+        RenderEngine::instance->Init(initInfo->pRenderEngineFeatures);
+        Engine::instance->game = initInfo->pGame;
         Engine::instance->game->Init();
     }
 
@@ -30,11 +36,15 @@ namespace Ygg
                 Engine::instance->isRunning = false;
             }
         }
+        Shutdown();
     }
 
     void Shutdown()
     {
+        RenderEngine::instance->Shutdown();
+        delete RenderEngine::instance;
         Engine::instance->game->Shutdown();
         delete Engine::instance;
+        Logger::Shutdown();
     }
 }

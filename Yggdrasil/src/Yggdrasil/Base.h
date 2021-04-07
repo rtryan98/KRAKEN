@@ -45,3 +45,5 @@
 #else
     #error "Unsupported Platform!"
 #endif
+
+#define YGG_USE_ASSERTS 1

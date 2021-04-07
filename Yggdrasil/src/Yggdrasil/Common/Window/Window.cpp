@@ -78,4 +78,10 @@ namespace Ygg
     {
         return this->data.isClosed;
     }
+
+    void Window::SetTitle(const std::string& title) noexcept
+    {
+        this->data.title = title;
+        ::SetWindowText(static_cast<::HWND>(this->hwnd), this->data.title.c_str());
+    }
 }

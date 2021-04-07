@@ -19,12 +19,13 @@ namespace Ygg
         void Destroy() noexcept;
         void Update() noexcept;
         bool IsClosed() noexcept;
+        void SetTitle(const std::string& title) noexcept;
 
     private:
         using HINSTANCE = void*;
-        HINSTANCE hInstance;
+        HINSTANCE hInstance{};
         using HWND = void*;
-        HWND hwnd;
+        HWND hwnd{};
 
         struct WindowData
         {
@@ -32,6 +33,6 @@ namespace Ygg
             uint32_t height;
             std::string title;
             bool isClosed;
-        } data;
+        } data{};
     };
 }

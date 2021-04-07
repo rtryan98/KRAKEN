@@ -1,20 +1,23 @@
 #pragma once
+#include <vector>
 
 namespace Ygg
 {
     struct GraphicsContext;
-
-    struct RenderEngineFeatures
-    {
-        bool enableAllFeatures{ false };
-    };
 
     struct RenderEngine
     {
         static RenderEngine* instance;
         GraphicsContext* context;
 
-        void Init(RenderEngineFeatures* features);
+        struct PerFrame
+        {
+
+        };
+
+        std::vector<PerFrame> frames{};
+
+        void Init();
         void Render();
         void Shutdown();
     };

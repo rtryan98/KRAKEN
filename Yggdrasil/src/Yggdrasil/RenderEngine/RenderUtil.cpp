@@ -51,6 +51,144 @@ namespace Ygg
         }
     }
 
+    const char* VkDeviceFeatures10ToString(uint32_t feature)
+    {
+        switch (feature)
+        {
+        case  0: return "robustBufferAccess;                     ";
+        case  1: return "fullDrawIndexUint32;                    ";
+        case  2: return "imageCubeArray;                         ";
+        case  3: return "independentBlend;                       ";
+        case  4: return "geometryShader;                         ";
+        case  5: return "tessellationShader;                     ";
+        case  6: return "sampleRateShading;                      ";
+        case  7: return "dualSrcBlend;                           ";
+        case  8: return "logicOp;                                ";
+        case  9: return "multiDrawIndirect;                      ";
+        case 10: return "drawIndirectFirstInstance;              ";
+        case 11: return "depthClamp;                             ";
+        case 12: return "depthBiasClamp;                         ";
+        case 13: return "fillModeNonSolid;                       ";
+        case 14: return "depthBounds;                            ";
+        case 15: return "wideLines;                              ";
+        case 16: return "largePoints;                            ";
+        case 17: return "alphaToOne;                             ";
+        case 18: return "multiViewport;                          ";
+        case 19: return "samplerAnisotropy;                      ";
+        case 20: return "textureCompressionETC2;                 ";
+        case 21: return "textureCompressionASTC_LDR;             ";
+        case 22: return "textureCompressionBC;                   ";
+        case 23: return "occlusionQueryPrecise;                  ";
+        case 24: return "pipelineStatisticsQuery;                ";
+        case 25: return "vertexPipelineStoresAndAtomics;         ";
+        case 26: return "fragmentStoresAndAtomics;               ";
+        case 27: return "shaderTessellationAndGeometryPointSize; ";
+        case 28: return "shaderImageGatherExtended;              ";
+        case 29: return "shaderStorageImageExtendedFormats;      ";
+        case 30: return "shaderStorageImageMultisample;          ";
+        case 31: return "shaderStorageImageReadWithoutFormat;    ";
+        case 32: return "shaderStorageImageWriteWithoutFormat;   ";
+        case 33: return "shaderUniformBufferArrayDynamicIndexing;";
+        case 34: return "shaderSampledImageArrayDynamicIndexing; ";
+        case 35: return "shaderStorageBufferArrayDynamicIndexing;";
+        case 36: return "shaderStorageImageArrayDynamicIndexing; ";
+        case 37: return "shaderClipDistance;                     ";
+        case 38: return "shaderCullDistance;                     ";
+        case 39: return "shaderFloat64;                          ";
+        case 40: return "shaderInt64;                            ";
+        case 41: return "shaderInt16;                            ";
+        case 42: return "shaderResourceResidency;                ";
+        case 43: return "shaderResourceMinLod;                   ";
+        case 44: return "sparseBinding;                          ";
+        case 45: return "sparseResidencyBuffer;                  ";
+        case 46: return "sparseResidencyImage2D;                 ";
+        case 47: return "sparseResidencyImage3D;                 ";
+        case 48: return "sparseResidency2Samples;                ";
+        case 49: return "sparseResidency4Samples;                ";
+        case 50: return "sparseResidency8Samples;                ";
+        case 51: return "sparseResidency16Samples;               ";
+        case 52: return "sparseResidencyAliased;                 ";
+        case 53: return "variableMultisampleRate;                ";
+        case 54: return "inheritedQueries;                       ";
+        default: return "";
+        }
+    }
+
+    const char* VkDeviceFeatures11ToString(uint32_t feature)
+    {
+        switch (feature)
+        {
+        case  0: return "returnstorageBuffer16BitAccess";
+        case  1: return "returnuniformAndStorageBuffer16BitAccess";
+        case  2: return "returnstoragePushConstant16";
+        case  3: return "returnstorageInputOutput16";
+        case  4: return "returnmultiview";
+        case  5: return "returnmultiviewGeometryShader";
+        case  6: return "returnmultiviewTessellationShader";
+        case  7: return "returnvariablePointersStorageBuffer";
+        case  8: return "returnvariablePointers";
+        case  9: return "returnprotectedMemory";
+        case 10: return "returnsamplerYcbcrConversion";
+        case 11: return "returnshaderDrawParameters";
+        default: return "";
+        }
+    }
+
+    const char* VkDeviceFeatures12ToString(uint32_t feature)
+    {
+        switch (feature)
+        {
+        case  0: return "samplerMirrorClampToEdge";
+        case  1: return "drawIndirectCount";
+        case  2: return "storageBuffer8BitAccess";
+        case  3: return "uniformAndStorageBuffer8BitAccess";
+        case  4: return "storagePushConstant8";
+        case  5: return "shaderBufferInt64Atomics";
+        case  6: return "shaderSharedInt64Atomics";
+        case  7: return "shaderFloat16";
+        case  8: return "shaderInt8";
+        case  9: return "descriptorIndexing";
+        case 10: return "shaderInputAttachmentArrayDynamicIndexing";
+        case 11: return "shaderUniformTexelBufferArrayDynamicIndexing";
+        case 12: return "shaderStorageTexelBufferArrayDynamicIndexing";
+        case 13: return "shaderUniformBufferArrayNonUniformIndexing";
+        case 14: return "shaderSampledImageArrayNonUniformIndexing";
+        case 15: return "shaderStorageBufferArrayNonUniformIndexing";
+        case 16: return "shaderStorageImageArrayNonUniformIndexing";
+        case 17: return "shaderInputAttachmentArrayNonUniformIndexing";
+        case 18: return "shaderUniformTexelBufferArrayNonUniformIndexing";
+        case 19: return "shaderStorageTexelBufferArrayNonUniformIndexing";
+        case 20: return "descriptorBindingUniformBufferUpdateAfterBind";
+        case 21: return "descriptorBindingSampledImageUpdateAfterBind";
+        case 22: return "descriptorBindingStorageImageUpdateAfterBind";
+        case 23: return "descriptorBindingStorageBufferUpdateAfterBind";
+        case 24: return "descriptorBindingUniformTexelBufferUpdateAfterBind";
+        case 25: return "descriptorBindingStorageTexelBufferUpdateAfterBind";
+        case 26: return "descriptorBindingUpdateUnusedWhilePending";
+        case 27: return "descriptorBindingPartiallyBound";
+        case 28: return "descriptorBindingVariableDescriptorCount";
+        case 29: return "runtimeDescriptorArray";
+        case 30: return "samplerFilterMinmax";
+        case 31: return "scalarBlockLayout";
+        case 32: return "imagelessFramebuffer";
+        case 33: return "uniformBufferStandardLayout";
+        case 34: return "shaderSubgroupExtendedTypes";
+        case 35: return "separateDepthStencilLayouts";
+        case 36: return "hostQueryReset";
+        case 37: return "timelineSemaphore";
+        case 38: return "bufferDeviceAddress";
+        case 39: return "bufferDeviceAddressCaptureReplay";
+        case 40: return "bufferDeviceAddressMultiDevice";
+        case 41: return "vulkanMemoryModel";
+        case 42: return "vulkanMemoryModelDeviceScope";
+        case 43: return "vulkanMemoryModelAvailabilityVisibilityChains";
+        case 44: return "shaderOutputViewportIndex";
+        case 45: return "shaderOutputLayer";
+        case 46: return "subgroupBroadcastDynamicId";
+        default: return "";
+        }
+    }
+
     void VkCheck(VkResult result)
     {
         do

@@ -16,6 +16,9 @@ namespace Ygg
     }
 
     const char* ToString(VkResult result);
+    const char* VkDeviceFeatures10ToString(uint32_t feature);
+    const char* VkDeviceFeatures11ToString(uint32_t feature);
+    const char* VkDeviceFeatures12ToString(uint32_t feature);
 
     void VkCheck(VkResult result);
 

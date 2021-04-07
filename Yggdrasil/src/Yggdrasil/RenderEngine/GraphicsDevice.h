@@ -44,7 +44,6 @@ namespace Ygg
         VkPhysicalDeviceVulkan12Features enabledVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
 
         void Create(GraphicsContext* pContext,
-            bool enableAllAvailableFeatures = false,
             VkPhysicalDeviceFeatures* pRequestedFeatures = nullptr,
             VkPhysicalDeviceVulkan11Features* pRequestedVulkan11Features = nullptr,
             VkPhysicalDeviceVulkan12Features* pRequestedVulkan12Features = nullptr);

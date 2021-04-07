@@ -9,7 +9,7 @@
 
 namespace Ygg
 {
-    void GraphicsContext::Create(RenderEngineFeatures* pFeatures)
+    void GraphicsContext::Create()
     {
         VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
         appInfo.apiVersion = VK_API_VERSION_1_2;
@@ -43,9 +43,15 @@ namespace Ygg
 #if YGG_USE_ASSERTS
         CreateDebugMessenger(this->instance);
 #endif
+        VkPhysicalDeviceFeatures vulkan10Features{};
+
+        VkPhysicalDeviceVulkan11Features vulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+
+        VkPhysicalDeviceVulkan12Features vulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        vulkan12Features.imagelessFramebuffer = VK_TRUE;
 
         this->pDevice = new GraphicsDevice();
-        this->pDevice->Create(this, pFeatures->enableAllFeatures);
+        this->pDevice->Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);
         this->screen.CreateSurface(this, &Engine::instance->window);
     }
 

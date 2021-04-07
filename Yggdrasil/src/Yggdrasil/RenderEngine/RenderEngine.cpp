@@ -4,10 +4,11 @@
 
 namespace Ygg
 {
-    void RenderEngine::Init(RenderEngineFeatures* features)
+    void RenderEngine::Init()
     {
         this->context = new GraphicsContext();
-        this->context->Create(features);
+        this->context->Create();
+        this->frames.resize(this->context->screen.swapchainImageCount);
     }
 
     void RenderEngine::Render()

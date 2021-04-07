@@ -176,7 +176,7 @@ namespace Ygg
         PrintGpuMemoryInfo(pDevice);
     }
 
-    void GraphicsDevice::Create(GraphicsContext* pContext, bool enableAllAvailableFeatures,
+    void GraphicsDevice::Create(GraphicsContext* pContext,
         VkPhysicalDeviceFeatures* pRequestedVulkan10Features,
         VkPhysicalDeviceVulkan11Features* pRequestedVulkan11Features,
         VkPhysicalDeviceVulkan12Features* pRequestedVulkan12Features)
@@ -231,8 +231,11 @@ namespace Ygg
         }
 
         VkPhysicalDeviceFeatures2 availableVulkan10Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
-        VkPhysicalDeviceVulkan11Features availableVulkan11Features{};
-        VkPhysicalDeviceVulkan12Features availableVulkan12Features{};
+        VkPhysicalDeviceVulkan11Features availableVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        VkPhysicalDeviceVulkan12Features availableVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+
+        availableVulkan10Features.pNext = &availableVulkan11Features;
+        availableVulkan11Features.pNext = &availableVulkan12Features;
 
         vkGetPhysicalDeviceFeatures2(this->gpu.handle, &availableVulkan10Features);
 
@@ -243,52 +246,58 @@ namespace Ygg
         this->enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         this->enabledVulkan12Features.pNext = nullptr;
 
-        if (enableAllAvailableFeatures)
+        YGG_TRACE("Checking for enabled Vulkan Core Features...");
+        if (pRequestedVulkan10Features != nullptr)
         {
-            YGG_INFO("Enabling all available Vulkan features. This may impact performance.");
-            this->enabledVulkan10Features = availableVulkan10Features;
-            this->enabledVulkan11Features = availableVulkan11Features;
-            this->enabledVulkan12Features = availableVulkan12Features;
+            VkBool32* requested{ &(pRequestedVulkan10Features->robustBufferAccess) };
+            VkBool32* available{ &(availableVulkan10Features.features.robustBufferAccess) };
+            for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
+            {
+                if (requested[i] && available[i])
+                {
+                    VkBool32* feature{ (&this->enabledVulkan10Features.features.robustBufferAccess) + i };
+                    *feature = VK_TRUE;
+                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures10ToString(i));
+                }
+                else if(requested[i])
+                {
+                    YGG_WARN("Requested Vulkan 1.0 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures10ToString(i));
+                }
+            }
         }
-        else
+        if (pRequestedVulkan11Features != nullptr)
         {
-            if (pRequestedVulkan10Features != nullptr)
+            VkBool32* requested{ &(pRequestedVulkan11Features->storageBuffer16BitAccess) };
+            VkBool32* available{ &(availableVulkan11Features.storageBuffer16BitAccess) };
+            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
             {
-                VkBool32* requested{ &(pRequestedVulkan10Features->robustBufferAccess) };
-                VkBool32* available{ &(availableVulkan10Features.features.robustBufferAccess) };
-                for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
+                if (requested[i] && available[i])
                 {
-                    if (requested[i] && available[i])
-                    {
-                        VkBool32* feature{ (&this->enabledVulkan10Features.features.robustBufferAccess) + i };
-                        *feature = VK_TRUE;
-                    }
+                    VkBool32* feature{ (&this->enabledVulkan11Features.storageBuffer16BitAccess) + i };
+                    *feature = VK_TRUE;
+                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures11ToString(i));
+                }
+                else if (requested[i])
+                {
+                    YGG_WARN("Requested Vulkan 1.1 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures11ToString(i));
                 }
             }
-            if (pRequestedVulkan11Features != nullptr)
+        }
+        if (pRequestedVulkan12Features != nullptr)
+        {
+            VkBool32* requested{ &(pRequestedVulkan12Features->samplerMirrorClampToEdge) };
+            VkBool32* available{ &(availableVulkan12Features.samplerMirrorClampToEdge) };
+            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
             {
-                VkBool32* requested{ &(pRequestedVulkan11Features->storageBuffer16BitAccess) };
-                VkBool32* available{ &(availableVulkan11Features.storageBuffer16BitAccess) };
-                for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
+                if (requested[i] && available[i])
                 {
-                    if (requested[i] && available[i])
-                    {
-                        VkBool32* feature{ (&this->enabledVulkan11Features.storageBuffer16BitAccess) + i };
-                        *feature = VK_TRUE;
-                    }
+                    VkBool32* feature{ (&this->enabledVulkan12Features.samplerMirrorClampToEdge) + i };
+                    *feature = VK_TRUE;
+                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures12ToString(i));
                 }
-            }
-            if (pRequestedVulkan12Features != nullptr)
-            {
-                VkBool32* requested{ &(pRequestedVulkan12Features->samplerMirrorClampToEdge) };
-                VkBool32* available{ &(availableVulkan12Features.samplerMirrorClampToEdge) };
-                for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
+                else if (requested[i])
                 {
-                    if (requested[i] && available[i])
-                    {
-                        VkBool32* feature{ (&this->enabledVulkan12Features.samplerMirrorClampToEdge) + i };
-                        *feature = VK_TRUE;
-                    }
+                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures12ToString(i));
                 }
             }
         }

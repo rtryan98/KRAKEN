@@ -19,7 +19,7 @@ namespace Ygg
         Engine::instance = new Engine();
         Engine::instance->window.Create(&initInfo->windowCreateInfo);
         RenderEngine::instance = new RenderEngine();
-        RenderEngine::instance->Init(initInfo->pRenderEngineFeatures);
+        RenderEngine::instance->Init();
         Engine::instance->game = initInfo->pGame;
         Engine::instance->game->Init();
     }

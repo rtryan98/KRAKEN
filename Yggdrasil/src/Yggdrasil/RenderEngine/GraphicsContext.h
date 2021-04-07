@@ -6,15 +6,13 @@
 
 namespace Ygg
 {
-    struct RenderEngineFeatures;
-
     struct GraphicsContext
     {
-        VkInstance instance;
-        GraphicsDevice* pDevice;
-        Screen screen;
+        VkInstance instance{};
+        GraphicsDevice* pDevice{};
+        Screen screen{};
 
-        void Create(RenderEngineFeatures* pFeatures);
+        void Create();
         void Destroy();
     };
 }

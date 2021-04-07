@@ -1,5 +1,5 @@
 # Yggdrasil
-*C++17 / Vulkan Windows-Only Game Engine with a heavy emphasis on high fidelity rendering.*
+*C++17 / Vulkan 1.2 Windows-Only Game Engine with a heavy emphasis on high fidelity rendering.*
 
 ## Requirements
 * CMake 3.18

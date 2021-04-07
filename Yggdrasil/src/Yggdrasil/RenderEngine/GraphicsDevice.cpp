@@ -254,353 +254,42 @@ namespace Ygg
         {
             if (pRequestedVulkan10Features != nullptr)
             {
-                if (pRequestedVulkan10Features->robustBufferAccess && availableVulkan10Features.features.robustBufferAccess)
-                    this->enabledVulkan10Features.features.robustBufferAccess = true;
-
-                if (pRequestedVulkan10Features->fullDrawIndexUint32 && availableVulkan10Features.features.fullDrawIndexUint32)
-                    this->enabledVulkan10Features.features.fullDrawIndexUint32 = true;
-
-                if (pRequestedVulkan10Features->imageCubeArray && availableVulkan10Features.features.imageCubeArray)
-                    this->enabledVulkan10Features.features.imageCubeArray = true;
-
-                if (pRequestedVulkan10Features->independentBlend && availableVulkan10Features.features.independentBlend)
-                    this->enabledVulkan10Features.features.independentBlend = true;
-
-                if (pRequestedVulkan10Features->geometryShader && availableVulkan10Features.features.geometryShader)
-                    this->enabledVulkan10Features.features.geometryShader = true;
-
-                if (pRequestedVulkan10Features->tessellationShader && availableVulkan10Features.features.tessellationShader)
-                    this->enabledVulkan10Features.features.tessellationShader = true;
-
-                if (pRequestedVulkan10Features->sampleRateShading && availableVulkan10Features.features.sampleRateShading)
-                    this->enabledVulkan10Features.features.sampleRateShading = true;
-
-                if (pRequestedVulkan10Features->dualSrcBlend && availableVulkan10Features.features.dualSrcBlend)
-                    this->enabledVulkan10Features.features.dualSrcBlend = true;
-
-                if (pRequestedVulkan10Features->logicOp && availableVulkan10Features.features.logicOp)
-                    this->enabledVulkan10Features.features.logicOp = true;
-
-                if (pRequestedVulkan10Features->multiDrawIndirect && availableVulkan10Features.features.multiDrawIndirect)
-                    this->enabledVulkan10Features.features.multiDrawIndirect = true;
-
-                if (pRequestedVulkan10Features->drawIndirectFirstInstance && availableVulkan10Features.features.drawIndirectFirstInstance)
-                    this->enabledVulkan10Features.features.drawIndirectFirstInstance = true;
-
-                if (pRequestedVulkan10Features->depthClamp && availableVulkan10Features.features.depthClamp)
-                    this->enabledVulkan10Features.features.depthClamp = true;
-
-                if (pRequestedVulkan10Features->depthBiasClamp && availableVulkan10Features.features.depthBiasClamp)
-                    this->enabledVulkan10Features.features.depthBiasClamp = true;
-
-                if (pRequestedVulkan10Features->fillModeNonSolid && availableVulkan10Features.features.fillModeNonSolid)
-                    this->enabledVulkan10Features.features.fillModeNonSolid = true;
-
-                if (pRequestedVulkan10Features->depthBounds && availableVulkan10Features.features.depthBounds)
-                    this->enabledVulkan10Features.features.depthBounds = true;
-
-                if (pRequestedVulkan10Features->wideLines && availableVulkan10Features.features.wideLines)
-                    this->enabledVulkan10Features.features.wideLines = true;
-
-                if (pRequestedVulkan10Features->largePoints && availableVulkan10Features.features.largePoints)
-                    this->enabledVulkan10Features.features.largePoints = true;
-
-                if (pRequestedVulkan10Features->alphaToOne && availableVulkan10Features.features.alphaToOne)
-                    this->enabledVulkan10Features.features.alphaToOne = true;
-
-                if (pRequestedVulkan10Features->multiViewport && availableVulkan10Features.features.multiViewport)
-                    this->enabledVulkan10Features.features.multiViewport = true;
-
-                if (pRequestedVulkan10Features->samplerAnisotropy && availableVulkan10Features.features.samplerAnisotropy)
-                    this->enabledVulkan10Features.features.samplerAnisotropy = true;
-
-                if (pRequestedVulkan10Features->textureCompressionETC2 && availableVulkan10Features.features.textureCompressionETC2)
-                    this->enabledVulkan10Features.features.textureCompressionETC2 = true;
-
-                if (pRequestedVulkan10Features->textureCompressionASTC_LDR && availableVulkan10Features.features.textureCompressionASTC_LDR)
-                    this->enabledVulkan10Features.features.textureCompressionASTC_LDR = true;
-
-                if (pRequestedVulkan10Features->textureCompressionBC && availableVulkan10Features.features.textureCompressionBC)
-                    this->enabledVulkan10Features.features.textureCompressionBC = true;
-
-                if (pRequestedVulkan10Features->occlusionQueryPrecise && availableVulkan10Features.features.occlusionQueryPrecise)
-                    this->enabledVulkan10Features.features.occlusionQueryPrecise = true;
-
-                if (pRequestedVulkan10Features->pipelineStatisticsQuery && availableVulkan10Features.features.pipelineStatisticsQuery)
-                    this->enabledVulkan10Features.features.pipelineStatisticsQuery = true;
-
-                if (pRequestedVulkan10Features->vertexPipelineStoresAndAtomics && availableVulkan10Features.features.vertexPipelineStoresAndAtomics)
-                    this->enabledVulkan10Features.features.vertexPipelineStoresAndAtomics = true;
-
-                if (pRequestedVulkan10Features->fragmentStoresAndAtomics && availableVulkan10Features.features.fragmentStoresAndAtomics)
-                    this->enabledVulkan10Features.features.fragmentStoresAndAtomics = true;
-
-                if (pRequestedVulkan10Features->shaderTessellationAndGeometryPointSize && availableVulkan10Features.features.shaderTessellationAndGeometryPointSize)
-                    this->enabledVulkan10Features.features.shaderTessellationAndGeometryPointSize = true;
-
-                if (pRequestedVulkan10Features->shaderImageGatherExtended && availableVulkan10Features.features.shaderImageGatherExtended)
-                    this->enabledVulkan10Features.features.shaderImageGatherExtended = true;
-
-                if (pRequestedVulkan10Features->shaderStorageImageExtendedFormats && availableVulkan10Features.features.shaderStorageImageExtendedFormats)
-                    this->enabledVulkan10Features.features.shaderStorageImageExtendedFormats = true;
-
-                if (pRequestedVulkan10Features->shaderStorageImageMultisample && availableVulkan10Features.features.shaderStorageImageMultisample)
-                    this->enabledVulkan10Features.features.shaderStorageImageMultisample = true;
-
-                if (pRequestedVulkan10Features->shaderStorageImageReadWithoutFormat && availableVulkan10Features.features.shaderStorageImageReadWithoutFormat)
-                    this->enabledVulkan10Features.features.shaderStorageImageReadWithoutFormat = true;
-
-                if (pRequestedVulkan10Features->shaderStorageImageWriteWithoutFormat && availableVulkan10Features.features.shaderStorageImageWriteWithoutFormat)
-                    this->enabledVulkan10Features.features.shaderStorageImageWriteWithoutFormat = true;
-
-                if (pRequestedVulkan10Features->shaderUniformBufferArrayDynamicIndexing && availableVulkan10Features.features.shaderUniformBufferArrayDynamicIndexing)
-                    this->enabledVulkan10Features.features.shaderUniformBufferArrayDynamicIndexing = true;
-
-                if (pRequestedVulkan10Features->shaderSampledImageArrayDynamicIndexing && availableVulkan10Features.features.shaderSampledImageArrayDynamicIndexing)
-                    this->enabledVulkan10Features.features.shaderSampledImageArrayDynamicIndexing = true;
-
-                if (pRequestedVulkan10Features->shaderStorageBufferArrayDynamicIndexing && availableVulkan10Features.features.shaderStorageBufferArrayDynamicIndexing)
-                    this->enabledVulkan10Features.features.shaderStorageBufferArrayDynamicIndexing = true;
-
-                if (pRequestedVulkan10Features->shaderStorageImageArrayDynamicIndexing && availableVulkan10Features.features.shaderStorageImageArrayDynamicIndexing)
-                    this->enabledVulkan10Features.features.shaderStorageImageArrayDynamicIndexing = true;
-
-                if (pRequestedVulkan10Features->shaderClipDistance && availableVulkan10Features.features.shaderClipDistance)
-                    this->enabledVulkan10Features.features.shaderClipDistance = true;
-
-                if (pRequestedVulkan10Features->shaderCullDistance && availableVulkan10Features.features.shaderCullDistance)
-                    this->enabledVulkan10Features.features.shaderCullDistance = true;
-
-                if (pRequestedVulkan10Features->shaderFloat64 && availableVulkan10Features.features.shaderFloat64)
-                    this->enabledVulkan10Features.features.shaderFloat64 = true;
-
-                if (pRequestedVulkan10Features->shaderInt64 && availableVulkan10Features.features.shaderInt64)
-                    this->enabledVulkan10Features.features.shaderInt64 = true;
-
-                if (pRequestedVulkan10Features->shaderInt16 && availableVulkan10Features.features.shaderInt16)
-                    this->enabledVulkan10Features.features.shaderInt16 = true;
-
-                if (pRequestedVulkan10Features->shaderResourceResidency && availableVulkan10Features.features.shaderResourceResidency)
-                    this->enabledVulkan10Features.features.shaderResourceResidency = true;
-
-                if (pRequestedVulkan10Features->shaderResourceMinLod && availableVulkan10Features.features.shaderResourceMinLod)
-                    this->enabledVulkan10Features.features.shaderResourceMinLod = true;
-
-                if (pRequestedVulkan10Features->sparseBinding && availableVulkan10Features.features.sparseBinding)
-                    this->enabledVulkan10Features.features.sparseBinding = true;
-
-                if (pRequestedVulkan10Features->sparseResidencyBuffer && availableVulkan10Features.features.sparseResidencyBuffer)
-                    this->enabledVulkan10Features.features.sparseResidencyBuffer = true;
-
-                if (pRequestedVulkan10Features->sparseResidencyImage2D && availableVulkan10Features.features.sparseResidencyImage2D)
-                    this->enabledVulkan10Features.features.sparseResidencyImage2D = true;
-
-                if (pRequestedVulkan10Features->sparseResidencyImage3D && availableVulkan10Features.features.sparseResidencyImage3D)
-                    this->enabledVulkan10Features.features.sparseResidencyImage3D = true;
-
-                if (pRequestedVulkan10Features->sparseResidency2Samples && availableVulkan10Features.features.sparseResidency2Samples)
-                    this->enabledVulkan10Features.features.sparseResidency2Samples = true;
-
-                if (pRequestedVulkan10Features->sparseResidency4Samples && availableVulkan10Features.features.sparseResidency4Samples)
-                    this->enabledVulkan10Features.features.sparseResidency4Samples = true;
-
-                if (pRequestedVulkan10Features->sparseResidency8Samples && availableVulkan10Features.features.sparseResidency8Samples)
-                    this->enabledVulkan10Features.features.sparseResidency8Samples = true;
-
-                if (pRequestedVulkan10Features->sparseResidency16Samples && availableVulkan10Features.features.sparseResidency16Samples)
-                    this->enabledVulkan10Features.features.sparseResidency16Samples = true;
-
-                if (pRequestedVulkan10Features->sparseResidencyAliased && availableVulkan10Features.features.sparseResidencyAliased)
-                    this->enabledVulkan10Features.features.sparseResidencyAliased = true;
-
-                if (pRequestedVulkan10Features->variableMultisampleRate && availableVulkan10Features.features.variableMultisampleRate)
-                    this->enabledVulkan10Features.features.variableMultisampleRate = true;
-
-                if (pRequestedVulkan10Features->inheritedQueries && availableVulkan10Features.features.inheritedQueries)
-                    this->enabledVulkan10Features.features.inheritedQueries = true;
+                VkBool32* requested{ &(pRequestedVulkan10Features->robustBufferAccess) };
+                VkBool32* available{ &(availableVulkan10Features.features.robustBufferAccess) };
+                for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
+                {
+                    if (requested[i] && available[i])
+                    {
+                        VkBool32* feature{ (&this->enabledVulkan10Features.features.robustBufferAccess) + i };
+                        *feature = VK_TRUE;
+                    }
+                }
             }
             if (pRequestedVulkan11Features != nullptr)
             {
-                if(pRequestedVulkan11Features->storageBuffer16BitAccess           && availableVulkan11Features.storageBuffer16BitAccess          )
-                    this->enabledVulkan11Features.storageBuffer16BitAccess = true;
-
-                if(pRequestedVulkan11Features->uniformAndStorageBuffer16BitAccess && availableVulkan11Features.uniformAndStorageBuffer16BitAccess)
-                    this->enabledVulkan11Features.uniformAndStorageBuffer16BitAccess = true;
-
-                if(pRequestedVulkan11Features->storagePushConstant16              && availableVulkan11Features.storagePushConstant16             )
-                    this->enabledVulkan11Features.storagePushConstant16 = true;
-
-                if(pRequestedVulkan11Features->storageInputOutput16               && availableVulkan11Features.storageInputOutput16              )
-                    this->enabledVulkan11Features.storageInputOutput16 = true;
-
-                if(pRequestedVulkan11Features->multiview                          && availableVulkan11Features.multiview                         )
-                    this->enabledVulkan11Features.multiview = true;
-
-                if(pRequestedVulkan11Features->multiviewGeometryShader            && availableVulkan11Features.multiviewGeometryShader           )
-                    this->enabledVulkan11Features.multiviewGeometryShader = true;
-
-                if(pRequestedVulkan11Features->multiviewTessellationShader        && availableVulkan11Features.multiviewTessellationShader       )
-                    this->enabledVulkan11Features.multiviewTessellationShader = true;
-
-                if(pRequestedVulkan11Features->variablePointersStorageBuffer      && availableVulkan11Features.variablePointersStorageBuffer     )
-                    this->enabledVulkan11Features.variablePointersStorageBuffer = true;
-
-                if(pRequestedVulkan11Features->variablePointers                   && availableVulkan11Features.variablePointers                  )
-                    this->enabledVulkan11Features.variablePointers = true;
-
-                if(pRequestedVulkan11Features->protectedMemory                    && availableVulkan11Features.protectedMemory                   )
-                    this->enabledVulkan11Features.protectedMemory = true;
-
-                if(pRequestedVulkan11Features->samplerYcbcrConversion             && availableVulkan11Features.samplerYcbcrConversion            )
-                    this->enabledVulkan11Features.samplerYcbcrConversion = true;
-
-                if(pRequestedVulkan11Features->shaderDrawParameters               && availableVulkan11Features.shaderDrawParameters              )
-                    this->enabledVulkan11Features.shaderDrawParameters = true;
-
+                VkBool32* requested{ &(pRequestedVulkan11Features->storageBuffer16BitAccess) };
+                VkBool32* available{ &(availableVulkan11Features.storageBuffer16BitAccess) };
+                for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
+                {
+                    if (requested[i] && available[i])
+                    {
+                        VkBool32* feature{ (&this->enabledVulkan11Features.storageBuffer16BitAccess) + i };
+                        *feature = VK_TRUE;
+                    }
+                }
             }
             if (pRequestedVulkan12Features != nullptr)
             {
-                if (pRequestedVulkan12Features->samplerMirrorClampToEdge && availableVulkan12Features.samplerMirrorClampToEdge)
-                    this->enabledVulkan12Features.samplerMirrorClampToEdge = true;
-
-                if(pRequestedVulkan12Features->drawIndirectCount                                  && availableVulkan12Features.drawIndirectCount                                 )
-                    this->enabledVulkan12Features.drawIndirectCount = true;
-
-                if(pRequestedVulkan12Features->storageBuffer8BitAccess                            && availableVulkan12Features.storageBuffer8BitAccess                           )
-                    this->enabledVulkan12Features.storageBuffer8BitAccess = true;
-
-                if(pRequestedVulkan12Features->uniformAndStorageBuffer8BitAccess                  && availableVulkan12Features.uniformAndStorageBuffer8BitAccess                 )
-                    this->enabledVulkan12Features.uniformAndStorageBuffer8BitAccess = true;
-
-                if(pRequestedVulkan12Features->storagePushConstant8                               && availableVulkan12Features.storagePushConstant8                              )
-                    this->enabledVulkan12Features.storagePushConstant8 = true;
-
-                if(pRequestedVulkan12Features->shaderBufferInt64Atomics                           && availableVulkan12Features.shaderBufferInt64Atomics                          )
-                    this->enabledVulkan12Features.shaderBufferInt64Atomics = true;
-
-                if(pRequestedVulkan12Features->shaderSharedInt64Atomics                           && availableVulkan12Features.shaderSharedInt64Atomics                          )
-                    this->enabledVulkan12Features.shaderSharedInt64Atomics = true;
-
-                if(pRequestedVulkan12Features->shaderFloat16                                      && availableVulkan12Features.shaderFloat16                                     )
-                    this->enabledVulkan12Features.shaderFloat16 = true;
-
-                if(pRequestedVulkan12Features->shaderInt8                                         && availableVulkan12Features.shaderInt8                                        )
-                    this->enabledVulkan12Features.shaderInt8 = true;
-
-                if(pRequestedVulkan12Features->descriptorIndexing                                 && availableVulkan12Features.descriptorIndexing                                )
-                    this->enabledVulkan12Features.descriptorIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderInputAttachmentArrayDynamicIndexing          && availableVulkan12Features.shaderInputAttachmentArrayDynamicIndexing         )
-                    this->enabledVulkan12Features.shaderInputAttachmentArrayDynamicIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderUniformTexelBufferArrayDynamicIndexing       && availableVulkan12Features.shaderUniformTexelBufferArrayDynamicIndexing      )
-                    this->enabledVulkan12Features.shaderUniformTexelBufferArrayDynamicIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderStorageTexelBufferArrayDynamicIndexing       && availableVulkan12Features.shaderStorageTexelBufferArrayDynamicIndexing      )
-                    this->enabledVulkan12Features.shaderStorageTexelBufferArrayDynamicIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderUniformBufferArrayNonUniformIndexing         && availableVulkan12Features.shaderUniformBufferArrayNonUniformIndexing        )
-                    this->enabledVulkan12Features.shaderUniformBufferArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderSampledImageArrayNonUniformIndexing          && availableVulkan12Features.shaderSampledImageArrayNonUniformIndexing         )
-                    this->enabledVulkan12Features.shaderSampledImageArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderStorageBufferArrayNonUniformIndexing         && availableVulkan12Features.shaderStorageBufferArrayNonUniformIndexing        )
-                    this->enabledVulkan12Features.shaderStorageBufferArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderStorageImageArrayNonUniformIndexing          && availableVulkan12Features.shaderStorageImageArrayNonUniformIndexing         )
-                    this->enabledVulkan12Features.shaderStorageImageArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderInputAttachmentArrayNonUniformIndexing       && availableVulkan12Features.shaderInputAttachmentArrayNonUniformIndexing      )
-                    this->enabledVulkan12Features.shaderInputAttachmentArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderUniformTexelBufferArrayNonUniformIndexing    && availableVulkan12Features.shaderUniformTexelBufferArrayNonUniformIndexing   )
-                    this->enabledVulkan12Features.shaderUniformTexelBufferArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->shaderStorageTexelBufferArrayNonUniformIndexing    && availableVulkan12Features.shaderStorageTexelBufferArrayNonUniformIndexing   )
-                    this->enabledVulkan12Features.shaderStorageTexelBufferArrayNonUniformIndexing = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingUniformBufferUpdateAfterBind      && availableVulkan12Features.descriptorBindingUniformBufferUpdateAfterBind     )
-                    this->enabledVulkan12Features.descriptorBindingUniformBufferUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingSampledImageUpdateAfterBind       && availableVulkan12Features.descriptorBindingSampledImageUpdateAfterBind      )
-                    this->enabledVulkan12Features.descriptorBindingSampledImageUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingStorageImageUpdateAfterBind       && availableVulkan12Features.descriptorBindingStorageImageUpdateAfterBind      )
-                    this->enabledVulkan12Features.descriptorBindingStorageImageUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingStorageBufferUpdateAfterBind      && availableVulkan12Features.descriptorBindingStorageBufferUpdateAfterBind     )
-                    this->enabledVulkan12Features.descriptorBindingStorageBufferUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingUniformTexelBufferUpdateAfterBind && availableVulkan12Features.descriptorBindingUniformTexelBufferUpdateAfterBind)
-                    this->enabledVulkan12Features.descriptorBindingUniformTexelBufferUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingStorageTexelBufferUpdateAfterBind && availableVulkan12Features.descriptorBindingStorageTexelBufferUpdateAfterBind)
-                    this->enabledVulkan12Features.descriptorBindingStorageTexelBufferUpdateAfterBind = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingUpdateUnusedWhilePending          && availableVulkan12Features.descriptorBindingUpdateUnusedWhilePending         )
-                    this->enabledVulkan12Features.descriptorBindingUpdateUnusedWhilePending = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingPartiallyBound                    && availableVulkan12Features.descriptorBindingPartiallyBound                   )
-                    this->enabledVulkan12Features.descriptorBindingPartiallyBound = true;
-
-                if(pRequestedVulkan12Features->descriptorBindingVariableDescriptorCount           && availableVulkan12Features.descriptorBindingVariableDescriptorCount          )
-                    this->enabledVulkan12Features.descriptorBindingVariableDescriptorCount = true;
-
-                if(pRequestedVulkan12Features->runtimeDescriptorArray                             && availableVulkan12Features.runtimeDescriptorArray                            )
-                    this->enabledVulkan12Features.runtimeDescriptorArray = true;
-
-                if(pRequestedVulkan12Features->samplerFilterMinmax                                && availableVulkan12Features.samplerFilterMinmax                               )
-                    this->enabledVulkan12Features.samplerFilterMinmax = true;
-
-                if(pRequestedVulkan12Features->scalarBlockLayout                                  && availableVulkan12Features.scalarBlockLayout                                 )
-                    this->enabledVulkan12Features.scalarBlockLayout = true;
-
-                if(pRequestedVulkan12Features->imagelessFramebuffer                               && availableVulkan12Features.imagelessFramebuffer                              )
-                    this->enabledVulkan12Features.imagelessFramebuffer = true;
-
-                if(pRequestedVulkan12Features->uniformBufferStandardLayout                        && availableVulkan12Features.uniformBufferStandardLayout                       )
-                    this->enabledVulkan12Features.uniformBufferStandardLayout = true;
-
-                if(pRequestedVulkan12Features->shaderSubgroupExtendedTypes                        && availableVulkan12Features.shaderSubgroupExtendedTypes                       )
-                    this->enabledVulkan12Features.shaderSubgroupExtendedTypes = true;
-
-                if(pRequestedVulkan12Features->separateDepthStencilLayouts                        && availableVulkan12Features.separateDepthStencilLayouts                       )
-                    this->enabledVulkan12Features.separateDepthStencilLayouts = true;
-
-                if(pRequestedVulkan12Features->hostQueryReset                                     && availableVulkan12Features.hostQueryReset                                    )
-                    this->enabledVulkan12Features.hostQueryReset = true;
-
-                if(pRequestedVulkan12Features->timelineSemaphore                                  && availableVulkan12Features.timelineSemaphore                                 )
-                    this->enabledVulkan12Features.timelineSemaphore = true;
-
-                if(pRequestedVulkan12Features->bufferDeviceAddress                                && availableVulkan12Features.bufferDeviceAddress                               )
-                    this->enabledVulkan12Features.bufferDeviceAddress = true;
-
-                if(pRequestedVulkan12Features->bufferDeviceAddressCaptureReplay                   && availableVulkan12Features.bufferDeviceAddressCaptureReplay                  )
-                    this->enabledVulkan12Features.bufferDeviceAddressCaptureReplay = true;
-
-                if(pRequestedVulkan12Features->bufferDeviceAddressMultiDevice                     && availableVulkan12Features.bufferDeviceAddressMultiDevice                    )
-                    this->enabledVulkan12Features.bufferDeviceAddressMultiDevice = true;
-
-                if(pRequestedVulkan12Features->vulkanMemoryModel                                  && availableVulkan12Features.vulkanMemoryModel                                 )
-                    this->enabledVulkan12Features.vulkanMemoryModel = true;
-
-                if(pRequestedVulkan12Features->vulkanMemoryModelDeviceScope                       && availableVulkan12Features.vulkanMemoryModelDeviceScope                      )
-                    this->enabledVulkan12Features.vulkanMemoryModelDeviceScope = true;
-
-                if(pRequestedVulkan12Features->vulkanMemoryModelAvailabilityVisibilityChains      && availableVulkan12Features.vulkanMemoryModelAvailabilityVisibilityChains     )
-                    this->enabledVulkan12Features.vulkanMemoryModelAvailabilityVisibilityChains = true;
-
-                if(pRequestedVulkan12Features->shaderOutputViewportIndex                          && availableVulkan12Features.shaderOutputViewportIndex                         )
-                    this->enabledVulkan12Features.shaderOutputViewportIndex = true;
-
-                if(pRequestedVulkan12Features->shaderOutputLayer                                  && availableVulkan12Features.shaderOutputLayer                                 )
-                    this->enabledVulkan12Features.shaderOutputLayer = true;
-
-                if(pRequestedVulkan12Features->subgroupBroadcastDynamicId                         && availableVulkan12Features.subgroupBroadcastDynamicId                        )
-                    this->enabledVulkan12Features.subgroupBroadcastDynamicId = true;
-
+                VkBool32* requested{ &(pRequestedVulkan12Features->samplerMirrorClampToEdge) };
+                VkBool32* available{ &(availableVulkan12Features.samplerMirrorClampToEdge) };
+                for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
+                {
+                    if (requested[i] && available[i])
+                    {
+                        VkBool32* feature{ (&this->enabledVulkan12Features.samplerMirrorClampToEdge) + i };
+                        *feature = VK_TRUE;
+                    }
+                }
             }
         }
 

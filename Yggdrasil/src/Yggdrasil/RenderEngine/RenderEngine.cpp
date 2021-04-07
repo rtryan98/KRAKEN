@@ -10,6 +10,11 @@ namespace Ygg
         this->context->Create(features);
     }
 
+    void RenderEngine::Render()
+    {
+
+    }
+
     void RenderEngine::Shutdown()
     {
         this->context->Destroy();

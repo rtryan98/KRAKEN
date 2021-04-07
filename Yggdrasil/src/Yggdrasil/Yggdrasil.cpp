@@ -31,6 +31,7 @@ namespace Ygg
         {
             Engine::instance->window.Update();
             Engine::instance->game->Update();
+            RenderEngine::instance->Render();
             if (Engine::instance->window.IsClosed())
             {
                 Engine::instance->isRunning = false;

@@ -15,6 +15,7 @@ namespace Ygg
         GraphicsContext* context;
 
         void Init(RenderEngineFeatures* features);
+        void Render();
         void Shutdown();
     };
 }

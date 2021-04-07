@@ -245,7 +245,7 @@ namespace Ygg
 
         if (enableAllAvailableFeatures)
         {
-            YGG_INFO("Enabling enableAllFeatures available Vulkan features. This may impact performance.");
+            YGG_INFO("Enabling all available Vulkan features. This may impact performance.");
             this->enabledVulkan10Features = availableVulkan10Features;
             this->enabledVulkan11Features = availableVulkan11Features;
             this->enabledVulkan12Features = availableVulkan12Features;

@@ -11,7 +11,8 @@ namespace Ygg
     struct GraphicsContext
     {
         VkInstance instance;
-        GraphicsDevice* device;
+        GraphicsDevice* pDevice;
+        Screen screen;
 
         void Create(RenderEngineFeatures* pFeatures);
         void Destroy();

@@ -21,7 +21,6 @@ namespace Ygg
         bool IsClosed() noexcept;
         void SetTitle(const std::string& title) noexcept;
 
-    private:
         using HINSTANCE = void*;
         HINSTANCE hInstance{};
         using HWND = void*;

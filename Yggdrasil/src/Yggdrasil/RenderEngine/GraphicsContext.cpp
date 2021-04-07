@@ -2,6 +2,7 @@
 #include "Yggdrasil/RenderEngine/GraphicsContext.h"
 #include "Yggdrasil/RenderEngine/RenderUtil.h"
 #include "Yggdrasil/RenderEngine/RenderEngine.h"
+#include "Yggdrasil/Common/Engine.h"
 
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
@@ -43,16 +44,18 @@ namespace Ygg
         CreateDebugMessenger(this->instance);
 #endif
 
-        this->device = new GraphicsDevice();
-        this->device->Create(this, pFeatures->enableAllFeatures);
+        this->pDevice = new GraphicsDevice();
+        this->pDevice->Create(this, pFeatures->enableAllFeatures);
+        this->screen.CreateSurface(this, &Engine::instance->window);
     }
 
     void GraphicsContext::Destroy()
     {
-        if (this->device != nullptr)
+        this->screen.Destroy();
+        if (this->pDevice != nullptr)
         {
-            this->device->Destroy();
-            delete this->device;
+            this->pDevice->Destroy();
+            delete this->pDevice;
         }
 #if YGG_USE_ASSERTS
         DestroyDebugMessenger(this->instance);

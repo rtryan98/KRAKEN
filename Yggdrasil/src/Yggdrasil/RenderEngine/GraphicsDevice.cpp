@@ -5,6 +5,7 @@
 #include "Yggdrasil/RenderEngine/GraphicsContext.h"
 
 #include <vector>
+#include <iomanip>
 
 namespace Ygg
 {
@@ -25,9 +26,11 @@ namespace Ygg
         vkGetPhysicalDeviceSurfaceFormatsKHR(this->handle, surface, pSurfaceFormatCount, pSurfaceFormats);
     }
 
-    void GraphicsDevice::GPU::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities)
+    VkSurfaceCapabilitiesKHR GraphicsDevice::GPU::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface)
     {
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->handle, surface, pSurfaceCapabilities);
+        VkSurfaceCapabilitiesKHR result{};
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->handle, surface, &result);
+        return result;
     }
 
     inline bool QueueFamilySupportsGraphics(const VkQueueFamilyProperties& properties)
@@ -55,6 +58,94 @@ namespace Ygg
         Intel = 0x8086
     };
 
+    std::string PciToString(PCI id)
+    {
+        switch (id)
+        {
+        case AMD: return "AMD";
+        case ImgTec: return "ImgTec";
+        case NVIDIA: return "NVIDIA";
+        case ARM: return "ARM";
+        case Qualcomm: return "Qualcomm";
+        case Intel: return "Intel";
+        default:     return "Unknown Vendor.";
+        }
+    }
+
+    void PrintGpuMemoryInfo(GraphicsDevice* pDevice)
+    {
+        std::string seperator{ "------|------|--------------|--------------|---------------|-------------|------------------|-----------|--------------" };
+        std::stringstream table{};
+        table << "Memory Information.\n";
+        table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
+        for (uint32_t i{ 0 }; i < pDevice->gpu.memoryProperties.memoryHeapCount; i++)
+        {
+            table << "\n" << seperator;
+            auto& heap{ pDevice->gpu.memoryProperties.memoryHeaps[i] };
+            for (uint32_t j{ 0 }; j < pDevice->gpu.memoryProperties.memoryTypeCount; j++)
+            {
+                auto& memoryType{ pDevice->gpu.memoryProperties.memoryTypes[j] };
+                if (memoryType.heapIndex != i)
+                {
+                    continue;
+                }
+                table << "\n";
+                table << " " << i << "    ";
+                table << "| " << j << "    ";
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                {
+                    table << "| true         ";
+                }
+                else
+                {
+                    table << "| false        ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+                {
+                    table << "| true         ";
+                }
+                else
+                {
+                    table << "| false        ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                {
+                    table << "| true          ";
+                }
+                else
+                {
+                    table << "| false         ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+                {
+                    table << "| true        ";
+                }
+                else
+                {
+                    table << "| false       ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+                {
+                    table << "| true             ";
+                }
+                else
+                {
+                    table << "| false            ";
+                }
+                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT)
+                {
+                    table << "| true      ";
+                }
+                else
+                {
+                    table << "| false     ";
+                }
+                table << "| " << std::fixed << std::setprecision(3) << heap.size * 1.0e-9 << " GB";
+            }
+        }
+        YGG_INFO(table.str());
+    }
+
     void SelectPhysicalDevice(GraphicsDevice* pDevice, GraphicsContext* pContext)
     {
         uint32_t deviceCount{ 0 };
@@ -76,6 +167,13 @@ namespace Ygg
         pDevice->gpu.handle = selected;
         vkGetPhysicalDeviceMemoryProperties(pDevice->gpu.handle, &pDevice->gpu.memoryProperties);
         vkGetPhysicalDeviceProperties(pDevice->gpu.handle, &pDevice->gpu.vulkan10Properties);
+        VkPhysicalDeviceProperties2 props{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
+        props.pNext = &pDevice->gpu.vulkan11Properties;
+        pDevice->gpu.vulkan11Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
+        pDevice->gpu.vulkan11Properties.pNext = &pDevice->gpu.vulkan12Properties;
+        pDevice->gpu.vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+        vkGetPhysicalDeviceProperties2(pDevice->gpu.handle, &props);
+        PrintGpuMemoryInfo(pDevice);
     }
 
     void GraphicsDevice::Create(GraphicsContext* pContext, bool enableAllAvailableFeatures,
@@ -518,6 +616,7 @@ namespace Ygg
         deviceCreateInfo.pNext = &this->enabledVulkan10Features;
 
         VkCheck(vkCreateDevice(this->gpu.handle, &deviceCreateInfo, nullptr, &this->handle));
+        YGG_ASSERT(this->handle);
 
         if (mainQueueFound)
         {
@@ -569,6 +668,7 @@ namespace Ygg
     {
         VkCommandPool result{};
         VkCheck(vkCreateCommandPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -581,6 +681,7 @@ namespace Ygg
     {
         VkBuffer result{};
         VkCheck(vkCreateBuffer(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -593,6 +694,7 @@ namespace Ygg
     {
         VkBufferView result{};
         VkCheck(vkCreateBufferView(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -605,6 +707,7 @@ namespace Ygg
     {
         VkImage result{};
         VkCheck(vkCreateImage(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -617,6 +720,7 @@ namespace Ygg
     {
         VkImageView result{};
         VkCheck(vkCreateImageView(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -629,6 +733,7 @@ namespace Ygg
     {
         VkPipeline result{};
         VkCheck(vkCreateGraphicsPipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -641,6 +746,7 @@ namespace Ygg
     {
         VkPipeline result{};
         VkCheck(vkCreateComputePipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -648,6 +754,7 @@ namespace Ygg
     {
         VkShaderModule result{};
         VkCheck(vkCreateShaderModule(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -660,6 +767,7 @@ namespace Ygg
     {
         VkPipelineCache result{};
         VkCheck(vkCreatePipelineCache(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -672,6 +780,7 @@ namespace Ygg
     {
         VkSampler result{};
         VkCheck(vkCreateSampler(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -684,6 +793,7 @@ namespace Ygg
     {
         VkFramebuffer result{};
         VkCheck(vkCreateFramebuffer(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -696,6 +806,7 @@ namespace Ygg
     {
         VkPipelineLayout result{};
         VkCheck(vkCreatePipelineLayout(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -708,6 +819,7 @@ namespace Ygg
     {
         VkRenderPass result{};
         VkCheck(vkCreateRenderPass(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -720,6 +832,7 @@ namespace Ygg
     {
         VkSemaphore result{};
         VkCheck(vkCreateSemaphore(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -732,6 +845,7 @@ namespace Ygg
     {
         VkFence result{};
         VkCheck(vkCreateFence(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -744,6 +858,7 @@ namespace Ygg
     {
         VkEvent result{};
         VkCheck(vkCreateEvent(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -756,6 +871,7 @@ namespace Ygg
     {
         VkQueryPool result{};
         VkCheck(vkCreateQueryPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -768,6 +884,7 @@ namespace Ygg
     {
         VkDescriptorPool result{};
         VkCheck(vkCreateDescriptorPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 
@@ -796,6 +913,11 @@ namespace Ygg
         VkCheck(vkBindImageMemory2(this->handle, bindInfoCount, pBindInfos));
     }
 
+    void GraphicsDevice::FreeMemory(VkDeviceMemory memory)
+    {
+        vkFreeMemory(this->handle, memory, nullptr);
+    }
+
     VkResult GraphicsDevice::AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex)
     {
         return vkAcquireNextImageKHR(this->handle, swapchain, timeout, semaphore, fence, pIndex);
@@ -810,6 +932,7 @@ namespace Ygg
     {
         VkSwapchainKHR result{};
         VkCheck(vkCreateSwapchainKHR(this->handle, pCreateInfo, nullptr, &result));
+        YGG_ASSERT(result);
         return result;
     }
 

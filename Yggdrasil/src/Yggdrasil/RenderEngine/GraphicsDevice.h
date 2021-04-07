@@ -36,7 +36,7 @@ namespace Ygg
             bool GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface);
             void GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes);
             void GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats);
-            void GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities);
+            VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface);
         } gpu;
 
         VkPhysicalDeviceFeatures2 enabledVulkan10Features{};
@@ -108,14 +108,15 @@ namespace Ygg
         void BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos);
         void BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset);
         void BindImageMemory2(uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos);
+        void FreeMemory(VkDeviceMemory memory);
+
+        void WaitIdle();
 
         // VK_KHR_swapchain
         VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex);
         VkResult AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex);
         VkSwapchainKHR CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo);
         void DestroySwapchainKHR(VkSwapchainKHR* pSwapchain);
-
-        void WaitIdle();
 
     private:
         std::deque<std::function<void()>> deletionQueue;

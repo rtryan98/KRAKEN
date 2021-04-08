@@ -15,7 +15,7 @@ namespace Ygg
     class Window
     {
     public:
-        void Create(const WindowCreateInfo* windowCreateInfo) noexcept;
+        void Create(const WindowCreateInfo& windowCreateInfo) noexcept;
         void Destroy() noexcept;
         void Update() noexcept;
         bool IsClosed() noexcept;

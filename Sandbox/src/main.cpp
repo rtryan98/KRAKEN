@@ -26,7 +26,7 @@ int32_t main()
     initInfo.windowCreateInfo.title = "Yggdrasil Sandbox";
     initInfo.pGame = &game;
 
-    Ygg::Init(&initInfo);
+    Ygg::Init(initInfo);
     Ygg::Run();
     return 0;
 }

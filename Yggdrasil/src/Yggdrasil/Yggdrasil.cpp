@@ -6,47 +6,29 @@
 
 namespace Ygg
 {
-    Engine* Engine::instance = nullptr;
+    Engine* engine{ nullptr };
 
-    RenderEngine* renderEngine{ nullptr };
-
-    void Init(const InitInfo* initInfo)
+    void Init(const InitInfo& initInfo)
     {
-        if (initInfo->pGame == nullptr)
+        if (initInfo.pGame == nullptr)
         {
             std::terminate();
         }
-        Logger::Init();
-        Engine::instance = new Engine();
-        Engine::instance->window.Create(&initInfo->windowCreateInfo);
-        renderEngine = new RenderEngine();
-        RenderEngine::Init();
-        Engine::instance->game = initInfo->pGame;
-        Engine::instance->game->Init();
+        engine = new Engine();
+        Engine::Init(initInfo);
     }
 
     void Run()
     {
-        Engine::instance->isRunning = true;
-        while (Engine::instance->isRunning)
+        while (Engine::IsRunning())
         {
-            Engine::instance->window.Update();
-            Engine::instance->game->Update();
-            RenderEngine::Render();
-            if (Engine::instance->window.IsClosed())
-            {
-                Engine::instance->isRunning = false;
-            }
+            Engine::Update();
         }
-        Shutdown();
     }
 
     void Shutdown()
     {
-        RenderEngine::Shutdown();
-        delete renderEngine;
-        Engine::instance->game->Shutdown();
-        delete Engine::instance;
-        Logger::Shutdown();
+        Engine::ShutDown();
+        delete engine;
     }
 }

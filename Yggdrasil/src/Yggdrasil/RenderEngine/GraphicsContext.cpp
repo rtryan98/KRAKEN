@@ -62,7 +62,7 @@ namespace Ygg
 
         this->pDevice = new GraphicsDevice();
         this->pDevice->Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);
-        this->screen.CreateSurface(this, &Engine::instance->window);
+        this->screen.CreateSurface(this, &Engine::GetWindow());
     }
 
     void GraphicsContext::Destroy()

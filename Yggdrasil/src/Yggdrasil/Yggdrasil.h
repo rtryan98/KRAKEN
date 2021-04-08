@@ -19,7 +19,7 @@ namespace Ygg
         Game* pGame{};
     };
 
-    void Init(const InitInfo* pInitInfo);
+    void Init(const InitInfo& pInitInfo);
     void Run();
     void Shutdown();
 }

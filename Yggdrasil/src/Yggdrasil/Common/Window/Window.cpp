@@ -12,7 +12,7 @@ namespace Ygg
         switch (msg)
         {
         case WM_CLOSE:
-            Engine::instance->window.Destroy();
+            Engine::GetWindow().Destroy();
             ::DestroyWindow(hwnd);
             break;
         case WM_DESTROY:
@@ -24,11 +24,11 @@ namespace Ygg
         return 0;
     }
 
-    void Window::Create(const WindowCreateInfo* windowCreateInfo) noexcept
+    void Window::Create(const WindowCreateInfo& windowCreateInfo) noexcept
     {
-        this->data.width = windowCreateInfo->width;
-        this->data.height = windowCreateInfo->height;
-        this->data.title = windowCreateInfo->title;
+        this->data.width = windowCreateInfo.width;
+        this->data.height = windowCreateInfo.height;
+        this->data.title = windowCreateInfo.title;
 
         ::WNDCLASSEX wc{};
         wc.cbSize = sizeof(::WNDCLASSEX);

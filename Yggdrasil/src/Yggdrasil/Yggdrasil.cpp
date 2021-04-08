@@ -20,7 +20,7 @@ namespace Ygg
         Engine::instance = new Engine();
         Engine::instance->window.Create(&initInfo->windowCreateInfo);
         renderEngine = new RenderEngine();
-        RenderEngine::Get().Init();
+        RenderEngine::Init();
         Engine::instance->game = initInfo->pGame;
         Engine::instance->game->Init();
     }
@@ -32,7 +32,7 @@ namespace Ygg
         {
             Engine::instance->window.Update();
             Engine::instance->game->Update();
-            RenderEngine::Get().Render();
+            RenderEngine::Render();
             if (Engine::instance->window.IsClosed())
             {
                 Engine::instance->isRunning = false;
@@ -43,7 +43,7 @@ namespace Ygg
 
     void Shutdown()
     {
-        RenderEngine::Get().Shutdown();
+        RenderEngine::Shutdown();
         delete renderEngine;
         Engine::instance->game->Shutdown();
         delete Engine::instance;

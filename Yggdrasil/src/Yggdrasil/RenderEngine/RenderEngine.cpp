@@ -13,9 +13,9 @@ namespace Ygg
 
     void RenderEngine::Init()
     {
-        this->context = new GraphicsContext();
-        this->context->Create();
-        this->frames.resize(this->context->GetScreen().GetData().swapchainImageCount);
+        RenderEngine::instance->context = new GraphicsContext();
+        RenderEngine::instance->context->Create();
+        RenderEngine::instance->frames.resize(RenderEngine::instance->context->GetScreen().GetData().swapchainImageCount);
     }
 
     void RenderEngine::Render()
@@ -25,8 +25,8 @@ namespace Ygg
 
     void RenderEngine::Shutdown()
     {
-        this->context->Destroy();
-        delete this->context;
+        RenderEngine::instance->context->Destroy();
+        delete RenderEngine::instance->context;
     }
 
     RenderEngine& RenderEngine::Get()

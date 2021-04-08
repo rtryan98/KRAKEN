@@ -11,9 +11,9 @@ namespace Ygg
         RenderEngine();
 
         static RenderEngine& Get();
-        void Init();
-        void Render();
-        void Shutdown();
+        static void Init();
+        static void Render();
+        static void Shutdown();
 
     private:
         GraphicsContext* context{};

@@ -17,15 +17,15 @@ namespace Ygg
         createInfo.hinstance = GetModuleHandle(nullptr);
         createInfo.hwnd = static_cast<::HWND>(this->pWindow->hwnd);
 
-        VkCheck( vkCreateWin32SurfaceKHR(this->pContext->instance, &createInfo, nullptr, &this->surface) );
+        VkCheck( vkCreateWin32SurfaceKHR(this->pContext->GetVkInstance(), &createInfo, nullptr, &this->data.surface) );
     }
 
     void Screen::CreateSwapchain()
     {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities{ this->pContext->pDevice->gpu.GetSurfaceCapabilitiesKHR(this->surface) };
+        VkSurfaceCapabilitiesKHR surfaceCapabilities{ this->pContext->GetGraphicsDevice()->GetGPU().GetSurfaceCapabilitiesKHR(this->data.surface) };
 
         VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-        createInfo.surface = this->surface;
+        createInfo.surface = this->data.surface;
         if (surfaceCapabilities.minImageCount <= 2 && surfaceCapabilities.maxImageCount >= 2)
         {
             createInfo.minImageCount = 2;
@@ -38,7 +38,7 @@ namespace Ygg
         // TODO: add support for HDR and other displays here
         createInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         createInfo.imageExtent = { this->pWindow->data.width, this->pWindow->data.height };
-        this->swapchainImageExtent = createInfo.imageExtent;
+        this->data.swapchainImageExtent = createInfo.imageExtent;
 
         // TODO: we might want to write directly to the image later on
         if (surfaceCapabilities.supportedUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -55,18 +55,18 @@ namespace Ygg
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
         uint32_t presentModeCount{ 0 };
-        this->pContext->pDevice->gpu.GetSurfacePresentModesKHR(this->surface, &presentModeCount, nullptr);
+        this->pContext->GetGraphicsDevice()->GetGPU().GetSurfacePresentModesKHR(this->data.surface, &presentModeCount, nullptr);
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-        this->pContext->pDevice->gpu.GetSurfacePresentModesKHR(this->surface, &presentModeCount, presentModes.data());
+        this->pContext->GetGraphicsDevice()->GetGPU().GetSurfacePresentModesKHR(this->data.surface, &presentModeCount, presentModes.data());
 
         createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         createInfo.clipped = VK_TRUE;
         createInfo.imageArrayLayers = 1;
 
         uint32_t surfaceFormatCount{ 0 };
-        this->pContext->pDevice->gpu.GetSurfaceFormatsKHR(this->surface, &surfaceFormatCount, nullptr);
+        this->pContext->GetGraphicsDevice()->GetGPU().GetSurfaceFormatsKHR(this->data.surface, &surfaceFormatCount, nullptr);
         std::vector<VkSurfaceFormatKHR> availableFormats(surfaceFormatCount);
-        this->pContext->pDevice->gpu.GetSurfaceFormatsKHR(this->surface, &surfaceFormatCount, availableFormats.data());
+        this->pContext->GetGraphicsDevice()->GetGPU().GetSurfaceFormatsKHR(this->data.surface, &surfaceFormatCount, availableFormats.data());
 
         bool bgraFound{ false };
         bool rgbaFound{ false };
@@ -95,11 +95,11 @@ namespace Ygg
             YGG_CRITICAL("No viable surface format found!");
         }
 
-        this->swapchainImageFormat = createInfo.imageFormat;
-        this->swapchain = this->pContext->pDevice->CreateSwapchainKHR(&createInfo);
-        VkCheck( vkGetSwapchainImagesKHR(this->pContext->pDevice->handle, this->swapchain, &this->swapchainImageCount, nullptr) );
-        this->swapchainImages.resize(this->swapchainImageCount);
-        VkCheck( vkGetSwapchainImagesKHR(this->pContext->pDevice->handle, this->swapchain, &this->swapchainImageCount, this->swapchainImages.data()) );
+        this->data.swapchainImageFormat = createInfo.imageFormat;
+        this->data.swapchain = this->pContext->GetGraphicsDevice()->CreateSwapchainKHR(&createInfo);
+        VkCheck( vkGetSwapchainImagesKHR(this->pContext->GetGraphicsDevice()->GetHandle(), this->data.swapchain, &this->data.swapchainImageCount, nullptr) );
+        this->data.swapchainImages.resize(this->data.swapchainImageCount);
+        VkCheck( vkGetSwapchainImagesKHR(this->pContext->GetGraphicsDevice()->GetHandle(), this->data.swapchain, &this->data.swapchainImageCount, this->data.swapchainImages.data()) );
 
         CreateRenderPass();
         CreateFramebuffer();
@@ -107,12 +107,12 @@ namespace Ygg
 
     void Screen::Destroy()
     {
-        this->pContext->pDevice->DestroyFramebuffer(&this->swapchainFramebuffer);
-        this->pContext->pDevice->DestroyRenderPass(&this->swapchainRenderPass);
-        this->pContext->pDevice->DestroySwapchainKHR(&this->swapchain);
-        if (this->surface != VK_NULL_HANDLE)
+        this->pContext->GetGraphicsDevice()->DestroyFramebuffer(&this->data.swapchainFramebuffer);
+        this->pContext->GetGraphicsDevice()->DestroyRenderPass(&this->data.swapchainRenderPass);
+        this->pContext->GetGraphicsDevice()->DestroySwapchainKHR(&this->data.swapchain);
+        if (this->data.surface != VK_NULL_HANDLE)
         {
-            vkDestroySurfaceKHR(this->pContext->instance, this->surface, nullptr);
+            vkDestroySurfaceKHR(this->pContext->GetVkInstance(), this->data.surface, nullptr);
         }
     }
 
@@ -121,7 +121,7 @@ namespace Ygg
         VkAttachmentDescription attachment{};
         attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        attachment.format = this->swapchainImageFormat;
+        attachment.format = this->data.swapchainImageFormat;
         attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
         attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -145,18 +145,23 @@ namespace Ygg
         createInfo.subpassCount = 1;
         createInfo.pSubpasses = &subpass;
 
-        this->swapchainRenderPass = this->pContext->pDevice->CreateRenderPass(&createInfo);
+        this->data.swapchainRenderPass = this->pContext->GetGraphicsDevice()->CreateRenderPass(&createInfo);
     }
 
     void Screen::CreateFramebuffer()
     {
         VkFramebufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-        createInfo.renderPass = this->swapchainRenderPass;
-        createInfo.width = this->swapchainImageExtent.width;
-        createInfo.height = this->swapchainImageExtent.height;
+        createInfo.renderPass = this->data.swapchainRenderPass;
+        createInfo.width = this->data.swapchainImageExtent.width;
+        createInfo.height = this->data.swapchainImageExtent.height;
         createInfo.layers = 1;
         createInfo.flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
 
-        this->swapchainFramebuffer = this->pContext->pDevice->CreateFramebuffer(&createInfo);
+        this->data.swapchainFramebuffer = this->pContext->GetGraphicsDevice()->CreateFramebuffer(&createInfo);
+    }
+
+    Screen::Data& Screen::GetData()
+    {
+        return this->data;
     }
 }

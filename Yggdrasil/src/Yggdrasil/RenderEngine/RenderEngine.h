@@ -3,22 +3,27 @@
 
 namespace Ygg
 {
-    struct GraphicsContext;
+    class GraphicsContext;
 
-    struct RenderEngine
+    class RenderEngine
     {
-        static RenderEngine* instance;
-        GraphicsContext* context;
+    public:
+        RenderEngine();
+
+        static RenderEngine& Get();
+        void Init();
+        void Render();
+        void Shutdown();
+
+    private:
+        GraphicsContext* context{};
 
         struct PerFrame
         {
 
         };
-
         std::vector<PerFrame> frames{};
 
-        void Init();
-        void Render();
-        void Shutdown();
+        static RenderEngine* instance;
     };
 }

@@ -81,4 +81,19 @@ namespace Ygg
             vkDestroyInstance(this->instance, nullptr);
         }
     }
+
+    Screen& GraphicsContext::GetScreen()
+    {
+        return this->screen;
+    }
+
+    VkInstance GraphicsContext::GetVkInstance()
+    {
+        return this->instance;
+    }
+
+    GraphicsDevice* const GraphicsContext::GetGraphicsDevice()
+    {
+        return this->pDevice;
+    }
 }

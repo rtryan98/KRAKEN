@@ -6,13 +6,18 @@
 
 namespace Ygg
 {
-    struct GraphicsContext
+    class GraphicsContext
     {
+    public:
+        void Create();
+        void Destroy();
+        Screen& GetScreen();
+        VkInstance GetVkInstance();
+        GraphicsDevice* const GetGraphicsDevice();
+
+    private:
         VkInstance instance{};
         GraphicsDevice* pDevice{};
         Screen screen{};
-
-        void Create();
-        void Destroy();
     };
 }

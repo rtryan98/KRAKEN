@@ -4,11 +4,18 @@
 
 namespace Ygg
 {
+    RenderEngine* RenderEngine::instance = nullptr;
+
+    RenderEngine::RenderEngine()
+    {
+        RenderEngine::instance = this;
+    }
+
     void RenderEngine::Init()
     {
         this->context = new GraphicsContext();
         this->context->Create();
-        this->frames.resize(this->context->screen.swapchainImageCount);
+        this->frames.resize(this->context->GetScreen().GetData().swapchainImageCount);
     }
 
     void RenderEngine::Render()
@@ -20,5 +27,10 @@ namespace Ygg
     {
         this->context->Destroy();
         delete this->context;
+    }
+
+    RenderEngine& RenderEngine::Get()
+    {
+        return *RenderEngine::instance;
     }
 }

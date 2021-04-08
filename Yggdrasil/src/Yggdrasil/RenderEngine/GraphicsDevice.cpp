@@ -9,27 +9,32 @@
 
 namespace Ygg
 {
+    GraphicsDevice::GPU::Data& GraphicsDevice::GPU::GetData()
+    {
+        return this->data;
+    }
+
     bool GraphicsDevice::GPU::GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface)
     {
         VkBool32 result{};
-        vkGetPhysicalDeviceSurfaceSupportKHR(this->handle, queueFamilyIndex, surface, &result);
+        vkGetPhysicalDeviceSurfaceSupportKHR(this->data.handle, queueFamilyIndex, surface, &result);
         return result;
     }
 
     void GraphicsDevice::GPU::GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes)
     {
-        vkGetPhysicalDeviceSurfacePresentModesKHR(this->handle, surface, pPresentModeCount, pPresentModes);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(this->data.handle, surface, pPresentModeCount, pPresentModes);
     }
 
     void GraphicsDevice::GPU::GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats)
     {
-        vkGetPhysicalDeviceSurfaceFormatsKHR(this->handle, surface, pSurfaceFormatCount, pSurfaceFormats);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(this->data.handle, surface, pSurfaceFormatCount, pSurfaceFormats);
     }
 
     VkSurfaceCapabilitiesKHR GraphicsDevice::GPU::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface)
     {
         VkSurfaceCapabilitiesKHR result{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->handle, surface, &result);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->data.handle, surface, &result);
         return result;
     }
 
@@ -75,8 +80,8 @@ namespace Ygg
     void PrintGpuInfo(GraphicsDevice* pDevice)
     {
         YGG_INFO("Selected GPU '{0} {1}'",
-            PciToString(pDevice->gpu.vulkan10Properties.vendorID),
-            pDevice->gpu.vulkan10Properties.deviceName);
+            PciToString(pDevice->GetGPU().GetData().vulkan10Properties.vendorID),
+            pDevice->GetGPU().GetData().vulkan10Properties.deviceName);
     }
 
     void PrintGpuMemoryInfo(GraphicsDevice* pDevice)
@@ -85,13 +90,13 @@ namespace Ygg
         std::stringstream table{};
         table << "Vulkan Memory Information.\n";
         table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
-        for (uint32_t i{ 0 }; i < pDevice->gpu.memoryProperties.memoryHeapCount; i++)
+        for (uint32_t i{ 0 }; i < pDevice->GetGPU().GetData().memoryProperties.memoryHeapCount; i++)
         {
             table << "\n" << seperator;
-            auto& heap{ pDevice->gpu.memoryProperties.memoryHeaps[i] };
-            for (uint32_t j{ 0 }; j < pDevice->gpu.memoryProperties.memoryTypeCount; j++)
+            auto& heap{ pDevice->GetGPU().GetData().memoryProperties.memoryHeaps[i] };
+            for (uint32_t j{ 0 }; j < pDevice->GetGPU().GetData().memoryProperties.memoryTypeCount; j++)
             {
-                auto& memoryType{ pDevice->gpu.memoryProperties.memoryTypes[j] };
+                auto& memoryType{ pDevice->GetGPU().GetData().memoryProperties.memoryTypes[j] };
                 if (memoryType.heapIndex != i)
                 {
                     continue;
@@ -156,9 +161,9 @@ namespace Ygg
     void SelectPhysicalDevice(GraphicsDevice* pDevice, GraphicsContext* pContext)
     {
         uint32_t deviceCount{ 0 };
-        VkCheck(vkEnumeratePhysicalDevices(pContext->instance, &deviceCount, nullptr));
+        VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, nullptr));
         std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-        VkCheck(vkEnumeratePhysicalDevices(pContext->instance, &deviceCount, physicalDevices.data()));
+        VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, physicalDevices.data()));
 
         VkPhysicalDevice fallback{ physicalDevices[0] };
         VkPhysicalDevice selected{ fallback };
@@ -171,15 +176,15 @@ namespace Ygg
                 selected = physicalDevices[i];
             }
         }
-        pDevice->gpu.handle = selected;
-        vkGetPhysicalDeviceMemoryProperties(pDevice->gpu.handle, &pDevice->gpu.memoryProperties);
-        vkGetPhysicalDeviceProperties(pDevice->gpu.handle, &pDevice->gpu.vulkan10Properties);
+        pDevice->GetGPU().GetData().handle = selected;
+        vkGetPhysicalDeviceMemoryProperties(pDevice->GetGPU().GetData().handle, &pDevice->GetGPU().GetData().memoryProperties);
+        vkGetPhysicalDeviceProperties(pDevice->GetGPU().GetData().handle, &pDevice->GetGPU().GetData().vulkan10Properties);
         VkPhysicalDeviceProperties2 props{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
-        props.pNext = &pDevice->gpu.vulkan11Properties;
-        pDevice->gpu.vulkan11Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
-        pDevice->gpu.vulkan11Properties.pNext = &pDevice->gpu.vulkan12Properties;
-        pDevice->gpu.vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
-        vkGetPhysicalDeviceProperties2(pDevice->gpu.handle, &props);
+        props.pNext = &pDevice->GetGPU().GetData().vulkan11Properties;
+        pDevice->GetGPU().GetData().vulkan11Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
+        pDevice->GetGPU().GetData().vulkan11Properties.pNext = &pDevice->GetGPU().GetData().vulkan12Properties;
+        pDevice->GetGPU().GetData().vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+        vkGetPhysicalDeviceProperties2(pDevice->GetGPU().GetData().handle, &props);
         PrintGpuInfo(pDevice);
         PrintGpuMemoryInfo(pDevice);
     }
@@ -192,9 +197,9 @@ namespace Ygg
         SelectPhysicalDevice(this, pContext);
 
         uint32_t queueFamilyCount{ 0 };
-        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.handle, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.GetData().handle, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.handle, &queueFamilyCount, queueFamilyProperties.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.GetData().handle, &queueFamilyCount, queueFamilyProperties.data());
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
 
         VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
@@ -245,14 +250,14 @@ namespace Ygg
         availableVulkan10Features.pNext = &availableVulkan11Features;
         availableVulkan11Features.pNext = &availableVulkan12Features;
 
-        vkGetPhysicalDeviceFeatures2(this->gpu.handle, &availableVulkan10Features);
+        vkGetPhysicalDeviceFeatures2(this->gpu.GetData().handle, &availableVulkan10Features);
 
-        this->enabledVulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        this->enabledVulkan10Features.pNext = &this->enabledVulkan11Features;
-        this->enabledVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-        this->enabledVulkan11Features.pNext = &this->enabledVulkan12Features;
-        this->enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        this->enabledVulkan12Features.pNext = nullptr;
+        this->features.enabledVulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        this->features.enabledVulkan10Features.pNext = &this->features.enabledVulkan11Features;
+        this->features.enabledVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        this->features.enabledVulkan11Features.pNext = &this->features.enabledVulkan12Features;
+        this->features.enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        this->features.enabledVulkan12Features.pNext = nullptr;
 
         YGG_TRACE("Checking for enabled Vulkan Core Features...");
         if (pRequestedVulkan10Features != nullptr)
@@ -263,7 +268,7 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->enabledVulkan10Features.features.robustBufferAccess) + i };
+                    VkBool32* feature{ (&this->features.enabledVulkan10Features.features.robustBufferAccess) + i };
                     *feature = VK_TRUE;
                     YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", VkDeviceFeatures10ToString(i));
                 }
@@ -281,7 +286,7 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->enabledVulkan11Features.storageBuffer16BitAccess) + i };
+                    VkBool32* feature{ (&this->features.enabledVulkan11Features.storageBuffer16BitAccess) + i };
                     *feature = VK_TRUE;
                     YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", VkDeviceFeatures11ToString(i));
                 }
@@ -299,7 +304,7 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->enabledVulkan12Features.samplerMirrorClampToEdge) + i };
+                    VkBool32* feature{ (&this->features.enabledVulkan12Features.samplerMirrorClampToEdge) + i };
                     *feature = VK_TRUE;
                     YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", VkDeviceFeatures12ToString(i));
                 }
@@ -319,9 +324,9 @@ namespace Ygg
         deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledDeviceExtensions.size());
         deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
         deviceCreateInfo.pEnabledFeatures = nullptr;
-        deviceCreateInfo.pNext = &this->enabledVulkan10Features;
+        deviceCreateInfo.pNext = &this->features.enabledVulkan10Features;
 
-        VkCheck(vkCreateDevice(this->gpu.handle, &deviceCreateInfo, nullptr, &this->handle));
+        VkCheck(vkCreateDevice(this->gpu.GetData().handle, &deviceCreateInfo, nullptr, &this->handle));
         YGG_ASSERT(this->handle);
 
         if (mainQueueFound)
@@ -362,6 +367,21 @@ namespace Ygg
             (*it)();
         }
         vkDestroyDevice(this->handle, nullptr);
+    }
+
+    GraphicsDevice::GPU& GraphicsDevice::GetGPU()
+    {
+        return this->gpu;
+    }
+
+    GraphicsDevice::Features& GraphicsDevice::GetFeatures()
+    {
+        return this->features;
+    }
+
+    VkDevice GraphicsDevice::GetHandle()
+    {
+        return this->handle;
     }
 
     void GraphicsDevice::PushObjectDeletion(const std::function<void()>&& mFunction)

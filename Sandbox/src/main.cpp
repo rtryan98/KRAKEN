@@ -22,7 +22,6 @@ class Game : public Ygg::Game
 
 int32_t main()
 {
-
     Ygg::InitInfo initInfo{};
     initInfo.windowCreateInfo.title = "Yggdrasil Sandbox";
     initInfo.pGame = &game;

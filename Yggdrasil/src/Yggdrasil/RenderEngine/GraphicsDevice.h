@@ -6,48 +6,23 @@
 
 namespace Ygg
 {
-    struct GraphicsContext;
+    class GraphicsContext;
 
-    struct GraphicsDevice
+    class GraphicsDevice
     {
-        VkDevice handle;
+    private:
+        class GPU;
+        struct Features;
 
-        struct Queues
-        {
-            VkQueue mainQueue;
-            uint32_t mainQueueFamilyIndex;
-
-            VkQueue asyncComputeQueue;
-            uint32_t asyncComputeQueueFamilyIndex;
-
-            VkQueue copyQueue;
-            uint32_t copyQueueFamilyIndex;
-        } queues;
-
-        struct GPU
-        {
-            VkPhysicalDevice handle;
-            VkPhysicalDeviceProperties vulkan10Properties;
-            VkPhysicalDeviceVulkan11Properties vulkan11Properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES };
-            VkPhysicalDeviceVulkan12Properties vulkan12Properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES };
-            VkPhysicalDeviceMemoryProperties memoryProperties;
-
-            // VK_KHR_surface
-            bool GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface);
-            void GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes);
-            void GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats);
-            VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface);
-        } gpu;
-
-        VkPhysicalDeviceFeatures2 enabledVulkan10Features{};
-        VkPhysicalDeviceVulkan11Features enabledVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
-        VkPhysicalDeviceVulkan12Features enabledVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
-
+    public:
         void Create(GraphicsContext* pContext,
             VkPhysicalDeviceFeatures* pRequestedFeatures = nullptr,
             VkPhysicalDeviceVulkan11Features* pRequestedVulkan11Features = nullptr,
             VkPhysicalDeviceVulkan12Features* pRequestedVulkan12Features = nullptr);
         void Destroy();
+        GPU& GetGPU();
+        Features& GetFeatures();
+        VkDevice GetHandle();
 
         void PushObjectDeletion(const std::function<void()>&& mFunction);
 
@@ -118,6 +93,50 @@ namespace Ygg
         void DestroySwapchainKHR(VkSwapchainKHR* pSwapchain);
 
     private:
+        VkDevice handle;
+
+        struct Features
+        {
+            VkPhysicalDeviceFeatures2 enabledVulkan10Features{};
+            VkPhysicalDeviceVulkan11Features enabledVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+            VkPhysicalDeviceVulkan12Features enabledVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        } features;
+
+        struct Queues
+        {
+            uint32_t mainQueueFamilyIndex;
+            VkQueue mainQueue;
+
+            uint32_t asyncComputeQueueFamilyIndex;
+            VkQueue asyncComputeQueue;
+
+            VkQueue copyQueue;
+            uint32_t copyQueueFamilyIndex;
+        } queues;
+
+        class GPU
+        {
+        private:
+            struct Data;
+        public:
+            Data& GetData();
+
+            // VK_KHR_surface
+            bool GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface);
+            void GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes);
+            void GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats);
+            VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface);
+        private:
+            struct Data
+            {
+                VkPhysicalDevice handle;
+                VkPhysicalDeviceProperties vulkan10Properties;
+                VkPhysicalDeviceVulkan11Properties vulkan11Properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES };
+                VkPhysicalDeviceVulkan12Properties vulkan12Properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES };
+                VkPhysicalDeviceMemoryProperties memoryProperties;
+            } data;
+        } gpu;
+
         std::deque<std::function<void()>> deletionQueue;
     };
 }

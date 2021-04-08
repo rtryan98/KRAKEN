@@ -100,14 +100,63 @@ namespace Ygg
         VkCheck( vkGetSwapchainImagesKHR(this->pContext->pDevice->handle, this->swapchain, &this->swapchainImageCount, nullptr) );
         this->swapchainImages.resize(this->swapchainImageCount);
         VkCheck( vkGetSwapchainImagesKHR(this->pContext->pDevice->handle, this->swapchain, &this->swapchainImageCount, this->swapchainImages.data()) );
+
+        CreateRenderPass();
+        CreateFramebuffer();
     }
 
     void Screen::Destroy()
     {
+        this->pContext->pDevice->DestroyFramebuffer(&this->swapchainFramebuffer);
+        this->pContext->pDevice->DestroyRenderPass(&this->swapchainRenderPass);
         this->pContext->pDevice->DestroySwapchainKHR(&this->swapchain);
         if (this->surface != VK_NULL_HANDLE)
         {
             vkDestroySurfaceKHR(this->pContext->instance, this->surface, nullptr);
         }
+    }
+
+    void Screen::CreateRenderPass()
+    {
+        VkAttachmentDescription attachment{};
+        attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        attachment.format = this->swapchainImageFormat;
+        attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+        VkAttachmentReference attachmentRef{};
+        attachmentRef.attachment = 0;
+        attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &attachmentRef;
+
+        VkRenderPassCreateInfo createInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+        createInfo.attachmentCount = 1;
+        createInfo.pAttachments = &attachment;
+        createInfo.dependencyCount = 0;
+        createInfo.pDependencies = nullptr;
+        createInfo.subpassCount = 1;
+        createInfo.pSubpasses = &subpass;
+
+        this->swapchainRenderPass = this->pContext->pDevice->CreateRenderPass(&createInfo);
+    }
+
+    void Screen::CreateFramebuffer()
+    {
+        VkFramebufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+        createInfo.renderPass = this->swapchainRenderPass;
+        createInfo.width = this->swapchainImageExtent.width;
+        createInfo.height = this->swapchainImageExtent.height;
+        createInfo.layers = 1;
+        createInfo.flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
+
+        this->swapchainFramebuffer = this->pContext->pDevice->CreateFramebuffer(&createInfo);
     }
 }

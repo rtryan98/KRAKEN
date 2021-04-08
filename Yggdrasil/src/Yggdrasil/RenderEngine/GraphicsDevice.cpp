@@ -48,7 +48,7 @@ namespace Ygg
         return properties.queueFlags & VK_QUEUE_TRANSFER_BIT;
     }
 
-    enum PCI
+    enum PCI : uint32_t
     {
         AMD = 0x1002,
         ImgTec = 0x1010,
@@ -58,25 +58,32 @@ namespace Ygg
         Intel = 0x8086
     };
 
-    std::string PciToString(PCI id)
+    std::string PciToString(uint32_t id)
     {
         switch (id)
         {
-        case AMD: return "AMD";
-        case ImgTec: return "ImgTec";
-        case NVIDIA: return "NVIDIA";
-        case ARM: return "ARM";
-        case Qualcomm: return "Qualcomm";
-        case Intel: return "Intel";
+        case PCI::AMD: return "AMD";
+        case PCI::ImgTec: return "ImgTec";
+        case PCI::NVIDIA: return "NVIDIA";
+        case PCI::ARM: return "ARM";
+        case PCI::Qualcomm: return "Qualcomm";
+        case PCI::Intel: return "Intel";
         default:     return "Unknown Vendor.";
         }
+    }
+
+    void PrintGpuInfo(GraphicsDevice* pDevice)
+    {
+        YGG_INFO("Selected GPU '{0} {1}'",
+            PciToString(pDevice->gpu.vulkan10Properties.vendorID),
+            pDevice->gpu.vulkan10Properties.deviceName);
     }
 
     void PrintGpuMemoryInfo(GraphicsDevice* pDevice)
     {
         std::string seperator{ "------|------|--------------|--------------|---------------|-------------|------------------|-----------|--------------" };
         std::stringstream table{};
-        table << "Memory Information.\n";
+        table << "Vulkan Memory Information.\n";
         table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
         for (uint32_t i{ 0 }; i < pDevice->gpu.memoryProperties.memoryHeapCount; i++)
         {
@@ -173,6 +180,7 @@ namespace Ygg
         pDevice->gpu.vulkan11Properties.pNext = &pDevice->gpu.vulkan12Properties;
         pDevice->gpu.vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
         vkGetPhysicalDeviceProperties2(pDevice->gpu.handle, &props);
+        PrintGpuInfo(pDevice);
         PrintGpuMemoryInfo(pDevice);
     }
 
@@ -257,11 +265,11 @@ namespace Ygg
                 {
                     VkBool32* feature{ (&this->enabledVulkan10Features.features.robustBufferAccess) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures10ToString(i));
+                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", VkDeviceFeatures10ToString(i));
                 }
                 else if(requested[i])
                 {
-                    YGG_WARN("Requested Vulkan 1.0 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures10ToString(i));
+                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures10ToString(i));
                 }
             }
         }
@@ -275,11 +283,11 @@ namespace Ygg
                 {
                     VkBool32* feature{ (&this->enabledVulkan11Features.storageBuffer16BitAccess) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures11ToString(i));
+                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", VkDeviceFeatures11ToString(i));
                 }
                 else if (requested[i])
                 {
-                    YGG_WARN("Requested Vulkan 1.1 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures11ToString(i));
+                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures11ToString(i));
                 }
             }
         }
@@ -293,11 +301,11 @@ namespace Ygg
                 {
                     VkBool32* feature{ (&this->enabledVulkan12Features.samplerMirrorClampToEdge) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}: {1}' is ACTIVE.", i, VkDeviceFeatures12ToString(i));
+                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", VkDeviceFeatures12ToString(i));
                 }
                 else if (requested[i])
                 {
-                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}: {1}' is NOT AVAILABLE.", i, VkDeviceFeatures12ToString(i));
+                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures12ToString(i));
                 }
             }
         }
@@ -362,10 +370,11 @@ namespace Ygg
         this->deletionQueue.push_back(mFunction);
     }
 
-    VkCommandPool GraphicsDevice::CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo)
+    VkCommandPool GraphicsDevice::CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name)
     {
         VkCommandPool result{};
         VkCheck(vkCreateCommandPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_COMMAND_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -375,10 +384,11 @@ namespace Ygg
         DestroyVkObject(pPool, vkDestroyCommandPool, this->handle);
     }
 
-    VkBuffer GraphicsDevice::CreateBuffer(VkBufferCreateInfo* pCreateInfo)
+    VkBuffer GraphicsDevice::CreateBuffer(VkBufferCreateInfo* pCreateInfo, const char* name)
     {
         VkBuffer result{};
         VkCheck(vkCreateBuffer(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_BUFFER, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -388,10 +398,11 @@ namespace Ygg
         DestroyVkObject(pBuffer, vkDestroyBuffer, this->handle);
     }
 
-    VkBufferView GraphicsDevice::CreateBufferView(VkBufferViewCreateInfo* pCreateInfo)
+    VkBufferView GraphicsDevice::CreateBufferView(VkBufferViewCreateInfo* pCreateInfo, const char* name)
     {
         VkBufferView result{};
         VkCheck(vkCreateBufferView(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_BUFFER_VIEW, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -401,10 +412,11 @@ namespace Ygg
         DestroyVkObject(pBufferView, vkDestroyBufferView, this->handle);
     }
 
-    VkImage GraphicsDevice::CreateImage(VkImageCreateInfo* pCreateInfo)
+    VkImage GraphicsDevice::CreateImage(VkImageCreateInfo* pCreateInfo, const char* name)
     {
         VkImage result{};
         VkCheck(vkCreateImage(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_IMAGE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -414,10 +426,11 @@ namespace Ygg
         DestroyVkObject(pImage, vkDestroyImage, this->handle);
     }
 
-    VkImageView GraphicsDevice::CreateImageView(VkImageViewCreateInfo* pCreateInfo)
+    VkImageView GraphicsDevice::CreateImageView(VkImageViewCreateInfo* pCreateInfo, const char* name)
     {
         VkImageView result{};
         VkCheck(vkCreateImageView(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_IMAGE_VIEW, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -427,10 +440,11 @@ namespace Ygg
         DestroyVkObject(pImageView, vkDestroyImageView, this->handle);
     }
 
-    VkPipeline GraphicsDevice::CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache)
+    VkPipeline GraphicsDevice::CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name)
     {
         VkPipeline result{};
         VkCheck(vkCreateGraphicsPipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -440,18 +454,20 @@ namespace Ygg
         DestroyVkObject(pPipeline, vkDestroyPipeline, this->handle);
     }
 
-    VkPipeline GraphicsDevice::CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache)
+    VkPipeline GraphicsDevice::CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name)
     {
         VkPipeline result{};
         VkCheck(vkCreateComputePipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    VkShaderModule GraphicsDevice::CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo)
+    VkShaderModule GraphicsDevice::CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo, const char* name)
     {
         VkShaderModule result{};
         VkCheck(vkCreateShaderModule(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SHADER_MODULE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -461,10 +477,11 @@ namespace Ygg
         DestroyVkObject(pShaderModule, vkDestroyShaderModule, this->handle);
     }
 
-    VkPipelineCache GraphicsDevice::CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo)
+    VkPipelineCache GraphicsDevice::CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo, const char* name)
     {
         VkPipelineCache result{};
         VkCheck(vkCreatePipelineCache(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE_CACHE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -474,10 +491,11 @@ namespace Ygg
         DestroyVkObject(pPipelineCache, vkDestroyPipelineCache, this->handle);
     }
 
-    VkSampler GraphicsDevice::CreateSampler(VkSamplerCreateInfo* pCreateInfo)
+    VkSampler GraphicsDevice::CreateSampler(VkSamplerCreateInfo* pCreateInfo, const char* name)
     {
         VkSampler result{};
         VkCheck(vkCreateSampler(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SAMPLER, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -487,10 +505,11 @@ namespace Ygg
         DestroyVkObject(pSampler, vkDestroySampler, this->handle);
     }
 
-    VkFramebuffer GraphicsDevice::CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo)
+    VkFramebuffer GraphicsDevice::CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo, const char* name)
     {
         VkFramebuffer result{};
         VkCheck(vkCreateFramebuffer(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_FRAMEBUFFER, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -500,10 +519,11 @@ namespace Ygg
         DestroyVkObject(pFramebuffer, vkDestroyFramebuffer, this->handle);
     }
 
-    VkPipelineLayout GraphicsDevice::CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo)
+    VkPipelineLayout GraphicsDevice::CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo, const char* name)
     {
         VkPipelineLayout result{};
         VkCheck(vkCreatePipelineLayout(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE_LAYOUT, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -513,10 +533,11 @@ namespace Ygg
         DestroyVkObject(pPipelineLayout, vkDestroyPipelineLayout, this->handle);
     }
 
-    VkRenderPass GraphicsDevice::CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo)
+    VkRenderPass GraphicsDevice::CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo, const char* name)
     {
         VkRenderPass result{};
         VkCheck(vkCreateRenderPass(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_RENDER_PASS, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -526,10 +547,11 @@ namespace Ygg
         DestroyVkObject(pRenderPass, vkDestroyRenderPass, this->handle);
     }
 
-    VkSemaphore GraphicsDevice::CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo)
+    VkSemaphore GraphicsDevice::CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo, const char* name)
     {
         VkSemaphore result{};
         VkCheck(vkCreateSemaphore(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SEMAPHORE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -539,10 +561,11 @@ namespace Ygg
         DestroyVkObject(pSemaphore, vkDestroySemaphore, this->handle);
     }
 
-    VkFence GraphicsDevice::CreateFence(VkFenceCreateInfo* pCreateInfo)
+    VkFence GraphicsDevice::CreateFence(VkFenceCreateInfo* pCreateInfo, const char* name)
     {
         VkFence result{};
         VkCheck(vkCreateFence(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_FENCE, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -552,10 +575,11 @@ namespace Ygg
         DestroyVkObject(pFence, vkDestroyFence, this->handle);
     }
 
-    VkEvent GraphicsDevice::CreateEvent(VkEventCreateInfo* pCreateInfo)
+    VkEvent GraphicsDevice::CreateEvent(VkEventCreateInfo* pCreateInfo, const char* name)
     {
         VkEvent result{};
         VkCheck(vkCreateEvent(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_EVENT, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -565,10 +589,11 @@ namespace Ygg
         DestroyVkObject(pEvent, vkDestroyEvent, this->handle);
     }
 
-    VkQueryPool GraphicsDevice::CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo)
+    VkQueryPool GraphicsDevice::CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo, const char* name)
     {
         VkQueryPool result{};
         VkCheck(vkCreateQueryPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_QUERY_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -578,10 +603,11 @@ namespace Ygg
         DestroyVkObject(pQueryPool, vkDestroyQueryPool, this->handle);
     }
 
-    VkDescriptorPool GraphicsDevice::CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo)
+    VkDescriptorPool GraphicsDevice::CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo, const char* name)
     {
         VkDescriptorPool result{};
         VkCheck(vkCreateDescriptorPool(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_DESCRIPTOR_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
@@ -626,10 +652,11 @@ namespace Ygg
         return vkAcquireNextImage2KHR(this->handle, pAcquireInfo, pIndex);
     }
 
-    VkSwapchainKHR GraphicsDevice::CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo)
+    VkSwapchainKHR GraphicsDevice::CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo, const char* name)
     {
         VkSwapchainKHR result{};
         VkCheck(vkCreateSwapchainKHR(this->handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SWAPCHAIN_KHR, name);
         YGG_ASSERT(result);
         return result;
     }

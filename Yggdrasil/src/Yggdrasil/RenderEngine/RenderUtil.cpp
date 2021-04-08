@@ -55,61 +55,61 @@ namespace Ygg
     {
         switch (feature)
         {
-        case  0: return "robustBufferAccess;                     ";
-        case  1: return "fullDrawIndexUint32;                    ";
-        case  2: return "imageCubeArray;                         ";
-        case  3: return "independentBlend;                       ";
-        case  4: return "geometryShader;                         ";
-        case  5: return "tessellationShader;                     ";
-        case  6: return "sampleRateShading;                      ";
-        case  7: return "dualSrcBlend;                           ";
-        case  8: return "logicOp;                                ";
-        case  9: return "multiDrawIndirect;                      ";
-        case 10: return "drawIndirectFirstInstance;              ";
-        case 11: return "depthClamp;                             ";
-        case 12: return "depthBiasClamp;                         ";
-        case 13: return "fillModeNonSolid;                       ";
-        case 14: return "depthBounds;                            ";
-        case 15: return "wideLines;                              ";
-        case 16: return "largePoints;                            ";
-        case 17: return "alphaToOne;                             ";
-        case 18: return "multiViewport;                          ";
-        case 19: return "samplerAnisotropy;                      ";
-        case 20: return "textureCompressionETC2;                 ";
-        case 21: return "textureCompressionASTC_LDR;             ";
-        case 22: return "textureCompressionBC;                   ";
-        case 23: return "occlusionQueryPrecise;                  ";
-        case 24: return "pipelineStatisticsQuery;                ";
-        case 25: return "vertexPipelineStoresAndAtomics;         ";
-        case 26: return "fragmentStoresAndAtomics;               ";
-        case 27: return "shaderTessellationAndGeometryPointSize; ";
-        case 28: return "shaderImageGatherExtended;              ";
-        case 29: return "shaderStorageImageExtendedFormats;      ";
-        case 30: return "shaderStorageImageMultisample;          ";
-        case 31: return "shaderStorageImageReadWithoutFormat;    ";
-        case 32: return "shaderStorageImageWriteWithoutFormat;   ";
-        case 33: return "shaderUniformBufferArrayDynamicIndexing;";
-        case 34: return "shaderSampledImageArrayDynamicIndexing; ";
-        case 35: return "shaderStorageBufferArrayDynamicIndexing;";
-        case 36: return "shaderStorageImageArrayDynamicIndexing; ";
-        case 37: return "shaderClipDistance;                     ";
-        case 38: return "shaderCullDistance;                     ";
-        case 39: return "shaderFloat64;                          ";
-        case 40: return "shaderInt64;                            ";
-        case 41: return "shaderInt16;                            ";
-        case 42: return "shaderResourceResidency;                ";
-        case 43: return "shaderResourceMinLod;                   ";
-        case 44: return "sparseBinding;                          ";
-        case 45: return "sparseResidencyBuffer;                  ";
-        case 46: return "sparseResidencyImage2D;                 ";
-        case 47: return "sparseResidencyImage3D;                 ";
-        case 48: return "sparseResidency2Samples;                ";
-        case 49: return "sparseResidency4Samples;                ";
-        case 50: return "sparseResidency8Samples;                ";
-        case 51: return "sparseResidency16Samples;               ";
-        case 52: return "sparseResidencyAliased;                 ";
-        case 53: return "variableMultisampleRate;                ";
-        case 54: return "inheritedQueries;                       ";
+        case  0: return "robustBufferAccess";
+        case  1: return "fullDrawIndexUint32";
+        case  2: return "imageCubeArray";
+        case  3: return "independentBlend";
+        case  4: return "geometryShader";
+        case  5: return "tessellationShader";
+        case  6: return "sampleRateShading";
+        case  7: return "dualSrcBlend";
+        case  8: return "logicOp";
+        case  9: return "multiDrawIndirect";
+        case 10: return "drawIndirectFirstInstance";
+        case 11: return "depthClamp";
+        case 12: return "depthBiasClamp";
+        case 13: return "fillModeNonSolid";
+        case 14: return "depthBounds";
+        case 15: return "wideLines";
+        case 16: return "largePoints";
+        case 17: return "alphaToOne";
+        case 18: return "multiViewport";
+        case 19: return "samplerAnisotropy";
+        case 20: return "textureCompressionETC2";
+        case 21: return "textureCompressionASTC_LDR";
+        case 22: return "textureCompressionBC";
+        case 23: return "occlusionQueryPrecise";
+        case 24: return "pipelineStatisticsQuery";
+        case 25: return "vertexPipelineStoresAndAtomics";
+        case 26: return "fragmentStoresAndAtomics";
+        case 27: return "shaderTessellationAndGeometryPointSize";
+        case 28: return "shaderImageGatherExtended";
+        case 29: return "shaderStorageImageExtendedFormats";
+        case 30: return "shaderStorageImageMultisample";
+        case 31: return "shaderStorageImageReadWithoutFormat";
+        case 32: return "shaderStorageImageWriteWithoutFormat";
+        case 33: return "shaderUniformBufferArrayDynamicIndexing";
+        case 34: return "shaderSampledImageArrayDynamicIndexing";
+        case 35: return "shaderStorageBufferArrayDynamicIndexing";
+        case 36: return "shaderStorageImageArrayDynamicIndexing";
+        case 37: return "shaderClipDistance";
+        case 38: return "shaderCullDistance";
+        case 39: return "shaderFloat64";
+        case 40: return "shaderInt64";
+        case 41: return "shaderInt16";
+        case 42: return "shaderResourceResidency";
+        case 43: return "shaderResourceMinLod";
+        case 44: return "sparseBinding";
+        case 45: return "sparseResidencyBuffer";
+        case 46: return "sparseResidencyImage2D";
+        case 47: return "sparseResidencyImage3D";
+        case 48: return "sparseResidency2Samples";
+        case 49: return "sparseResidency4Samples";
+        case 50: return "sparseResidency8Samples";
+        case 51: return "sparseResidency16Samples";
+        case 52: return "sparseResidencyAliased";
+        case 53: return "variableMultisampleRate";
+        case 54: return "inheritedQueries";
         default: return "";
         }
     }
@@ -118,18 +118,18 @@ namespace Ygg
     {
         switch (feature)
         {
-        case  0: return "returnstorageBuffer16BitAccess";
-        case  1: return "returnuniformAndStorageBuffer16BitAccess";
-        case  2: return "returnstoragePushConstant16";
-        case  3: return "returnstorageInputOutput16";
-        case  4: return "returnmultiview";
-        case  5: return "returnmultiviewGeometryShader";
-        case  6: return "returnmultiviewTessellationShader";
-        case  7: return "returnvariablePointersStorageBuffer";
-        case  8: return "returnvariablePointers";
-        case  9: return "returnprotectedMemory";
-        case 10: return "returnsamplerYcbcrConversion";
-        case 11: return "returnshaderDrawParameters";
+        case  0: return "storageBuffer16BitAccess";
+        case  1: return "uniformAndStorageBuffer16BitAccess";
+        case  2: return "storagePushConstant16";
+        case  3: return "storageInputOutput16";
+        case  4: return "multiview";
+        case  5: return "multiviewGeometryShader";
+        case  6: return "multiviewTessellationShader";
+        case  7: return "variablePointersStorageBuffer";
+        case  8: return "variablePointers";
+        case  9: return "protectedMemory";
+        case 10: return "samplerYcbcrConversion";
+        case 11: return "shaderDrawParameters";
         default: return "";
         }
     }
@@ -260,8 +260,28 @@ namespace Ygg
 
     void DestroyDebugMessenger(VkInstance instance)
     {
-#if YGG_USE_ASSERTS
         vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-#endif
+    }
+
+    PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
+    PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT{};
+    PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT{};
+    PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT{};
+
+    void InitDebugExtensions(VkInstance instance)
+    {
+        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
+        vkCmdDebugMarkerBeginEXT = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT"));
+        vkCmdDebugMarkerEndEXT = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT"));
+        vkCmdDebugMarkerInsertEXT = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT"));
+    }
+
+    void SetVkObjectDebugName(VkDevice device, uint64_t handle, VkObjectType type, const char* name)
+    {
+        VkDebugUtilsObjectNameInfoEXT info{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+        info.objectType = type;
+        info.objectHandle = handle;
+        info.pObjectName = name;
+        vkSetDebugUtilsObjectNameEXT(device, &info);
     }
 }

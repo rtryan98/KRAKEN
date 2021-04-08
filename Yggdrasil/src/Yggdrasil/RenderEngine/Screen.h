@@ -15,12 +15,17 @@ namespace Ygg
         VkFormat swapchainImageFormat;
         uint32_t swapchainImageCount;
         std::vector<VkImage> swapchainImages;
+        VkFramebuffer swapchainFramebuffer;
+        VkRenderPass swapchainRenderPass;
 
         void CreateSurface(GraphicsContext* const pNewContext, Window* window);
         void CreateSwapchain();
         void Destroy();
 
     private:
+        void CreateRenderPass();
+        void CreateFramebuffer();
+
         GraphicsContext* pContext;
         Window* pWindow;
     };

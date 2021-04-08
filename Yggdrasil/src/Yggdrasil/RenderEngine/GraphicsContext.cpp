@@ -42,13 +42,23 @@ namespace Ygg
 
 #if YGG_USE_ASSERTS
         CreateDebugMessenger(this->instance);
+        InitDebugExtensions(this->instance);
 #endif
         VkPhysicalDeviceFeatures vulkan10Features{};
+        vulkan10Features.tessellationShader = VK_TRUE;
+        vulkan10Features.textureCompressionBC = VK_TRUE;
+        vulkan10Features.samplerAnisotropy = VK_TRUE;
+        vulkan10Features.multiDrawIndirect = VK_TRUE;
+        vulkan10Features.imageCubeArray = VK_TRUE;
+        vulkan10Features.shaderInt16 = VK_TRUE;
+        vulkan10Features.shaderInt64 = VK_TRUE;
 
         VkPhysicalDeviceVulkan11Features vulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        vulkan11Features.shaderDrawParameters = VK_TRUE;
 
         VkPhysicalDeviceVulkan12Features vulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
         vulkan12Features.imagelessFramebuffer = VK_TRUE;
+        vulkan12Features.shaderInt8 = VK_TRUE;
 
         this->pDevice = new GraphicsDevice();
         this->pDevice->Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);

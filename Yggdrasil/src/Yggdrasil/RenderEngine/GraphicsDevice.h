@@ -51,56 +51,56 @@ namespace Ygg
 
         void PushObjectDeletion(const std::function<void()>&& mFunction);
 
-        VkCommandPool CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo);
+        VkCommandPool CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyCommandPool(VkCommandPool* pPool);
 
-        VkBuffer CreateBuffer(VkBufferCreateInfo* pCreateInfo);
+        VkBuffer CreateBuffer(VkBufferCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyBuffer(VkBuffer* pBuffer);
 
-        VkBufferView CreateBufferView(VkBufferViewCreateInfo* pCreateInfo);
+        VkBufferView CreateBufferView(VkBufferViewCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyBufferView(VkBufferView* pBufferView);
 
-        VkImage CreateImage(VkImageCreateInfo* pCreateInfo);
+        VkImage CreateImage(VkImageCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyImage(VkImage* pImage);
 
-        VkImageView CreateImageView(VkImageViewCreateInfo* pCreateInfo);
+        VkImageView CreateImageView(VkImageViewCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyImageView(VkImageView* pImageView);
 
-        VkPipeline CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache = VK_NULL_HANDLE);
-        VkPipeline CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache = VK_NULL_HANDLE);
+        VkPipeline CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache = VK_NULL_HANDLE, const char* name = nullptr);
+        VkPipeline CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache = VK_NULL_HANDLE, const char* name = nullptr);
         void DestroyPipeline(VkPipeline* pPipeline);
 
-        VkShaderModule CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo);
+        VkShaderModule CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyShaderModule(VkShaderModule* pShaderModule);
 
-        VkPipelineCache CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo);
+        VkPipelineCache CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyPipelineCache(VkPipelineCache* pPipelineCache);
 
-        VkSampler CreateSampler(VkSamplerCreateInfo* pCreateInfo);
+        VkSampler CreateSampler(VkSamplerCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroySampler(VkSampler* pSampler);
 
-        VkFramebuffer CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo);
+        VkFramebuffer CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyFramebuffer(VkFramebuffer* pFramebuffer);
 
-        VkPipelineLayout CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo);
+        VkPipelineLayout CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyPipelineLayout(VkPipelineLayout* pPipelineLayout);
 
-        VkRenderPass CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo);
+        VkRenderPass CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyRenderPass(VkRenderPass* pRenderPass);
 
-        VkSemaphore CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo);
+        VkSemaphore CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroySemaphore(VkSemaphore* pSemaphore);
 
-        VkFence CreateFence(VkFenceCreateInfo* pCreateInfo);
+        VkFence CreateFence(VkFenceCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyFence(VkFence* pFence);
 
-        VkEvent CreateEvent(VkEventCreateInfo* pCreateInfo);
+        VkEvent CreateEvent(VkEventCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyEvent(VkEvent* pEvent);
 
-        VkQueryPool CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo);
+        VkQueryPool CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyQueryPool(VkQueryPool* pQueryPool);
 
-        VkDescriptorPool CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo);
+        VkDescriptorPool CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo, const char* name = nullptr);
         void DestroyDescriptorPool(VkDescriptorPool* pPool);
 
         void BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset);
@@ -114,7 +114,7 @@ namespace Ygg
         // VK_KHR_swapchain
         VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex);
         VkResult AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex);
-        VkSwapchainKHR CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo);
+        VkSwapchainKHR CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo, const char* name = nullptr);
         void DestroySwapchainKHR(VkSwapchainKHR* pSwapchain);
 
     private:

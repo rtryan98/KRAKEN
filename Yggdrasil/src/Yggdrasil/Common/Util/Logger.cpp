@@ -10,10 +10,10 @@ namespace Ygg
 
     void Logger::Init()
     {
-        spdlog::set_pattern("%^[%T] %n: %v%$");
+        spdlog::set_pattern("[%T] %n: %^%v%$");
         Logger::engineLogger = spdlog::stdout_color_mt("Yggdrasil Engine");
         Logger::engineLogger->set_level(spdlog::level::trace);
-        Logger::validationLogger = spdlog::stdout_color_mt("Vulkan");
+        Logger::validationLogger = spdlog::stdout_color_mt("Vulkan Validation");
         Logger::validationLogger->set_level(spdlog::level::trace);
     }
 

@@ -6,29 +6,29 @@
 
 namespace Ygg
 {
-    Engine* engine{ nullptr };
+    CEngine* engine{ nullptr };
 
-    void Init(const InitInfo& initInfo)
+    void Init(const SInitInfo& initInfo)
     {
         if (initInfo.pGame == nullptr)
         {
             std::terminate();
         }
-        engine = new Engine();
-        Engine::Init(initInfo);
+        engine = new CEngine();
+        CEngine::Init(initInfo);
     }
 
     void Run()
     {
-        while (Engine::IsRunning())
+        while (CEngine::IsRunning())
         {
-            Engine::Update();
+            CEngine::Update();
         }
     }
 
     void Shutdown()
     {
-        Engine::ShutDown();
+        CEngine::Shutdown();
         delete engine;
     }
 }

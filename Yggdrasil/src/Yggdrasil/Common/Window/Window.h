@@ -5,33 +5,34 @@
 
 namespace Ygg
 {
-    struct WindowCreateInfo
+    struct SWindowCreateInfo
     {
         uint32_t width{ 1920 };
         uint32_t height{ 1080 };
-        std::string title{ "Yggdrasil Engine" };
+        std::string title{ "Yggdrasil CEngine" };
     };
 
-    class Window
+    class CWindow
     {
     public:
-        void Create(const WindowCreateInfo& windowCreateInfo) noexcept;
+        void Create(const SWindowCreateInfo& windowCreateInfo) noexcept;
         void Destroy() noexcept;
         void Update() noexcept;
         bool IsClosed() noexcept;
         void SetTitle(const std::string& title) noexcept;
 
+        // TODO: this is bad, should be private
         using HINSTANCE = void*;
-        HINSTANCE hInstance{};
+        HINSTANCE m_hInstance{};
         using HWND = void*;
-        HWND hwnd{};
+        HWND m_hwnd{};
 
-        struct WindowData
+        struct SWindowData
         {
             uint32_t width;
             uint32_t height;
             std::string title;
             bool isClosed;
-        } data{};
+        } m_data{};
     };
 }

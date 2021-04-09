@@ -4,48 +4,53 @@
 
 namespace Ygg
 {
-    Engine* Engine::instance = nullptr;
+    CEngine* CEngine::s_instance = nullptr;
 
-    Engine::Engine()
+    CEngine::CEngine()
     {
-        Engine::instance = this;
+        CEngine::s_instance = this;
     }
 
-    bool Engine::IsRunning()
+    bool CEngine::IsRunning()
     {
-        return Engine::instance->isRunning;
+        return CEngine::s_instance->m_isRunning;
     }
 
-    Window& Engine::GetWindow()
+    const CWindow& CEngine::GetWindow()
     {
-        return Engine::instance->window;
+        return CEngine::s_instance->m_window;
     }
 
-    void Engine::Init(const InitInfo& initInfo)
+    CWindow& CEngine::GetWindowNonConst()
     {
-        Logger::Init();
-        Engine::instance->window.Create(initInfo.windowCreateInfo);
-        Engine::instance->renderEngine.Init();
-        Engine::instance->game = initInfo.pGame;
-        Engine::instance->game->Init();
-        Engine::instance->isRunning = true;
+        return CEngine::s_instance->m_window;
     }
 
-    void Engine::Update()
+    void CEngine::Init(const SInitInfo& initInfo)
     {
-        Engine::instance->window.Update();
-        Engine::instance->game->Update();
-        Engine::instance->renderEngine.Render();
-        if (Engine::instance->window.IsClosed())
+        CLogger::Init();
+        CEngine::s_instance->m_window.Create(initInfo.windowCreateInfo);
+        CEngine::s_instance->m_renderEngine.Init();
+        CEngine::s_instance->m_game = initInfo.pGame;
+        CEngine::s_instance->m_game->Init();
+        CEngine::s_instance->m_isRunning = true;
+    }
+
+    void CEngine::Update()
+    {
+        CEngine::s_instance->m_window.Update();
+        CEngine::s_instance->m_game->Update();
+        CEngine::s_instance->m_renderEngine.Render();
+        if (CEngine::s_instance->m_window.IsClosed())
         {
-            Engine::instance->isRunning = false;
+            CEngine::s_instance->m_isRunning = false;
         }
     }
 
-    void Engine::ShutDown()
+    void CEngine::Shutdown()
     {
-        Engine::instance->renderEngine.Shutdown();
-        Engine::instance->game->Shutdown();
-        Logger::Shutdown();
+        CEngine::s_instance->m_renderEngine.Shutdown();
+        CEngine::s_instance->m_game->Shutdown();
+        CLogger::Shutdown();
     }
 }

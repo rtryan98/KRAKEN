@@ -5,21 +5,21 @@
 
 namespace Ygg
 {
-    class RenderEngine
+    class CRenderEngine
     {
     public:
         void Init();
         void Render();
         void Shutdown();
-        GraphicsContext& GetGraphicsContext();
+        const CGraphicsContext& GetGraphicsContext() const;
 
     private:
-        GraphicsContext context{};
+        CGraphicsContext m_context{};
 
-        struct PerFrame
+        struct SPerFrame
         {
 
         };
-        std::vector<PerFrame> frames{};
+        std::vector<SPerFrame> m_frames{};
     };
 }

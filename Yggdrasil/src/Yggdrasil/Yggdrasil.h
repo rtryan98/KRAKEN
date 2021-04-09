@@ -5,21 +5,20 @@
 
 namespace Ygg
 {
-    class Game
+    struct IGame
     {
-    public:
-        virtual void Init();
-        virtual void Update();
-        virtual void Shutdown();
+        virtual void Init() {};
+        virtual void Update() {};
+        virtual void Shutdown() {};
     };
 
-    struct InitInfo
+    struct SInitInfo
     {
-        WindowCreateInfo windowCreateInfo{};
-        Game* pGame{};
+        SWindowCreateInfo windowCreateInfo{};
+        IGame* pGame{};
     };
 
-    void Init(const InitInfo& pInitInfo);
+    void Init(const SInitInfo& pInitInfo);
     void Run();
     void Shutdown();
 }

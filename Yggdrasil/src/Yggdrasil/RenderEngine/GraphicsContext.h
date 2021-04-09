@@ -6,18 +6,19 @@
 
 namespace Ygg
 {
-    class GraphicsContext
+    class CGraphicsContext
     {
     public:
         void Create();
         void Destroy();
-        Screen& GetScreen();
-        VkInstance GetVkInstance();
-        GraphicsDevice* const GetGraphicsDevice();
+        const CScreen& GetScreen() const;
+        VkInstance GetVkInstance() const;
+        const CGraphicsDevice& GetGraphicsDevice() const;
+        CGraphicsDevice& GetGraphicsDeviceNonConst();
 
     private:
-        VkInstance instance{};
-        GraphicsDevice* pDevice{};
-        Screen screen{};
+        VkInstance m_instance{};
+        CGraphicsDevice m_device{};
+        CScreen m_screen{};
     };
 }

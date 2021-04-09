@@ -4,24 +4,24 @@
 
 namespace Ygg
 {
-    void RenderEngine::Init()
+    void CRenderEngine::Init()
     {
-        this->context.Create();
-        this->frames.resize(this->context.GetScreen().GetData().swapchainImageCount);
+        this->m_context.Create();
+        this->m_frames.resize(this->m_context.GetScreen().GetData().swapchainImageCount);
     }
 
-    void RenderEngine::Render()
+    void CRenderEngine::Render()
     {
 
     }
 
-    void RenderEngine::Shutdown()
+    void CRenderEngine::Shutdown()
     {
-        this->context.Destroy();
+        this->m_context.Destroy();
     }
 
-    GraphicsContext& RenderEngine::GetGraphicsContext()
+    const CGraphicsContext& CRenderEngine::GetGraphicsContext() const
     {
-        return this->context;
+        return this->m_context;
     }
 }

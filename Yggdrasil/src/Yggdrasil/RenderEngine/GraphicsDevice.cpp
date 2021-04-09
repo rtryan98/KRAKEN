@@ -9,32 +9,32 @@
 
 namespace Ygg
 {
-    GraphicsDevice::GPU::Data& GraphicsDevice::GPU::GetData()
+    CGraphicsDevice::CGPU::SData& CGraphicsDevice::CGPU::GetData()
     {
-        return this->data;
+        return this->m_data;
     }
 
-    bool GraphicsDevice::GPU::GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface)
+    bool CGraphicsDevice::CGPU::GetSurfaceSupportKHR(uint32_t queueFamilyIndex, VkSurfaceKHR surface) const
     {
         VkBool32 result{};
-        vkGetPhysicalDeviceSurfaceSupportKHR(this->data.handle, queueFamilyIndex, surface, &result);
+        vkGetPhysicalDeviceSurfaceSupportKHR(this->m_data.handle, queueFamilyIndex, surface, &result);
         return result;
     }
 
-    void GraphicsDevice::GPU::GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes)
+    void CGraphicsDevice::CGPU::GetSurfacePresentModesKHR(VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) const
     {
-        vkGetPhysicalDeviceSurfacePresentModesKHR(this->data.handle, surface, pPresentModeCount, pPresentModes);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(this->m_data.handle, surface, pPresentModeCount, pPresentModes);
     }
 
-    void GraphicsDevice::GPU::GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats)
+    void CGraphicsDevice::CGPU::GetSurfaceFormatsKHR(VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats) const
     {
-        vkGetPhysicalDeviceSurfaceFormatsKHR(this->data.handle, surface, pSurfaceFormatCount, pSurfaceFormats);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(this->m_data.handle, surface, pSurfaceFormatCount, pSurfaceFormats);
     }
 
-    VkSurfaceCapabilitiesKHR GraphicsDevice::GPU::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface)
+    VkSurfaceCapabilitiesKHR CGraphicsDevice::CGPU::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface) const
     {
         VkSurfaceCapabilitiesKHR result{};
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->data.handle, surface, &result);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->m_data.handle, surface, &result);
         return result;
     }
 
@@ -77,26 +77,26 @@ namespace Ygg
         }
     }
 
-    void PrintGpuInfo(GraphicsDevice* pDevice)
+    void CGraphicsDevice::CGPU::PrintGpuInfo() const
     {
         YGG_INFO("Selected GPU '{0} {1}'",
-            PciToString(pDevice->GetGPU().GetData().vulkan10Properties.vendorID),
-            pDevice->GetGPU().GetData().vulkan10Properties.deviceName);
+            PciToString(this->m_data.vulkan10Properties.vendorID),
+            this->m_data.vulkan10Properties.deviceName);
     }
 
-    void PrintGpuMemoryInfo(GraphicsDevice* pDevice)
+    void CGraphicsDevice::CGPU::PrintGpuMemoryInfo() const
     {
         std::string seperator{ "------|------|--------------|--------------|---------------|-------------|------------------|-----------|--------------" };
         std::stringstream table{};
         table << "Vulkan Memory Information.\n";
         table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
-        for (uint32_t i{ 0 }; i < pDevice->GetGPU().GetData().memoryProperties.memoryHeapCount; i++)
+        for (uint32_t i{ 0 }; i < this->m_data.memoryProperties.memoryHeapCount; i++)
         {
             table << "\n" << seperator;
-            auto& heap{ pDevice->GetGPU().GetData().memoryProperties.memoryHeaps[i] };
-            for (uint32_t j{ 0 }; j < pDevice->GetGPU().GetData().memoryProperties.memoryTypeCount; j++)
+            const VkMemoryHeap heap{ this->m_data.memoryProperties.memoryHeaps[i] };
+            for (uint32_t j{ 0 }; j < this->m_data.memoryProperties.memoryTypeCount; j++)
             {
-                auto& memoryType{ pDevice->GetGPU().GetData().memoryProperties.memoryTypes[j] };
+                const VkMemoryType memoryType{ this->m_data.memoryProperties.memoryTypes[j] };
                 if (memoryType.heapIndex != i)
                 {
                     continue;
@@ -158,12 +158,12 @@ namespace Ygg
         YGG_INFO(table.str());
     }
 
-    void SelectPhysicalDevice(GraphicsDevice* pDevice, GraphicsContext* pContext)
+    void CGraphicsDevice::CGPU::SelectPhysicalDevice(CGraphicsContext* pContext)
     {
         uint32_t deviceCount{ 0 };
-        VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, nullptr));
+        RenderUtil::VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, nullptr));
         std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-        VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, physicalDevices.data()));
+        RenderUtil::VkCheck(vkEnumeratePhysicalDevices(pContext->GetVkInstance(), &deviceCount, physicalDevices.data()));
 
         VkPhysicalDevice fallback{ physicalDevices[0] };
         VkPhysicalDevice selected{ fallback };
@@ -176,30 +176,30 @@ namespace Ygg
                 selected = physicalDevices[i];
             }
         }
-        pDevice->GetGPU().GetData().handle = selected;
-        vkGetPhysicalDeviceMemoryProperties(pDevice->GetGPU().GetData().handle, &pDevice->GetGPU().GetData().memoryProperties);
-        vkGetPhysicalDeviceProperties(pDevice->GetGPU().GetData().handle, &pDevice->GetGPU().GetData().vulkan10Properties);
+        this->m_data.handle = selected;
+        vkGetPhysicalDeviceMemoryProperties(this->m_data.handle, &this->m_data.memoryProperties);
+        vkGetPhysicalDeviceProperties(this->m_data.handle, &this->m_data.vulkan10Properties);
         VkPhysicalDeviceProperties2 props{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
-        props.pNext = &pDevice->GetGPU().GetData().vulkan11Properties;
-        pDevice->GetGPU().GetData().vulkan11Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
-        pDevice->GetGPU().GetData().vulkan11Properties.pNext = &pDevice->GetGPU().GetData().vulkan12Properties;
-        pDevice->GetGPU().GetData().vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
-        vkGetPhysicalDeviceProperties2(pDevice->GetGPU().GetData().handle, &props);
-        PrintGpuInfo(pDevice);
-        PrintGpuMemoryInfo(pDevice);
+        props.pNext = &this->m_data.vulkan11Properties;
+        this->m_data.vulkan11Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
+        this->m_data.vulkan11Properties.pNext = &this->m_data.vulkan12Properties;
+        this->m_data.vulkan12Properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+        vkGetPhysicalDeviceProperties2(this->m_data.handle, &props);
+        PrintGpuInfo();
+        PrintGpuMemoryInfo();
     }
 
-    void GraphicsDevice::Create(GraphicsContext* pContext,
+    void CGraphicsDevice::Create(CGraphicsContext* pContext,
         VkPhysicalDeviceFeatures* pRequestedVulkan10Features,
         VkPhysicalDeviceVulkan11Features* pRequestedVulkan11Features,
         VkPhysicalDeviceVulkan12Features* pRequestedVulkan12Features)
     {
-        SelectPhysicalDevice(this, pContext);
+        this->m_gpu.SelectPhysicalDevice(pContext);
 
         uint32_t queueFamilyCount{ 0 };
-        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.GetData().handle, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(this->m_gpu.GetData().handle, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(this->gpu.GetData().handle, &queueFamilyCount, queueFamilyProperties.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(this->m_gpu.GetData().handle, &queueFamilyCount, queueFamilyProperties.data());
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
 
         VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
@@ -220,7 +220,7 @@ namespace Ygg
                 !mainQueueFound)
             {
                 mainQueueFound = true;
-                this->queues.mainQueueFamilyIndex = i;
+                this->m_queues.mainQueueFamilyIndex = i;
                 queueCreateInfos.push_back(queueCreateInfo);
             }
             else if (QueueFamilySupportsCompute(queueFamilyProperties[i]) &&
@@ -229,7 +229,7 @@ namespace Ygg
                 !asyncComputeQueueFound)
             {
                 asyncComputeQueueFound = true;
-                this->queues.asyncComputeQueueFamilyIndex = i;
+                this->m_queues.asyncComputeQueueFamilyIndex = i;
                 queueCreateInfos.push_back(queueCreateInfo);
             }
             else if (QueueFamilySupportsTransfer(queueFamilyProperties[i]) &&
@@ -238,7 +238,7 @@ namespace Ygg
                 !copyQueueFound)
             {
                 copyQueueFound = true;
-                this->queues.copyQueueFamilyIndex = i;
+                this->m_queues.copyQueueFamilyIndex = i;
                 queueCreateInfos.push_back(queueCreateInfo);
             }
         }
@@ -250,14 +250,14 @@ namespace Ygg
         availableVulkan10Features.pNext = &availableVulkan11Features;
         availableVulkan11Features.pNext = &availableVulkan12Features;
 
-        vkGetPhysicalDeviceFeatures2(this->gpu.GetData().handle, &availableVulkan10Features);
+        vkGetPhysicalDeviceFeatures2(this->m_gpu.GetData().handle, &availableVulkan10Features);
 
-        this->features.enabledVulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        this->features.enabledVulkan10Features.pNext = &this->features.enabledVulkan11Features;
-        this->features.enabledVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-        this->features.enabledVulkan11Features.pNext = &this->features.enabledVulkan12Features;
-        this->features.enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        this->features.enabledVulkan12Features.pNext = nullptr;
+        this->m_features.enabledVulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        this->m_features.enabledVulkan10Features.pNext = &this->m_features.enabledVulkan11Features;
+        this->m_features.enabledVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        this->m_features.enabledVulkan11Features.pNext = &this->m_features.enabledVulkan12Features;
+        this->m_features.enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        this->m_features.enabledVulkan12Features.pNext = nullptr;
 
         YGG_TRACE("Checking for enabled Vulkan Core Features...");
         if (pRequestedVulkan10Features != nullptr)
@@ -268,13 +268,13 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->features.enabledVulkan10Features.features.robustBufferAccess) + i };
+                    VkBool32* feature{ (&this->m_features.enabledVulkan10Features.features.robustBufferAccess) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", VkDeviceFeatures10ToString(i));
+                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures10ToString(i));
                 }
                 else if(requested[i])
                 {
-                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures10ToString(i));
+                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures10ToString(i));
                 }
             }
         }
@@ -286,13 +286,13 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->features.enabledVulkan11Features.storageBuffer16BitAccess) + i };
+                    VkBool32* feature{ (&this->m_features.enabledVulkan11Features.storageBuffer16BitAccess) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", VkDeviceFeatures11ToString(i));
+                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures11ToString(i));
                 }
                 else if (requested[i])
                 {
-                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures11ToString(i));
+                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures11ToString(i));
                 }
             }
         }
@@ -304,13 +304,13 @@ namespace Ygg
             {
                 if (requested[i] && available[i])
                 {
-                    VkBool32* feature{ (&this->features.enabledVulkan12Features.samplerMirrorClampToEdge) + i };
+                    VkBool32* feature{ (&this->m_features.enabledVulkan12Features.samplerMirrorClampToEdge) + i };
                     *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", VkDeviceFeatures12ToString(i));
+                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures12ToString(i));
                 }
                 else if (requested[i])
                 {
-                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}' is NOT AVAILABLE.", VkDeviceFeatures12ToString(i));
+                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures12ToString(i));
                 }
             }
         }
@@ -324,14 +324,14 @@ namespace Ygg
         deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledDeviceExtensions.size());
         deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
         deviceCreateInfo.pEnabledFeatures = nullptr;
-        deviceCreateInfo.pNext = &this->features.enabledVulkan10Features;
+        deviceCreateInfo.pNext = &this->m_features.enabledVulkan10Features;
 
-        VkCheck(vkCreateDevice(this->gpu.GetData().handle, &deviceCreateInfo, nullptr, &this->handle));
-        YGG_ASSERT(this->handle);
+        RenderUtil::VkCheck(vkCreateDevice(this->m_gpu.GetData().handle, &deviceCreateInfo, nullptr, &this->m_handle));
+        YGG_ASSERT(this->m_handle);
 
         if (mainQueueFound)
         {
-            vkGetDeviceQueue(this->handle, this->queues.mainQueueFamilyIndex, 0, &this->queues.mainQueue);
+            vkGetDeviceQueue(this->m_handle, this->m_queues.mainQueueFamilyIndex, 0, &this->m_queues.mainQueue);
         }
         else
         {
@@ -339,355 +339,355 @@ namespace Ygg
         }
         if (asyncComputeQueueFound)
         {
-            vkGetDeviceQueue(this->handle, this->queues.asyncComputeQueueFamilyIndex, 0, &this->queues.asyncComputeQueue);
+            vkGetDeviceQueue(this->m_handle, this->m_queues.asyncComputeQueueFamilyIndex, 0, &this->m_queues.asyncComputeQueue);
         }
         else
         {
             YGG_INFO("No async compute queue family found. Mapping to main queue.");
-            vkGetDeviceQueue(this->handle, this->queues.mainQueueFamilyIndex, 0, &this->queues.asyncComputeQueue);
-            this->queues.asyncComputeQueueFamilyIndex = this->queues.mainQueueFamilyIndex;
+            vkGetDeviceQueue(this->m_handle, this->m_queues.mainQueueFamilyIndex, 0, &this->m_queues.asyncComputeQueue);
+            this->m_queues.asyncComputeQueueFamilyIndex = this->m_queues.mainQueueFamilyIndex;
         }
         if (copyQueueFound)
         {
-            vkGetDeviceQueue(this->handle, this->queues.copyQueueFamilyIndex, 0, &this->queues.copyQueue);
+            vkGetDeviceQueue(this->m_handle, this->m_queues.copyQueueFamilyIndex, 0, &this->m_queues.copyQueue);
         }
         else
         {
             YGG_INFO("No copy queue family found. Mapping to main queue.");
-            vkGetDeviceQueue(this->handle, this->queues.mainQueueFamilyIndex, 0, &this->queues.copyQueue);
-            this->queues.copyQueueFamilyIndex = this->queues.mainQueueFamilyIndex;
+            vkGetDeviceQueue(this->m_handle, this->m_queues.mainQueueFamilyIndex, 0, &this->m_queues.copyQueue);
+            this->m_queues.copyQueueFamilyIndex = this->m_queues.mainQueueFamilyIndex;
         }
     }
 
-    void GraphicsDevice::Destroy()
+    void CGraphicsDevice::Destroy()
     {
         WaitIdle();
-        for (auto it{ this->deletionQueue.rbegin() }; it != this->deletionQueue.rend(); it++)
+        for (auto it{ this->m_deletionQueue.rbegin() }; it != this->m_deletionQueue.rend(); it++)
         {
             (*it)();
         }
-        vkDestroyDevice(this->handle, nullptr);
+        vkDestroyDevice(this->m_handle, nullptr);
     }
 
-    GraphicsDevice::GPU& GraphicsDevice::GetGPU()
+    const CGraphicsDevice::CGPU& CGraphicsDevice::GetGPU() const
     {
-        return this->gpu;
+        return this->m_gpu;
     }
 
-    GraphicsDevice::Features& GraphicsDevice::GetFeatures()
+    const CGraphicsDevice::SFeatures& CGraphicsDevice::GetFeatures() const
     {
-        return this->features;
+        return this->m_features;
     }
 
-    VkDevice GraphicsDevice::GetHandle()
+    VkDevice CGraphicsDevice::GetHandle()
     {
-        return this->handle;
+        return this->m_handle;
     }
 
-    void GraphicsDevice::PushObjectDeletion(const std::function<void()>&& mFunction)
+    void CGraphicsDevice::PushObjectDeletion(const std::function<void()>&& mFunction)
     {
         YGG_TRACE("Called");
-        this->deletionQueue.push_back(mFunction);
+        this->m_deletionQueue.push_back(mFunction);
     }
 
-    VkCommandPool GraphicsDevice::CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name)
+    VkCommandPool CGraphicsDevice::CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name) const
     {
         VkCommandPool result{};
-        VkCheck(vkCreateCommandPool(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_COMMAND_POOL, name);
+        RenderUtil::VkCheck(vkCreateCommandPool(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_COMMAND_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyCommandPool(VkCommandPool* pPool)
+    void CGraphicsDevice::DestroyCommandPool(VkCommandPool* pPool)
     {
-        DestroyVkObject(pPool, vkDestroyCommandPool, this->handle);
+        RenderUtil::DestroyVkObject(pPool, vkDestroyCommandPool, this->m_handle);
     }
 
-    VkBuffer GraphicsDevice::CreateBuffer(VkBufferCreateInfo* pCreateInfo, const char* name)
+    VkBuffer CGraphicsDevice::CreateBuffer(VkBufferCreateInfo* pCreateInfo, const char* name) const
     {
         VkBuffer result{};
-        VkCheck(vkCreateBuffer(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_BUFFER, name);
+        RenderUtil::VkCheck(vkCreateBuffer(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_BUFFER, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyBuffer(VkBuffer* pBuffer)
+    void CGraphicsDevice::DestroyBuffer(VkBuffer* pBuffer)
     {
-        DestroyVkObject(pBuffer, vkDestroyBuffer, this->handle);
+        RenderUtil::DestroyVkObject(pBuffer, vkDestroyBuffer, this->m_handle);
     }
 
-    VkBufferView GraphicsDevice::CreateBufferView(VkBufferViewCreateInfo* pCreateInfo, const char* name)
+    VkBufferView CGraphicsDevice::CreateBufferView(VkBufferViewCreateInfo* pCreateInfo, const char* name) const
     {
         VkBufferView result{};
-        VkCheck(vkCreateBufferView(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_BUFFER_VIEW, name);
+        RenderUtil::VkCheck(vkCreateBufferView(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_BUFFER_VIEW, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyBufferView(VkBufferView* pBufferView)
+    void CGraphicsDevice::DestroyBufferView(VkBufferView* pBufferView)
     {
-        DestroyVkObject(pBufferView, vkDestroyBufferView, this->handle);
+        RenderUtil::DestroyVkObject(pBufferView, vkDestroyBufferView, this->m_handle);
     }
 
-    VkImage GraphicsDevice::CreateImage(VkImageCreateInfo* pCreateInfo, const char* name)
+    VkImage CGraphicsDevice::CreateImage(VkImageCreateInfo* pCreateInfo, const char* name) const
     {
         VkImage result{};
-        VkCheck(vkCreateImage(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_IMAGE, name);
+        RenderUtil::VkCheck(vkCreateImage(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_IMAGE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyImage(VkImage* pImage)
+    void CGraphicsDevice::DestroyImage(VkImage* pImage)
     {
-        DestroyVkObject(pImage, vkDestroyImage, this->handle);
+        RenderUtil::DestroyVkObject(pImage, vkDestroyImage, this->m_handle);
     }
 
-    VkImageView GraphicsDevice::CreateImageView(VkImageViewCreateInfo* pCreateInfo, const char* name)
+    VkImageView CGraphicsDevice::CreateImageView(VkImageViewCreateInfo* pCreateInfo, const char* name) const
     {
         VkImageView result{};
-        VkCheck(vkCreateImageView(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_IMAGE_VIEW, name);
+        RenderUtil::VkCheck(vkCreateImageView(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_IMAGE_VIEW, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyImageView(VkImageView* pImageView)
+    void CGraphicsDevice::DestroyImageView(VkImageView* pImageView)
     {
-        DestroyVkObject(pImageView, vkDestroyImageView, this->handle);
+        RenderUtil::DestroyVkObject(pImageView, vkDestroyImageView, this->m_handle);
     }
 
-    VkPipeline GraphicsDevice::CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name)
+    VkPipeline CGraphicsDevice::CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name) const
     {
         VkPipeline result{};
-        VkCheck(vkCreateGraphicsPipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE, name);
+        RenderUtil::VkCheck(vkCreateGraphicsPipelines(this->m_handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_PIPELINE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyPipeline(VkPipeline* pPipeline)
+    void CGraphicsDevice::DestroyPipeline(VkPipeline* pPipeline)
     {
-        DestroyVkObject(pPipeline, vkDestroyPipeline, this->handle);
+        RenderUtil::DestroyVkObject(pPipeline, vkDestroyPipeline, this->m_handle);
     }
 
-    VkPipeline GraphicsDevice::CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name)
+    VkPipeline CGraphicsDevice::CreateComputePipeline(VkComputePipelineCreateInfo* pCreateInfo, VkPipelineCache cache, const char* name) const
     {
         VkPipeline result{};
-        VkCheck(vkCreateComputePipelines(this->handle, cache, 1, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE, name);
+        RenderUtil::VkCheck(vkCreateComputePipelines(this->m_handle, cache, 1, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_PIPELINE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    VkShaderModule GraphicsDevice::CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo, const char* name)
+    VkShaderModule CGraphicsDevice::CreateShaderModule(VkShaderModuleCreateInfo* pCreateInfo, const char* name) const
     {
         VkShaderModule result{};
-        VkCheck(vkCreateShaderModule(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SHADER_MODULE, name);
+        RenderUtil::VkCheck(vkCreateShaderModule(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_SHADER_MODULE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyShaderModule(VkShaderModule* pShaderModule)
+    void CGraphicsDevice::DestroyShaderModule(VkShaderModule* pShaderModule)
     {
-        DestroyVkObject(pShaderModule, vkDestroyShaderModule, this->handle);
+        RenderUtil::DestroyVkObject(pShaderModule, vkDestroyShaderModule, this->m_handle);
     }
 
-    VkPipelineCache GraphicsDevice::CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo, const char* name)
+    VkPipelineCache CGraphicsDevice::CreatePipelineCache(VkPipelineCacheCreateInfo* pCreateInfo, const char* name) const
     {
         VkPipelineCache result{};
-        VkCheck(vkCreatePipelineCache(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE_CACHE, name);
+        RenderUtil::VkCheck(vkCreatePipelineCache(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_PIPELINE_CACHE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyPipelineCache(VkPipelineCache* pPipelineCache)
+    void CGraphicsDevice::DestroyPipelineCache(VkPipelineCache* pPipelineCache)
     {
-        DestroyVkObject(pPipelineCache, vkDestroyPipelineCache, this->handle);
+        RenderUtil::DestroyVkObject(pPipelineCache, vkDestroyPipelineCache, this->m_handle);
     }
 
-    VkSampler GraphicsDevice::CreateSampler(VkSamplerCreateInfo* pCreateInfo, const char* name)
+    VkSampler CGraphicsDevice::CreateSampler(VkSamplerCreateInfo* pCreateInfo, const char* name) const
     {
         VkSampler result{};
-        VkCheck(vkCreateSampler(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SAMPLER, name);
+        RenderUtil::VkCheck(vkCreateSampler(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_SAMPLER, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroySampler(VkSampler* pSampler)
+    void CGraphicsDevice::DestroySampler(VkSampler* pSampler)
     {
-        DestroyVkObject(pSampler, vkDestroySampler, this->handle);
+        RenderUtil::DestroyVkObject(pSampler, vkDestroySampler, this->m_handle);
     }
 
-    VkFramebuffer GraphicsDevice::CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo, const char* name)
+    VkFramebuffer CGraphicsDevice::CreateFramebuffer(VkFramebufferCreateInfo* pCreateInfo, const char* name) const
     {
         VkFramebuffer result{};
-        VkCheck(vkCreateFramebuffer(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_FRAMEBUFFER, name);
+        RenderUtil::VkCheck(vkCreateFramebuffer(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_FRAMEBUFFER, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyFramebuffer(VkFramebuffer* pFramebuffer)
+    void CGraphicsDevice::DestroyFramebuffer(VkFramebuffer* pFramebuffer)
     {
-        DestroyVkObject(pFramebuffer, vkDestroyFramebuffer, this->handle);
+        RenderUtil::DestroyVkObject(pFramebuffer, vkDestroyFramebuffer, this->m_handle);
     }
 
-    VkPipelineLayout GraphicsDevice::CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo, const char* name)
+    VkPipelineLayout CGraphicsDevice::CreatePipelineLayout(VkPipelineLayoutCreateInfo* pCreateInfo, const char* name) const
     {
         VkPipelineLayout result{};
-        VkCheck(vkCreatePipelineLayout(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_PIPELINE_LAYOUT, name);
+        RenderUtil::VkCheck(vkCreatePipelineLayout(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_PIPELINE_LAYOUT, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyPipelineLayout(VkPipelineLayout* pPipelineLayout)
+    void CGraphicsDevice::DestroyPipelineLayout(VkPipelineLayout* pPipelineLayout)
     {
-        DestroyVkObject(pPipelineLayout, vkDestroyPipelineLayout, this->handle);
+        RenderUtil::DestroyVkObject(pPipelineLayout, vkDestroyPipelineLayout, this->m_handle);
     }
 
-    VkRenderPass GraphicsDevice::CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo, const char* name)
+    VkRenderPass CGraphicsDevice::CreateRenderPass(VkRenderPassCreateInfo* pCreateInfo, const char* name) const
     {
         VkRenderPass result{};
-        VkCheck(vkCreateRenderPass(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_RENDER_PASS, name);
+        RenderUtil::VkCheck(vkCreateRenderPass(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_RENDER_PASS, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyRenderPass(VkRenderPass* pRenderPass)
+    void CGraphicsDevice::DestroyRenderPass(VkRenderPass* pRenderPass)
     {
-        DestroyVkObject(pRenderPass, vkDestroyRenderPass, this->handle);
+        RenderUtil::DestroyVkObject(pRenderPass, vkDestroyRenderPass, this->m_handle);
     }
 
-    VkSemaphore GraphicsDevice::CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo, const char* name)
+    VkSemaphore CGraphicsDevice::CreateSemaphore(VkSemaphoreCreateInfo* pCreateInfo, const char* name) const
     {
         VkSemaphore result{};
-        VkCheck(vkCreateSemaphore(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SEMAPHORE, name);
+        RenderUtil::VkCheck(vkCreateSemaphore(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_SEMAPHORE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroySemaphore(VkSemaphore* pSemaphore)
+    void CGraphicsDevice::DestroySemaphore(VkSemaphore* pSemaphore)
     {
-        DestroyVkObject(pSemaphore, vkDestroySemaphore, this->handle);
+        RenderUtil::DestroyVkObject(pSemaphore, vkDestroySemaphore, this->m_handle);
     }
 
-    VkFence GraphicsDevice::CreateFence(VkFenceCreateInfo* pCreateInfo, const char* name)
+    VkFence CGraphicsDevice::CreateFence(VkFenceCreateInfo* pCreateInfo, const char* name) const
     {
         VkFence result{};
-        VkCheck(vkCreateFence(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_FENCE, name);
+        RenderUtil::VkCheck(vkCreateFence(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_FENCE, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyFence(VkFence* pFence)
+    void CGraphicsDevice::DestroyFence(VkFence* pFence)
     {
-        DestroyVkObject(pFence, vkDestroyFence, this->handle);
+        RenderUtil::DestroyVkObject(pFence, vkDestroyFence, this->m_handle);
     }
 
-    VkEvent GraphicsDevice::CreateEvent(VkEventCreateInfo* pCreateInfo, const char* name)
+    VkEvent CGraphicsDevice::CreateEvent(VkEventCreateInfo* pCreateInfo, const char* name) const
     {
         VkEvent result{};
-        VkCheck(vkCreateEvent(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_EVENT, name);
+        RenderUtil::VkCheck(vkCreateEvent(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_EVENT, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyEvent(VkEvent* pEvent)
+    void CGraphicsDevice::DestroyEvent(VkEvent* pEvent)
     {
-        DestroyVkObject(pEvent, vkDestroyEvent, this->handle);
+        RenderUtil::DestroyVkObject(pEvent, vkDestroyEvent, this->m_handle);
     }
 
-    VkQueryPool GraphicsDevice::CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo, const char* name)
+    VkQueryPool CGraphicsDevice::CreateQueryPool(VkQueryPoolCreateInfo* pCreateInfo, const char* name) const
     {
         VkQueryPool result{};
-        VkCheck(vkCreateQueryPool(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_QUERY_POOL, name);
+        RenderUtil::VkCheck(vkCreateQueryPool(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_QUERY_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyQueryPool(VkQueryPool* pQueryPool)
+    void CGraphicsDevice::DestroyQueryPool(VkQueryPool* pQueryPool)
     {
-        DestroyVkObject(pQueryPool, vkDestroyQueryPool, this->handle);
+        RenderUtil::DestroyVkObject(pQueryPool, vkDestroyQueryPool, this->m_handle);
     }
 
-    VkDescriptorPool GraphicsDevice::CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo, const char* name)
+    VkDescriptorPool CGraphicsDevice::CreateDescriptorPool(VkDescriptorPoolCreateInfo* pCreateInfo, const char* name) const
     {
         VkDescriptorPool result{};
-        VkCheck(vkCreateDescriptorPool(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_DESCRIPTOR_POOL, name);
+        RenderUtil::VkCheck(vkCreateDescriptorPool(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_DESCRIPTOR_POOL, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroyDescriptorPool(VkDescriptorPool* pPool)
+    void CGraphicsDevice::DestroyDescriptorPool(VkDescriptorPool* pPool)
     {
-        DestroyVkObject(pPool, vkDestroyDescriptorPool, this->handle);
+        RenderUtil::DestroyVkObject(pPool, vkDestroyDescriptorPool, this->m_handle);
     }
 
-    void GraphicsDevice::BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset)
+    void CGraphicsDevice::BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset)
     {
-        VkCheck(vkBindBufferMemory(this->handle, buffer, memory, memoryOffset));
+        RenderUtil::VkCheck(vkBindBufferMemory(this->m_handle, buffer, memory, memoryOffset));
     }
 
-    void GraphicsDevice::BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos)
+    void CGraphicsDevice::BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos)
     {
-        VkCheck(vkBindBufferMemory2(this->handle, bindInfoCount, pBindInfos));
+        RenderUtil::VkCheck(vkBindBufferMemory2(this->m_handle, bindInfoCount, pBindInfos));
     }
 
-    void GraphicsDevice::BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset)
+    void CGraphicsDevice::BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset)
     {
-        VkCheck(vkBindImageMemory(this->handle, image, memory, memoryOffset));
+        RenderUtil::VkCheck(vkBindImageMemory(this->m_handle, image, memory, memoryOffset));
     }
 
-    void GraphicsDevice::BindImageMemory2(uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
+    void CGraphicsDevice::BindImageMemory2(uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
     {
-        VkCheck(vkBindImageMemory2(this->handle, bindInfoCount, pBindInfos));
+        RenderUtil::VkCheck(vkBindImageMemory2(this->m_handle, bindInfoCount, pBindInfos));
     }
 
-    void GraphicsDevice::FreeMemory(VkDeviceMemory memory)
+    void CGraphicsDevice::FreeMemory(VkDeviceMemory memory)
     {
-        vkFreeMemory(this->handle, memory, nullptr);
+        vkFreeMemory(this->m_handle, memory, nullptr);
     }
 
-    VkResult GraphicsDevice::AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex)
+    VkResult CGraphicsDevice::AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex)
     {
-        return vkAcquireNextImageKHR(this->handle, swapchain, timeout, semaphore, fence, pIndex);
+        return vkAcquireNextImageKHR(this->m_handle, swapchain, timeout, semaphore, fence, pIndex);
     }
 
-    VkResult GraphicsDevice::AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex)
+    VkResult CGraphicsDevice::AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex)
     {
-        return vkAcquireNextImage2KHR(this->handle, pAcquireInfo, pIndex);
+        return vkAcquireNextImage2KHR(this->m_handle, pAcquireInfo, pIndex);
     }
 
-    VkSwapchainKHR GraphicsDevice::CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo, const char* name)
+    VkSwapchainKHR CGraphicsDevice::CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo, const char* name) const
     {
         VkSwapchainKHR result{};
-        VkCheck(vkCreateSwapchainKHR(this->handle, pCreateInfo, nullptr, &result));
-        YGG_VK_DEBUG_NAME(this->handle, result, VK_OBJECT_TYPE_SWAPCHAIN_KHR, name);
+        RenderUtil::VkCheck(vkCreateSwapchainKHR(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_SWAPCHAIN_KHR, name);
         YGG_ASSERT(result);
         return result;
     }
 
-    void GraphicsDevice::DestroySwapchainKHR(VkSwapchainKHR* pSwapchain)
+    void CGraphicsDevice::DestroySwapchainKHR(VkSwapchainKHR* pSwapchain)
     {
-        DestroyVkObject(pSwapchain, vkDestroySwapchainKHR, this->handle);
+        RenderUtil::DestroyVkObject(pSwapchain, vkDestroySwapchainKHR, this->m_handle);
     }
 
-    void GraphicsDevice::WaitIdle()
+    void CGraphicsDevice::WaitIdle() const
     {
-        vkDeviceWaitIdle(this->handle);
+        RenderUtil::VkCheck(vkDeviceWaitIdle(this->m_handle));
     }
 }

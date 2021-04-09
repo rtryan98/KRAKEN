@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Ygg
+namespace Ygg::RenderUtil
 {
     template<typename T>
     void DestroyVkObject(T* handle, VKAPI_ATTR void(VKAPI_CALL* destroyFunction)(VkDevice, T, const VkAllocationCallbacks*), VkDevice device)
@@ -22,17 +22,17 @@ namespace Ygg
 
     void VkCheck(VkResult result);
 
-    void CreateDebugMessenger(VkInstance instance);
-    void DestroyDebugMessenger(VkInstance instance);
+    void CreateDebugMessenger(VkInstance s_instance);
+    void DestroyDebugMessenger(VkInstance s_instance);
 
-    void InitDebugExtensions(VkInstance instance);
+    void InitDebugExtensions(VkInstance s_instance);
     void SetVkObjectDebugName(VkDevice device, uint64_t handle, VkObjectType type, const char* name);
 }
 
 #if YGG_USE_ASSERTS
     #define YGG_VK_DEBUG_NAME(device, handle, type, name) \
     if(name != nullptr) \
-        Ygg::SetVkObjectDebugName(device, reinterpret_cast<uint64_t>(handle), type, name)
+        Ygg::RenderUtil::SetVkObjectDebugName(device, reinterpret_cast<uint64_t>(handle), type, name)
 #else
     #define YGG_VK_DEBUG_NAME(device, handle, type, name)
 #endif

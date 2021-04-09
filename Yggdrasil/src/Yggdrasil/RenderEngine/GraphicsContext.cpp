@@ -9,11 +9,11 @@
 
 namespace Ygg
 {
-    void GraphicsContext::Create()
+    void CGraphicsContext::Create()
     {
         VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
         appInfo.apiVersion = VK_API_VERSION_1_2;
-        appInfo.pEngineName = "Yggdrasil Engine";
+        appInfo.pEngineName = "Yggdrasil CEngine";
         appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pApplicationName = "Yggdrasil Application";
@@ -38,11 +38,11 @@ namespace Ygg
 #endif
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
-        VkCheck(vkCreateInstance(&createInfo, nullptr, &this->instance));
+        RenderUtil::VkCheck(vkCreateInstance(&createInfo, nullptr, &this->m_instance));
 
 #if YGG_USE_ASSERTS
-        CreateDebugMessenger(this->instance);
-        InitDebugExtensions(this->instance);
+        RenderUtil::CreateDebugMessenger(this->m_instance);
+        RenderUtil::InitDebugExtensions(this->m_instance);
 #endif
         VkPhysicalDeviceFeatures vulkan10Features{};
         vulkan10Features.tessellationShader = VK_TRUE;
@@ -60,40 +60,40 @@ namespace Ygg
         vulkan12Features.imagelessFramebuffer = VK_TRUE;
         vulkan12Features.shaderInt8 = VK_TRUE;
 
-        this->pDevice = new GraphicsDevice();
-        this->pDevice->Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);
-        this->screen.CreateSurface(this, &Engine::GetWindow());
+        this->m_device.Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);
+        this->m_screen.CreateSurface(this, &CEngine::GetWindow());
     }
 
-    void GraphicsContext::Destroy()
+    void CGraphicsContext::Destroy()
     {
-        this->screen.Destroy();
-        if (this->pDevice != nullptr)
-        {
-            this->pDevice->Destroy();
-            delete this->pDevice;
-        }
+        this->m_screen.Destroy();
+        this->m_device.Destroy();
 #if YGG_USE_ASSERTS
-        DestroyDebugMessenger(this->instance);
+        RenderUtil::DestroyDebugMessenger(this->m_instance);
 #endif
-        if (this->instance != nullptr)
+        if (this->m_instance != nullptr)
         {
-            vkDestroyInstance(this->instance, nullptr);
+            vkDestroyInstance(this->m_instance, nullptr);
         }
     }
 
-    Screen& GraphicsContext::GetScreen()
+    const CScreen& CGraphicsContext::GetScreen() const
     {
-        return this->screen;
+        return this->m_screen;
     }
 
-    VkInstance GraphicsContext::GetVkInstance()
+    VkInstance CGraphicsContext::GetVkInstance() const
     {
-        return this->instance;
+        return this->m_instance;
     }
 
-    GraphicsDevice* const GraphicsContext::GetGraphicsDevice()
+    const CGraphicsDevice& CGraphicsContext::GetGraphicsDevice() const
     {
-        return this->pDevice;
+        return this->m_device;
+    }
+
+    CGraphicsDevice& CGraphicsContext::GetGraphicsDeviceNonConst()
+    {
+        return this->m_device;
     }
 }

@@ -2,8 +2,9 @@
 #include <Yggdrasil/Common/Window/Input.h>
 #include <cstdint>
 
-class Game : public Ygg::Game
+class Game : public Ygg::IGame
 {
+public:
     virtual void Init() override
     {
 
@@ -22,7 +23,7 @@ class Game : public Ygg::Game
 
 int32_t main()
 {
-    Ygg::InitInfo initInfo{};
+    Ygg::SInitInfo initInfo{};
     initInfo.windowCreateInfo.title = "Yggdrasil Sandbox";
     initInfo.pGame = &game;
 

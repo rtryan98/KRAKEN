@@ -5,24 +5,34 @@
 
 namespace Ygg
 {
-    std::shared_ptr<spdlog::logger> Ygg::Logger::engineLogger = nullptr;
-    std::shared_ptr<spdlog::logger> Ygg::Logger::validationLogger = nullptr;
+    std::shared_ptr<spdlog::logger> Ygg::CLogger::s_pEngineLogger = nullptr;
+    std::shared_ptr<spdlog::logger> Ygg::CLogger::s_pValidationLogger = nullptr;
 
-    void Logger::Init()
+    void CLogger::Init()
     {
         spdlog::set_pattern("[%T] %n: %^%v%$");
-        Logger::engineLogger = spdlog::stdout_color_mt("Yggdrasil Engine");
-        Logger::engineLogger->set_level(spdlog::level::trace);
-        Logger::validationLogger = spdlog::stdout_color_mt("Vulkan Validation");
-        Logger::validationLogger->set_level(spdlog::level::trace);
+        CLogger::s_pEngineLogger = spdlog::stdout_color_mt("Yggdrasil Engine");
+        CLogger::s_pEngineLogger->set_level(spdlog::level::trace);
+        CLogger::s_pValidationLogger = spdlog::stdout_color_mt("Vulkan Validation");
+        CLogger::s_pValidationLogger->set_level(spdlog::level::trace);
     }
 
-    void Logger::Shutdown()
+    void CLogger::Shutdown()
     {
         spdlog::drop_all();
-        Logger::engineLogger.reset();
-        Logger::engineLogger = nullptr;
-        Logger::validationLogger.reset();
-        Logger::validationLogger = nullptr;
+        CLogger::s_pEngineLogger.reset();
+        CLogger::s_pEngineLogger = nullptr;
+        CLogger::s_pValidationLogger.reset();
+        CLogger::s_pValidationLogger = nullptr;
+    }
+
+    const std::shared_ptr<spdlog::logger>& CLogger::GetEngineLogger()
+    {
+        return CLogger::s_pEngineLogger;
+    }
+
+    const std::shared_ptr<spdlog::logger>& CLogger::GetValidationLogger()
+    {
+        return CLogger::s_pValidationLogger;
     }
 }

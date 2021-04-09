@@ -4,25 +4,25 @@
 
 namespace Ygg
 {
-    class GraphicsContext;
-    class Window;
+    class CGraphicsContext;
+    class CWindow;
 
-    class Screen
+    class CScreen
     {
     private:
-        struct Data;
+        struct SData;
     public:
 
-        void CreateSurface(GraphicsContext* const pNewContext, Window* window);
+        void CreateSurface(CGraphicsContext* const pNewContext, const CWindow* pWindow);
         void CreateSwapchain();
         void Destroy();
-        Data& GetData();
+        const SData& GetData() const;
 
     private:
         void CreateRenderPass();
         void CreateFramebuffer();
 
-        struct Data
+        struct SData
         {
             VkSurfaceKHR surface;
             VkSwapchainKHR swapchain;
@@ -32,12 +32,12 @@ namespace Ygg
             std::vector<VkImage> swapchainImages;
             VkFramebuffer swapchainFramebuffer;
             VkRenderPass swapchainRenderPass;
-        } data{};
+        } m_data{};
 
         /// @brief non-owned GraphicsContext
-        GraphicsContext* pContext{};
+        CGraphicsContext* a_pContext{};
 
         /// @brief non-owned Window
-        Window* pWindow{};
+        const CWindow* a_pWindow{};
     };
 }

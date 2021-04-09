@@ -3,7 +3,7 @@
 
 #include <Windows.h>
 
-namespace Ygg
+namespace Ygg::RenderUtil
 {
     const char* ToString(VkResult result)
     {
@@ -195,7 +195,7 @@ namespace Ygg
         {
             if (result != VK_SUCCESS)
             {
-                Ygg::Logger::validationLogger->critical(ToString(result));
+                Ygg::CLogger::GetValidationLogger()->critical(ToString(result));
             }
         } while (0);
     }
@@ -213,16 +213,16 @@ namespace Ygg
         }
         if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
         {
-            Ygg::Logger::validationLogger->error("{0}", pCallbackData->pMessage);
+            Ygg::CLogger::GetValidationLogger()->error("{0}", pCallbackData->pMessage);
             DebugBreak();
         }
         else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            Ygg::Logger::validationLogger->warn("{0}", pCallbackData->pMessage);
+            Ygg::CLogger::GetValidationLogger()->warn("{0}", pCallbackData->pMessage);
         }
         else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            Ygg::Logger::validationLogger->trace("{0}", pCallbackData->pMessage);
+            Ygg::CLogger::GetValidationLogger()->trace("{0}", pCallbackData->pMessage);
         }
         return VK_FALSE;
     }
@@ -232,17 +232,17 @@ namespace Ygg
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 
-    void LoadVkDebugUtilsFunctions(VkInstance instance)
+    void LoadVkDebugUtilsFunctions(VkInstance s_instance)
     {
-        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(s_instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(s_instance, "vkDestroyDebugUtilsMessengerEXT"));
     }
 
-    void CreateDebugMessenger(VkInstance instance)
+    void CreateDebugMessenger(VkInstance s_instance)
     {
 #if YGG_USE_ASSERTS
-        Ygg::Logger::validationLogger->info("Enabled Vulkan Debug Messenger.");
-        LoadVkDebugUtilsFunctions(instance);
+        Ygg::CLogger::GetValidationLogger()->info("Enabled Vulkan Debug Messenger.");
+        LoadVkDebugUtilsFunctions(s_instance);
 
         VkDebugUtilsMessengerCreateInfoEXT createInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
@@ -254,13 +254,13 @@ namespace Ygg
         createInfo.pfnUserCallback = DebugCallback;
         createInfo.pUserData = nullptr;
 
-        VkCheck(vkCreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger));
+        VkCheck(vkCreateDebugUtilsMessengerEXT(s_instance, &createInfo, nullptr, &debugMessenger));
 #endif
     }
 
-    void DestroyDebugMessenger(VkInstance instance)
+    void DestroyDebugMessenger(VkInstance s_instance)
     {
-        vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+        vkDestroyDebugUtilsMessengerEXT(s_instance, debugMessenger, nullptr);
     }
 
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
@@ -268,12 +268,12 @@ namespace Ygg
     PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT{};
     PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT{};
 
-    void InitDebugExtensions(VkInstance instance)
+    void InitDebugExtensions(VkInstance s_instance)
     {
-        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
-        vkCmdDebugMarkerBeginEXT = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT"));
-        vkCmdDebugMarkerEndEXT = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT"));
-        vkCmdDebugMarkerInsertEXT = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT"));
+        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(s_instance, "vkSetDebugUtilsObjectNameEXT"));
+        vkCmdDebugMarkerBeginEXT = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerBeginEXT"));
+        vkCmdDebugMarkerEndEXT = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerEndEXT"));
+        vkCmdDebugMarkerInsertEXT = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerInsertEXT"));
     }
 
     void SetVkObjectDebugName(VkDevice device, uint64_t handle, VkObjectType type, const char* name)

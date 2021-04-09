@@ -6,26 +6,27 @@
 
 namespace Ygg
 {
-    class Game;
-    struct InitInfo;
+    struct IGame;
+    struct SInitInfo;
 
-    class Engine
+    class CEngine
     {
     public:
-        Engine();
+        CEngine();
 
         static bool IsRunning();
-        static Window& GetWindow();
-        static void Init(const InitInfo& initInfo);
+        static const CWindow& GetWindow();
+        static CWindow& GetWindowNonConst();
+        static void Init(const SInitInfo& initInfo);
         static void Update();
-        static void ShutDown();
+        static void Shutdown();
 
     private:
-        static Engine* instance;
+        static CEngine* s_instance;
 
-        RenderEngine renderEngine;
-        Window window{};
-        bool isRunning{ false };
-        Game* game{ nullptr };
+        CRenderEngine m_renderEngine;
+        CWindow m_window{};
+        bool m_isRunning{ false };
+        IGame* m_game{ nullptr };
     };
 }

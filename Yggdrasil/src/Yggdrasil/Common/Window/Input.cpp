@@ -3,34 +3,34 @@
 
 #include <Windows.h>
 
-namespace Ygg
+namespace Ygg::Input
 {
-    bool IsKeyPressed(KeyCode keyCode) noexcept
+    bool IsKeyPressed(EKeyCode keyCode) noexcept
     {
         return (::GetKeyState(keyCode) & 0x8000);
     }
 
-    bool IsKeyReleased(KeyCode keyCode) noexcept
+    bool IsKeyReleased(EKeyCode keyCode) noexcept
     {
         return (::GetKeyState(keyCode) & 0x0000);
     }
 
-    bool IsKeyToggled(KeyCode keyCode) noexcept
+    bool IsKeyToggled(EKeyCode keyCode) noexcept
     {
         return (::GetKeyState(keyCode) & 0x0001);
     }
 
-    bool IsMouseButtonPressed(MouseButton button) noexcept
+    bool IsMouseButtonPressed(EMouseButton button) noexcept
     {
         return (::GetKeyState(button) & 0x8000);
     }
 
-    bool IsMouseButtonReleased(MouseButton button) noexcept
+    bool IsMouseButtonReleased(EMouseButton button) noexcept
     {
         return (::GetKeyState(button) & 0x0000);
     }
 
-    bool IsMouseButtonToggled(MouseButton button) noexcept
+    bool IsMouseButtonToggled(EMouseButton button) noexcept
     {
         return (::GetKeyState(button) & 0x0001);
     }

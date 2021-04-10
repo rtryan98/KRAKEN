@@ -15,15 +15,17 @@ namespace Ygg
             CEngine::GetWindowNonConst().Destroy();
             ::DestroyWindow(m_hwnd);
             break;
-        case WM_DESTROY:
-            ::PostQuitMessage(0);
-            break;
         }
         return ::DefWindowProc(m_hwnd, msg, wParam, lParam);
     }
 
     void CWindow::Create(const SWindowCreateInfo& windowCreateInfo) noexcept
     {
+        ::RECT wr{ 0, 0, static_cast<LONG>(windowCreateInfo.width), static_cast<LONG>(windowCreateInfo.height) };
+        constexpr ::DWORD style{ WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX };
+
+        ::AdjustWindowRect(&wr, style, false);
+
         this->m_data.width = windowCreateInfo.width;
         this->m_data.height = windowCreateInfo.height;
         this->m_data.title = windowCreateInfo.title;
@@ -43,9 +45,6 @@ namespace Ygg
         wc.lpszClassName = this->m_data.title.c_str();
 
         ::RegisterClassEx(&wc);
-
-        ::RECT wr{ 0, 0, static_cast<LONG>(this->m_data.width), static_cast<LONG>(this->m_data.height) };
-        constexpr ::DWORD style{ WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX };
 
         this->m_hwnd = ::CreateWindowEx(0, wc.lpszClassName, wc.lpszClassName, style, 0, 0,
             wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr,

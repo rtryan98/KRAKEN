@@ -24,6 +24,7 @@ namespace Ygg
         {
             CEngine::Update();
         }
+        Shutdown();
     }
 
     void Shutdown()

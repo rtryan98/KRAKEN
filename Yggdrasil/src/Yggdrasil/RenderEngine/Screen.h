@@ -16,10 +16,12 @@ namespace Ygg
         void CreateSurface(CGraphicsContext* const pNewContext, const CWindow* pWindow);
         void CreateSwapchain();
         void Destroy();
+        void BeginSwapchainRenderPass(VkCommandBuffer cmdBuffer, uint32_t swapchainImageIndex) const;
         const SData& GetData() const;
 
     private:
         void CreateRenderPass();
+        void CreateImageViews();
         void CreateFramebuffer();
 
         struct SData
@@ -30,6 +32,7 @@ namespace Ygg
             VkFormat swapchainImageFormat;
             uint32_t swapchainImageCount;
             std::vector<VkImage> swapchainImages;
+            std::vector<VkImageView> swapchainImageViews;
             VkFramebuffer swapchainFramebuffer;
             VkRenderPass swapchainRenderPass;
         } m_data{};

@@ -211,6 +211,8 @@ namespace Ygg
         bool asyncComputeQueueFound{ false };
         bool copyQueueFound{ false };
 
+        VkBool32 mainQueueSupportsPresent{ false };
+
         for (uint32_t i{ 0 }; i < queueFamilyProperties.size(); i++)
         {
             queueCreateInfo.queueFamilyIndex = i;
@@ -222,6 +224,7 @@ namespace Ygg
                 mainQueueFound = true;
                 this->m_queues.mainQueueFamilyIndex = i;
                 queueCreateInfos.push_back(queueCreateInfo);
+                vkGetPhysicalDeviceSurfaceSupportKHR(this->m_gpu.GetData().handle, i, pContext->GetScreen().GetData().surface, &mainQueueSupportsPresent);
             }
             else if (QueueFamilySupportsCompute(queueFamilyProperties[i]) &&
                 QueueFamilySupportsTransfer(queueFamilyProperties[i]) &&
@@ -241,6 +244,11 @@ namespace Ygg
                 this->m_queues.copyQueueFamilyIndex = i;
                 queueCreateInfos.push_back(queueCreateInfo);
             }
+        }
+
+        if (!mainQueueSupportsPresent)
+        {
+            YGG_CRITICAL("Main queue does not support presentation!");
         }
 
         VkPhysicalDeviceFeatures2 availableVulkan10Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
@@ -379,14 +387,18 @@ namespace Ygg
         return this->m_features;
     }
 
+    const CGraphicsDevice::SQueues& CGraphicsDevice::GetQueues() const
+    {
+        return this->m_queues;
+    }
+
     VkDevice CGraphicsDevice::GetHandle()
     {
         return this->m_handle;
     }
 
-    void CGraphicsDevice::PushObjectDeletion(const std::function<void()>&& mFunction)
+    void CGraphicsDevice::PushObjectDeletion(std::function<void()>&& mFunction)
     {
-        YGG_TRACE("Called");
         this->m_deletionQueue.push_back(mFunction);
     }
 
@@ -689,5 +701,28 @@ namespace Ygg
     void CGraphicsDevice::WaitIdle() const
     {
         RenderUtil::VkCheck(vkDeviceWaitIdle(this->m_handle));
+    }
+
+    VkCommandBuffer CGraphicsDevice::AllocateCommandBuffer(VkCommandPool pool, VkCommandBufferLevel level, const char* name) const
+    {
+        VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+        allocInfo.commandBufferCount = 1;
+        allocInfo.commandPool = pool;
+        allocInfo.level = level;
+        VkCommandBuffer result{};
+        RenderUtil::VkCheck(vkAllocateCommandBuffers(this->m_handle, &allocInfo, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_COMMAND_BUFFER, name);
+        YGG_ASSERT(result);
+        return result;
+    }
+
+    void CGraphicsDevice::ResetCommandPool(VkCommandPool pool, VkCommandPoolResetFlags flags)
+    {
+        RenderUtil::VkCheck(vkResetCommandPool(this->m_handle, pool, flags));
+    }
+
+    void CGraphicsDevice::ResetFence(VkFence fence)
+    {
+        RenderUtil::VkCheck(vkResetFences(this->m_handle, 1, &fence));
     }
 }

@@ -13,6 +13,7 @@ namespace Ygg
     private:
         class CGPU;
         struct SFeatures;
+        struct SQueues;
 
     public:
         void Create(CGraphicsContext* pContext,
@@ -22,9 +23,10 @@ namespace Ygg
         void Destroy();
         const CGPU& GetGPU() const;
         const SFeatures& GetFeatures() const;
+        const SQueues& GetQueues() const;
         VkDevice GetHandle();
 
-        void PushObjectDeletion(const std::function<void()>&& mFunction);
+        void PushObjectDeletion(std::function<void()>&& mFunction);
 
         VkCommandPool CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name = nullptr) const;
         void DestroyCommandPool(VkCommandPool* pPool);
@@ -89,6 +91,10 @@ namespace Ygg
 
         void WaitIdle() const;
 
+        VkCommandBuffer AllocateCommandBuffer(VkCommandPool pool, VkCommandBufferLevel level, const char* name = nullptr) const;
+        void ResetCommandPool(VkCommandPool pool, VkCommandPoolResetFlags flags);
+        void ResetFence(VkFence fence);
+
         VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex);
         VkResult AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex);
 
@@ -102,7 +108,7 @@ namespace Ygg
             VkPhysicalDeviceVulkan12Features enabledVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
         } m_features;
 
-        struct Queues
+        struct SQueues
         {
             uint32_t mainQueueFamilyIndex;
             VkQueue mainQueue;

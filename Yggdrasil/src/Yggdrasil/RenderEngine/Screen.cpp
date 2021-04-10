@@ -42,7 +42,7 @@ namespace Ygg
         this->m_data.swapchainImageExtent = createInfo.imageExtent;
 
         // TODO: we might want to write directly to the image later on
-        if (surfaceCapabilities.supportedUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+        if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
         {
             createInfo.imageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         }
@@ -109,18 +109,44 @@ namespace Ygg
             this->m_data.swapchain, &this->m_data.swapchainImageCount, this->m_data.swapchainImages.data()) );
 
         CreateRenderPass();
+        CreateImageViews();
         CreateFramebuffer();
     }
 
     void CScreen::Destroy()
     {
         this->a_pContext->GetGraphicsDeviceNonConst().DestroyFramebuffer(&this->m_data.swapchainFramebuffer);
+        for (auto& imageView : this->m_data.swapchainImageViews)
+        {
+            this->a_pContext->GetGraphicsDeviceNonConst().DestroyImageView(&imageView);
+        }
         this->a_pContext->GetGraphicsDeviceNonConst().DestroyRenderPass(&this->m_data.swapchainRenderPass);
         this->a_pContext->GetGraphicsDeviceNonConst().DestroySwapchainKHR(&this->m_data.swapchain);
         if (this->m_data.surface != VK_NULL_HANDLE)
         {
             vkDestroySurfaceKHR(this->a_pContext->GetVkInstance(), this->m_data.surface, nullptr);
         }
+    }
+
+    void CScreen::BeginSwapchainRenderPass(VkCommandBuffer cmdBuffer, uint32_t swapchainImageIndex) const
+    {
+        VkRenderPassAttachmentBeginInfo attachmentInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO };
+        attachmentInfo.attachmentCount = 1;
+        attachmentInfo.pAttachments = &this->m_data.swapchainImageViews[swapchainImageIndex];
+
+        VkClearValue clearValue{};
+        clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f }; // TODO: change
+
+        VkRenderPassBeginInfo beginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+        beginInfo.pNext = &attachmentInfo;
+        beginInfo.renderArea.extent = this->m_data.swapchainImageExtent;
+        beginInfo.renderArea.offset = {0, 0};
+        beginInfo.renderPass = this->m_data.swapchainRenderPass;
+        beginInfo.clearValueCount = 1;
+        beginInfo.pClearValues = &clearValue;
+        beginInfo.framebuffer = this->m_data.swapchainFramebuffer;
+
+        vkCmdBeginRenderPass(cmdBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
     void CScreen::CreateRenderPass()
@@ -131,7 +157,7 @@ namespace Ygg
         attachment.format = this->m_data.swapchainImageFormat;
         attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // TODO: change?
         attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         attachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
@@ -155,14 +181,61 @@ namespace Ygg
         this->m_data.swapchainRenderPass = this->a_pContext->GetGraphicsDevice().CreateRenderPass(&createInfo);
     }
 
+    void CScreen::CreateImageViews()
+    {
+        this->m_data.swapchainImageViews.resize(this->m_data.swapchainImageCount);
+
+        VkImageViewUsageCreateInfo usageInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO };
+        usageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        VkImageViewCreateInfo createInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+        createInfo.pNext = &usageInfo;
+        createInfo.format = this->m_data.swapchainImageFormat;
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.layerCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        for (uint32_t i{ 0 }; i < this->m_data.swapchainImageCount; i++)
+        {
+            createInfo.image = this->m_data.swapchainImages[i];
+            this->m_data.swapchainImageViews[i] = this->a_pContext->GetGraphicsDevice().CreateImageView(
+                &createInfo
+            );
+        }
+    }
+
     void CScreen::CreateFramebuffer()
     {
+        VkFramebufferAttachmentImageInfo attachmentImageInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO };
+        attachmentImageInfo.pNext = nullptr;
+        attachmentImageInfo.width = this->m_data.swapchainImageExtent.width;
+        attachmentImageInfo.height = this->m_data.swapchainImageExtent.height;
+        attachmentImageInfo.flags = 0;
+        attachmentImageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        attachmentImageInfo.layerCount = 1;
+        attachmentImageInfo.viewFormatCount = 1;
+        attachmentImageInfo.pViewFormats = &this->m_data.swapchainImageFormat;
+
+        VkFramebufferAttachmentsCreateInfo attachmentCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO };
+        attachmentCreateInfo.attachmentImageInfoCount = 1;
+        attachmentCreateInfo.pAttachmentImageInfos = &attachmentImageInfo;
+
         VkFramebufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+        createInfo.pNext = &attachmentCreateInfo;
         createInfo.renderPass = this->m_data.swapchainRenderPass;
         createInfo.width = this->m_data.swapchainImageExtent.width;
         createInfo.height = this->m_data.swapchainImageExtent.height;
         createInfo.layers = 1;
         createInfo.flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
+        createInfo.attachmentCount = 1;
+        createInfo.pAttachments = nullptr;
 
         this->m_data.swapchainFramebuffer = this->a_pContext->GetGraphicsDevice().CreateFramebuffer(&createInfo);
     }

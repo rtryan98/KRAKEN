@@ -60,12 +60,18 @@ namespace Ygg
         vulkan12Features.imagelessFramebuffer = VK_TRUE;
         vulkan12Features.shaderInt8 = VK_TRUE;
 
-        this->m_device.Create(this, &vulkan10Features, &vulkan11Features, &vulkan12Features);
         this->m_screen.CreateSurface(this, &CEngine::GetWindow());
+        this->m_device.Create(
+            this,
+            &vulkan10Features,
+            &vulkan11Features,
+            &vulkan12Features);
+        this->m_screen.CreateSwapchain();
     }
 
     void CGraphicsContext::Destroy()
     {
+        this->m_device.WaitIdle();
         this->m_screen.Destroy();
         this->m_device.Destroy();
 #if YGG_USE_ASSERTS

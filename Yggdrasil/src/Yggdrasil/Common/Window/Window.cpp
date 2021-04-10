@@ -18,10 +18,8 @@ namespace Ygg
         case WM_DESTROY:
             ::PostQuitMessage(0);
             break;
-        default:
-            return ::DefWindowProc(m_hwnd, msg, wParam, lParam);
         }
-        return 0;
+        return ::DefWindowProc(m_hwnd, msg, wParam, lParam);
     }
 
     void CWindow::Create(const SWindowCreateInfo& windowCreateInfo) noexcept

@@ -23,11 +23,12 @@ namespace Ygg
         {
             VkCommandPool cmdPool;
             VkCommandBuffer cmdBuffer;
-            VkFence submitFence;
+            VkFence imageAcquireFence;
             VkSemaphore acquireSemaphore;
             VkSemaphore releaseSemaphore;
         };
         std::vector<SPerFrame> m_frames{};
         uint32_t m_currentFrameInFlight{ 0 };
+        uint32_t m_maxFramesInFlight{ 0 };
     };
 }

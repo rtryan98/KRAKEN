@@ -10,7 +10,25 @@ namespace Ygg
     void CRenderEngine::InitPerFrameStruct()
     {
         auto& device{ this->m_context.GetGraphicsDeviceNonConst() };
-        for (uint32_t i{ 0 }; i < this->m_context.GetScreen().GetData().swapchainImageCount; i++)
+        const auto& screen{ this->m_context.GetScreen() };
+
+        if (screen.GetData().swapchainImageCount >= 3)
+        {
+            YGG_TRACE("Resources will be triple buffered, resulting in a higher memory footprint.");
+            this->m_maxFramesInFlight = 3;
+        }
+        else if (screen.GetData().swapchainImageCount == 2)
+        {
+            YGG_WARN("Triple buffering unavailable. Using double buffering.");
+            this->m_maxFramesInFlight = 2;
+        }
+        else
+        {
+            YGG_CRITICAL("No supported buffering mode available! Single buffering will be used and will heavily impact performance.");
+            this->m_currentFrameInFlight = 1;
+        }
+
+        for (uint32_t i{ 0 }; i < this->m_maxFramesInFlight; i++)
         {
             SPerFrame perFrame{};
             this->m_frames.push_back(perFrame);
@@ -37,18 +55,17 @@ namespace Ygg
             VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
             fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-            this->m_frames[i].submitFence = device.CreateFence(
+            this->m_frames[i].imageAcquireFence = device.CreateFence(
                 &fenceInfo,
                 std::string("Swapchain Image Fence " + std::to_string(i)).c_str()
             );
             device.PushObjectDeletion(
                 [=]() mutable -> void {
-                    device.DestroyFence(&this->m_frames[i].submitFence);
+                    device.DestroyFence(&this->m_frames[i].imageAcquireFence);
                 });
 
             VkCommandPoolCreateInfo cmdPoolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
             cmdPoolInfo.queueFamilyIndex = device.GetQueues().mainQueueFamilyIndex;
-            cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
             this->m_frames[i].cmdPool = device.CreateCommandPool(
                 &cmdPoolInfo,
@@ -77,11 +94,13 @@ namespace Ygg
     {
         auto& device{ this->m_context.GetGraphicsDeviceNonConst() };
         auto& screen{ this->m_context.GetScreen() };
-        auto& frame{ this->m_frames[m_currentFrameInFlight] };
-        vkWaitForFences(device.GetHandle(), 1, &frame.submitFence, VK_TRUE, ~0ull);
+        auto& frame { this->m_frames[m_currentFrameInFlight] };
+
+        vkWaitForFences(device.GetHandle(), 1, &frame.imageAcquireFence, VK_TRUE, ~0ull);
 
         uint32_t imageIndex{ 0 };
-        device.AcquireNextImageKHR(screen.GetData().swapchain, ~0ull, frame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex);
+        device.AcquireNextImageKHR(
+            screen.GetData().swapchain, ~0ull, frame.acquireSemaphore, VK_NULL_HANDLE, &imageIndex);
         // TODO: handle resize
 
         VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -105,8 +124,9 @@ namespace Ygg
         submitInfo.pCommandBuffers = &frame.cmdBuffer;
         submitInfo.pWaitDstStageMask = &submitStageMask;
 
-        device.ResetFence(frame.submitFence);
-        RenderUtil::VkCheck(vkQueueSubmit(device.GetQueues().mainQueue, 1, &submitInfo, frame.submitFence));
+        device.ResetFence(frame.imageAcquireFence);
+        RenderUtil::VkCheck(
+            vkQueueSubmit(device.GetQueues().mainQueue, 1, &submitInfo, frame.imageAcquireFence));
 
         VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         presentInfo.swapchainCount = 1;
@@ -118,8 +138,8 @@ namespace Ygg
         vkQueuePresentKHR(device.GetQueues().mainQueue, &presentInfo);
         // TODO: handle resize
 
-        this->m_currentFrameInFlight = (this->m_currentFrameInFlight + 1) & 
-            static_cast<uint32_t>(screen.GetData().swapchainImageCount);
+        this->m_currentFrameInFlight =
+            (this->m_currentFrameInFlight + 1) % this->m_maxFramesInFlight;
     }
 
     void CRenderEngine::Shutdown()

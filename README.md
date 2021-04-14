@@ -3,7 +3,7 @@
 
 ## Requirements
 * CMake 3.18
-* Vulkan SDK 1.2.162.1 or higher
+* Vulkan SDK 1.2.170.0 or higher
 * Visual Studio 2019
 
 ## Building

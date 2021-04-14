@@ -86,10 +86,10 @@ namespace Ygg
 
     void CGraphicsDevice::CGPU::PrintGpuMemoryInfo() const
     {
-        std::string seperator{ "------|------|--------------|--------------|---------------|-------------|------------------|-----------|--------------" };
+        std::string seperator{ "------|------|--------------|--------------|---------------|-------------|-----------" };
         std::stringstream table{};
         table << "Vulkan Memory Information.\n";
-        table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | LAZILY_ALLOCATED | PROTECTED | SIZE ";
+        table << " Heap | Type | DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT | HOST_CACHED | SIZE ";
         for (uint32_t i{ 0 }; i < this->m_data.memoryProperties.memoryHeapCount; i++)
         {
             table << "\n" << seperator;
@@ -135,22 +135,6 @@ namespace Ygg
                 else
                 {
                     table << "| false       ";
-                }
-                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
-                {
-                    table << "| true             ";
-                }
-                else
-                {
-                    table << "| false            ";
-                }
-                if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT)
-                {
-                    table << "| true      ";
-                }
-                else
-                {
-                    table << "| false     ";
                 }
                 table << "| " << std::fixed << std::setprecision(3) << heap.size * 1.0e-9 << " GB";
             }
@@ -392,7 +376,7 @@ namespace Ygg
         return this->m_queues;
     }
 
-    VkDevice CGraphicsDevice::GetHandle()
+    VkDevice CGraphicsDevice::GetHandle() const
     {
         return this->m_handle;
     }

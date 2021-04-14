@@ -23,6 +23,7 @@ namespace Ygg
         void CreateRenderPass();
         void CreateImageViews();
         void CreateFramebuffer();
+        VkPresentModeKHR ChosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
         struct SData
         {

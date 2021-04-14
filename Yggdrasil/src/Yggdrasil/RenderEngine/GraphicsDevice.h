@@ -24,7 +24,7 @@ namespace Ygg
         const CGPU& GetGPU() const;
         const SFeatures& GetFeatures() const;
         const SQueues& GetQueues() const;
-        VkDevice GetHandle();
+        VkDevice GetHandle() const;
 
         void PushObjectDeletion(std::function<void()>&& mFunction);
 

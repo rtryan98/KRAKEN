@@ -23,17 +23,24 @@ namespace Ygg
 
     void CScreen::CreateSwapchain()
     {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities{ this->a_pContext->GetGraphicsDevice().GetGPU().GetSurfaceCapabilitiesKHR(this->m_data.surface) };
+        const auto& device{ this->a_pContext->GetGraphicsDevice() };
+        const auto& gpu{ device.GetGPU() };
+
+        VkSurfaceCapabilitiesKHR surfaceCapabilities{ gpu.GetSurfaceCapabilitiesKHR(this->m_data.surface) };
 
         VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
         createInfo.surface = this->m_data.surface;
-        if (surfaceCapabilities.minImageCount <= 2 && surfaceCapabilities.maxImageCount >= 2)
+        if (surfaceCapabilities.minImageCount <= 3 && surfaceCapabilities.maxImageCount >= 3)
+        {
+            createInfo.minImageCount = 3;
+        }
+        else if (surfaceCapabilities.minImageCount <= 2 && surfaceCapabilities.maxImageCount >= 2)
         {
             createInfo.minImageCount = 2;
         }
         else
         {
-            YGG_CRITICAL("Double buffering not available!");
+            YGG_CRITICAL("Neither triple nor double buffering available!");
         }
 
         // TODO: add support for HDR and other displays here
@@ -56,21 +63,21 @@ namespace Ygg
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
         uint32_t presentModeCount{ 0 };
-        this->a_pContext->GetGraphicsDevice().GetGPU().GetSurfacePresentModesKHR(this->m_data.surface, &presentModeCount,
+        gpu.GetSurfacePresentModesKHR(this->m_data.surface, &presentModeCount,
             nullptr);
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-        this->a_pContext->GetGraphicsDevice().GetGPU().GetSurfacePresentModesKHR(this->m_data.surface, &presentModeCount,
+        gpu.GetSurfacePresentModesKHR(this->m_data.surface, &presentModeCount,
             presentModes.data());
 
-        createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        createInfo.presentMode = ChosePresentMode(presentModes);
         createInfo.clipped = VK_TRUE;
         createInfo.imageArrayLayers = 1;
 
         uint32_t surfaceFormatCount{ 0 };
-        this->a_pContext->GetGraphicsDevice().GetGPU().GetSurfaceFormatsKHR(this->m_data.surface, &surfaceFormatCount,
+        gpu.GetSurfaceFormatsKHR(this->m_data.surface, &surfaceFormatCount,
             nullptr);
         std::vector<VkSurfaceFormatKHR> availableFormats(surfaceFormatCount);
-        this->a_pContext->GetGraphicsDevice().GetGPU().GetSurfaceFormatsKHR(this->m_data.surface, &surfaceFormatCount,
+        gpu.GetSurfaceFormatsKHR(this->m_data.surface, &surfaceFormatCount,
             availableFormats.data());
 
         bool bgraFound{ false };
@@ -101,12 +108,19 @@ namespace Ygg
         }
 
         this->m_data.swapchainImageFormat = createInfo.imageFormat;
-        this->m_data.swapchain = this->a_pContext->GetGraphicsDevice().CreateSwapchainKHR(&createInfo);
-        RenderUtil::VkCheck( vkGetSwapchainImagesKHR(this->a_pContext->GetGraphicsDeviceNonConst().GetHandle(),
+        this->m_data.swapchain = device.CreateSwapchainKHR(&createInfo);
+        RenderUtil::VkCheck( vkGetSwapchainImagesKHR(device.GetHandle(),
             this->m_data.swapchain, &this->m_data.swapchainImageCount, nullptr) );
         this->m_data.swapchainImages.resize(this->m_data.swapchainImageCount);
-        RenderUtil::VkCheck( vkGetSwapchainImagesKHR(this->a_pContext->GetGraphicsDeviceNonConst().GetHandle(),
+        RenderUtil::VkCheck( vkGetSwapchainImagesKHR(device.GetHandle(),
             this->m_data.swapchain, &this->m_data.swapchainImageCount, this->m_data.swapchainImages.data()) );
+
+        if (createInfo.presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+        {
+            YGG_TRACE(
+                "Using 'Mailbox' present mode with '{0}' swapchain images.",
+                this->m_data.swapchainImageCount);
+        }
 
         CreateRenderPass();
         CreateImageViews();
@@ -238,6 +252,18 @@ namespace Ygg
         createInfo.pAttachments = nullptr;
 
         this->m_data.swapchainFramebuffer = this->a_pContext->GetGraphicsDevice().CreateFramebuffer(&createInfo);
+    }
+
+    VkPresentModeKHR CScreen::ChosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+    {
+        for (const auto& presentMode : availablePresentModes)
+        {
+            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+            {
+                return presentMode;
+            }
+        }
+        return VK_PRESENT_MODE_FIFO_KHR;
     }
 
     const CScreen::SData& CScreen::GetData() const

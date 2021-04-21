@@ -3,9 +3,10 @@
 # Yggdrasil
 
 [![Licence: BSD-3-Clause](https://img.shields.io/badge/License-BSD-orange.svg)](https://opensource.org/licenses/BSD-3-Clause)
-![](https://img.shields.io/badge/platform-Windows%2010-blue)
+![](https://img.shields.io/badge/Platform-Windows%2010-blue)
 
 <br/>
+
 *C++17 / Vulkan 1.2.170 Windows-Only Game Engine with a heavy emphasis on open world terrain rendering.*
 
 ## Requirements

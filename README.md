@@ -2,8 +2,8 @@
 
 # Yggdrasil
 
-[![Licence: BSD-3-Clause](https://img.shields.io/badge/License-BSD-orange.svg)](https://opensource.org/licenses/BSD-3-Clause)
-![](https://img.shields.io/badge/Platform-Windows%2010-blue)
+[![Licence: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-orange.svg)](https://opensource.org/licenses/BSD-3-Clause)
+![Platform: Win-64](https://img.shields.io/badge/Platform-Win--64-blue)
 
 <br/>
 

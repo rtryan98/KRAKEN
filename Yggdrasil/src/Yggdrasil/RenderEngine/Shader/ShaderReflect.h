@@ -7,5 +7,7 @@ namespace Ygg::ShaderReflect
 {
     spirv_cross::Compiler GetReflection(const std::vector<uint32_t>& spirv);
 
+    void ReflectTesselation(const spirv_cross::Compiler& reflection);
+
     // TODO: reflection system
 }

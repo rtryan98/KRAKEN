@@ -11,9 +11,9 @@ namespace Ygg
     void CLogger::Init()
     {
         spdlog::set_pattern("[%T] %n: %^%v%$");
-        CLogger::s_pEngineLogger = spdlog::stdout_color_mt("Yggdrasil Engine");
+        CLogger::s_pEngineLogger = spdlog::stdout_color_mt("Yggdrasil");
         CLogger::s_pEngineLogger->set_level(spdlog::level::trace);
-        CLogger::s_pValidationLogger = spdlog::stdout_color_mt("Vulkan Validation");
+        CLogger::s_pValidationLogger = spdlog::stdout_color_mt("Vulkan");
         CLogger::s_pValidationLogger->set_level(spdlog::level::trace);
     }
 

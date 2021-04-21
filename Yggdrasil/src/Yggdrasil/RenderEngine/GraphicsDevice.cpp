@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <iomanip>
+#include <vulkan/vk_enum_string_helper.h>
 
 namespace Ygg
 {
@@ -251,9 +252,9 @@ namespace Ygg
         this->m_features.enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         this->m_features.enabledVulkan12Features.pNext = nullptr;
 
-        YGG_TRACE("Checking for enabled Vulkan Core Features...");
         if (pRequestedVulkan10Features != nullptr)
         {
+            YGG_TRACE("Checking for enabled Vulkan 1.0 Core Features...");
             VkBool32* requested{ &(pRequestedVulkan10Features->robustBufferAccess) };
             VkBool32* available{ &(availableVulkan10Features.features.robustBufferAccess) };
             for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
@@ -272,6 +273,7 @@ namespace Ygg
         }
         if (pRequestedVulkan11Features != nullptr)
         {
+            YGG_TRACE("Checking for enabled Vulkan 1.1 Core Features...");
             VkBool32* requested{ &(pRequestedVulkan11Features->storageBuffer16BitAccess) };
             VkBool32* available{ &(availableVulkan11Features.storageBuffer16BitAccess) };
             for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
@@ -290,9 +292,10 @@ namespace Ygg
         }
         if (pRequestedVulkan12Features != nullptr)
         {
+            YGG_TRACE("Checking for enabled Vulkan 1.2 Core Features...");
             VkBool32* requested{ &(pRequestedVulkan12Features->samplerMirrorClampToEdge) };
             VkBool32* available{ &(availableVulkan12Features.samplerMirrorClampToEdge) };
-            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)); i++)
+            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
             {
                 if (requested[i] && available[i])
                 {
@@ -309,6 +312,15 @@ namespace Ygg
 
         std::vector<const char*> enabledDeviceExtensions{};
         enabledDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+        YGG_TRACE("Checking for enabled Vulkan Extensions...");
+
+        // TODO: query mesh shader support and usage
+        // if (hasMeshShaderSupport && useMeshShaders)
+        // {
+        enabledDeviceExtensions.push_back(VK_NV_MESH_SHADER_EXTENSION_NAME);
+        YGG_INFO("Requested Vulkan Extension '{0}' is ACTIVE.", VK_NV_MESH_SHADER_EXTENSION_NAME);
+        // }
 
         VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());

@@ -1,5 +1,12 @@
+<img align="left" src="docs/res/icon/ygg256.png" width="128px"/>
+
 # Yggdrasil
-*C++17 / Vulkan 1.2 Windows-Only Game Engine with a heavy emphasis on high fidelity rendering.*
+
+[![Licence: BSD-3-Clause](https://img.shields.io/badge/License-BSD-orange.svg)](https://opensource.org/licenses/BSD-3-Clause)
+![](https://img.shields.io/badge/platform-Windows%2010-blue)
+
+<br/>
+*C++17 / Vulkan 1.2.170 Windows-Only Game Engine with a heavy emphasis on open world terrain rendering.*
 
 ## Requirements
 * CMake 3.18

@@ -119,7 +119,15 @@ namespace Ygg
         {
             YGG_TRACE(
                 "Using 'Mailbox' present mode with '{0}' swapchain images.",
-                this->m_data.swapchainImageCount);
+                this->m_data.swapchainImageCount
+                );
+        }
+        else
+        {
+            YGG_TRACE(
+                "Using 'FIFO' present mode with '{0}' swapchain images.",
+                this->m_data.swapchainImageCount
+                );
         }
 
         CreateRenderPass();

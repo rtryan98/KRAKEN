@@ -18,7 +18,7 @@ The currently used Vulkan extensions are:
 * [`VK_NV_mesh_shader`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_NV_mesh_shader.html)
 
 Extensions are mandatory unless they are tagged to have a fallback implementation.
-The engine will terminate if an extension is not present and fallback path exists.
+The engine will terminate if an extension is not present and no fallback path exists.
 Currently there are no fallback paths planned, nor is it planned to extend this renderer / engine to other operating systems.
 For every vendor extension used, if a cross vendor solution appears it will be replaced with that one.
 

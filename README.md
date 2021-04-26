@@ -16,7 +16,6 @@ It makes use of many of Vulkan 1.2's core features so it is expected to have the
 
 The currently used Vulkan extensions are:
 * [`VK_NV_mesh_shader`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_NV_mesh_shader.html)
-* [`VK_KHR_8bit_storage`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_8bit_storage.html)
 
 Extensions are mandatory unless they are tagged to have a fallback implementation.
 The engine will terminate if an extension is not present and fallback path exists.

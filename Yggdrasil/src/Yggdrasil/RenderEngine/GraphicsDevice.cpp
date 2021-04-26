@@ -174,10 +174,172 @@ namespace Ygg
         PrintGpuMemoryInfo();
     }
 
-    void CGraphicsDevice::Create(CGraphicsContext* pContext,
-        VkPhysicalDeviceFeatures* pRequestedVulkan10Features,
-        VkPhysicalDeviceVulkan11Features* pRequestedVulkan11Features,
-        VkPhysicalDeviceVulkan12Features* pRequestedVulkan12Features)
+    bool QueryExtensionSupportTryAddExtension(
+        const std::vector<VkExtensionProperties>& availableExtensions,
+        const char* requiredExtension,
+        std::vector<const char*>& enabledExtensions,
+        bool abortIfUnavailable = false
+        )
+    {
+        for (auto& extension : availableExtensions)
+        {
+            if (strcmp(extension.extensionName, requiredExtension) == 0)
+            {
+                enabledExtensions.push_back(requiredExtension);
+                YGG_INFO("Requested Vulkan Extension '{0}' is AVAILABLE and ACTIVE", requiredExtension);
+                return true;
+            }
+        }
+        YGG_WARN("Requested Vulkan Extension '{0}' is NOT AVAILABLE", requiredExtension);
+        if (abortIfUnavailable)
+        {
+            std::abort();
+        }
+        return false;
+    }
+
+    void CGraphicsDevice::QueryFeatures(bool hasMeshShaderSupport)
+    {
+        VkPhysicalDeviceFeatures requestedVulkan10Features{};
+        requestedVulkan10Features.textureCompressionBC = VK_TRUE;
+        requestedVulkan10Features.samplerAnisotropy = VK_TRUE;
+        requestedVulkan10Features.multiDrawIndirect = VK_TRUE;
+        requestedVulkan10Features.imageCubeArray = VK_TRUE;
+        requestedVulkan10Features.shaderInt16 = VK_TRUE;
+        requestedVulkan10Features.shaderInt64 = VK_TRUE;
+
+        VkPhysicalDeviceVulkan11Features requestedVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        requestedVulkan11Features.shaderDrawParameters = VK_TRUE;
+
+        VkPhysicalDeviceVulkan12Features requestedVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        requestedVulkan12Features.storageBuffer8BitAccess = VK_TRUE;
+        requestedVulkan12Features.uniformAndStorageBuffer8BitAccess = VK_TRUE;
+        requestedVulkan12Features.drawIndirectCount = VK_TRUE;
+        requestedVulkan12Features.imagelessFramebuffer = VK_TRUE;
+        requestedVulkan12Features.shaderInt8 = VK_TRUE;
+        requestedVulkan12Features.descriptorIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderInputAttachmentArrayDynamicIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderUniformTexelBufferArrayDynamicIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderStorageTexelBufferArrayDynamicIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderStorageImageArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderInputAttachmentArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderUniformTexelBufferArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.shaderStorageTexelBufferArrayNonUniformIndexing = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingPartiallyBound = VK_TRUE;
+        requestedVulkan12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
+        requestedVulkan12Features.runtimeDescriptorArray = VK_TRUE;
+
+        VkPhysicalDeviceMeshShaderFeaturesNV requestedMeshShaderFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV };
+        requestedMeshShaderFeatures.meshShader = VK_TRUE;
+        requestedMeshShaderFeatures.taskShader = VK_TRUE;
+
+        VkPhysicalDeviceFeatures2 availableVulkan10Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
+        VkPhysicalDeviceVulkan11Features availableVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        VkPhysicalDeviceVulkan12Features availableVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        VkPhysicalDeviceMeshShaderFeaturesNV availableMeshShaderFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV };
+
+        availableVulkan10Features.pNext = &availableVulkan11Features;
+        availableVulkan11Features.pNext = &availableVulkan12Features;
+        availableVulkan12Features.pNext = &availableMeshShaderFeatures;
+
+        vkGetPhysicalDeviceFeatures2(this->m_gpu.GetData().handle, &availableVulkan10Features);
+
+        VkBool32* requested{ nullptr };
+        VkBool32* available{ nullptr };
+
+        YGG_TRACE("Querying enabled Vulkan 1.0 Core Features...");
+        requested = &requestedVulkan10Features.robustBufferAccess;
+        available = &availableVulkan10Features.features.robustBufferAccess;
+        for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
+        {
+            if (requested[i] && available[i])
+            {
+                VkBool32* feature{ (&this->m_features.enabledVulkan10Features.features.robustBufferAccess) + i };
+                *feature = VK_TRUE;
+                YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures10ToString(i));
+            }
+            else if (requested[i])
+            {
+                YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures10ToString(i));
+            }
+        }
+
+        YGG_TRACE("Querying enabled Vulkan 1.1 Core Features...");
+        requested = &requestedVulkan11Features.storageBuffer16BitAccess;
+        available = &availableVulkan11Features.storageBuffer16BitAccess;
+        for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
+        {
+            if (requested[i] && available[i])
+            {
+                VkBool32* feature{ (&this->m_features.enabledVulkan11Features.storageBuffer16BitAccess) + i };
+                *feature = VK_TRUE;
+                YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures11ToString(i));
+            }
+            else if (requested[i])
+            {
+                YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures11ToString(i));
+            }
+        }
+
+        YGG_TRACE("Querying enabled Vulkan 1.2 Core Features...");
+        requested = &requestedVulkan12Features.samplerMirrorClampToEdge;
+        available = &availableVulkan12Features.samplerMirrorClampToEdge;
+        for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
+        {
+            if (requested[i] && available[i])
+            {
+                VkBool32* feature{ (&this->m_features.enabledVulkan12Features.samplerMirrorClampToEdge) + i };
+                *feature = VK_TRUE;
+                YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures12ToString(i));
+            }
+            else if (requested[i])
+            {
+                YGG_WARN("Requested Vulkan 1.2 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures12ToString(i));
+            }
+        }
+
+        if (hasMeshShaderSupport)
+        {
+            YGG_TRACE("Querying enabled Vulkan Mesh Shader (NVIDIA) Features...");
+            const char* taskShaderName{ "taskShader" };
+            const char* meshShaderName{ "meshShader" };
+            if (availableMeshShaderFeatures.meshShader && requestedMeshShaderFeatures.meshShader)
+            {
+                this->m_features.enabledMeshShaderFeaturesNV.meshShader = VK_TRUE;
+                YGG_INFO("Requested Vulkan Mesh Shader Feature '{0}' is ACTIVE", meshShaderName);
+            }
+            else
+            {
+                YGG_WARN("Requested Vulkan Mesh Shader '{0}' is NOT AVAILABLE.", meshShaderName);
+            }
+            if (availableMeshShaderFeatures.taskShader && requestedMeshShaderFeatures.taskShader)
+            {
+                this->m_features.enabledMeshShaderFeaturesNV.taskShader = VK_TRUE;
+                YGG_INFO("Requested Vulkan Mesh Shader Feature '{0}' is ACTIVE", taskShaderName);
+            }
+            else
+            {
+                YGG_WARN("Requested Vulkan Mesh Shader '{0}' is NOT AVAILABLE.", taskShaderName);
+            }
+        }
+        else
+        {
+            YGG_CRITICAL("Mesh Shaders are not supported.");
+            std::abort();
+        }
+    }
+
+    void CGraphicsDevice::Create(CGraphicsContext* pContext)
     {
         this->m_gpu.SelectPhysicalDevice(pContext);
 
@@ -236,91 +398,35 @@ namespace Ygg
             YGG_CRITICAL("Main queue does not support presentation!");
         }
 
-        VkPhysicalDeviceFeatures2 availableVulkan10Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
-        VkPhysicalDeviceVulkan11Features availableVulkan11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
-        VkPhysicalDeviceVulkan12Features availableVulkan12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        std::vector<const char*> enabledDeviceExtensions{};
 
-        availableVulkan10Features.pNext = &availableVulkan11Features;
-        availableVulkan11Features.pNext = &availableVulkan12Features;
+        YGG_TRACE("Querying enabled Vulkan Extensions...");
 
-        vkGetPhysicalDeviceFeatures2(this->m_gpu.GetData().handle, &availableVulkan10Features);
+        uint32_t availableExtensionCount{ 0 };
+        RenderUtil::VkCheck(vkEnumerateDeviceExtensionProperties(this->m_gpu.GetData().handle, nullptr, &availableExtensionCount, nullptr));
+        std::vector<VkExtensionProperties> availableExtensions(availableExtensionCount);
+        RenderUtil::VkCheck(vkEnumerateDeviceExtensionProperties(this->m_gpu.GetData().handle, nullptr, &availableExtensionCount, availableExtensions.data()));
+
+        QueryExtensionSupportTryAddExtension(availableExtensions, VK_KHR_SWAPCHAIN_EXTENSION_NAME, enabledDeviceExtensions, true);
+
+        bool hasMeshShaderSupport{ QueryExtensionSupportTryAddExtension(availableExtensions, VK_NV_MESH_SHADER_EXTENSION_NAME, enabledDeviceExtensions, true) };
 
         this->m_features.enabledVulkan10Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         this->m_features.enabledVulkan10Features.pNext = &this->m_features.enabledVulkan11Features;
         this->m_features.enabledVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
         this->m_features.enabledVulkan11Features.pNext = &this->m_features.enabledVulkan12Features;
         this->m_features.enabledVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        this->m_features.enabledVulkan12Features.pNext = nullptr;
 
-        if (pRequestedVulkan10Features != nullptr)
+        if (hasMeshShaderSupport)
         {
-            YGG_TRACE("Checking for enabled Vulkan 1.0 Core Features...");
-            VkBool32* requested{ &(pRequestedVulkan10Features->robustBufferAccess) };
-            VkBool32* available{ &(availableVulkan10Features.features.robustBufferAccess) };
-            for (uint32_t i{ 0 }; i < (sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32)); i++)
-            {
-                if (requested[i] && available[i])
-                {
-                    VkBool32* feature{ (&this->m_features.enabledVulkan10Features.features.robustBufferAccess) + i };
-                    *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures10ToString(i));
-                }
-                else if(requested[i])
-                {
-                    YGG_INFO("Requested Vulkan 1.0 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures10ToString(i));
-                }
-            }
+            this->m_features.enabledVulkan12Features.pNext = &this->m_features.enabledMeshShaderFeaturesNV;
         }
-        if (pRequestedVulkan11Features != nullptr)
+        else
         {
-            YGG_TRACE("Checking for enabled Vulkan 1.1 Core Features...");
-            VkBool32* requested{ &(pRequestedVulkan11Features->storageBuffer16BitAccess) };
-            VkBool32* available{ &(availableVulkan11Features.storageBuffer16BitAccess) };
-            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan11Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
-            {
-                if (requested[i] && available[i])
-                {
-                    VkBool32* feature{ (&this->m_features.enabledVulkan11Features.storageBuffer16BitAccess) + i };
-                    *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures11ToString(i));
-                }
-                else if (requested[i])
-                {
-                    YGG_INFO("Requested Vulkan 1.1 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures11ToString(i));
-                }
-            }
-        }
-        if (pRequestedVulkan12Features != nullptr)
-        {
-            YGG_TRACE("Checking for enabled Vulkan 1.2 Core Features...");
-            VkBool32* requested{ &(pRequestedVulkan12Features->samplerMirrorClampToEdge) };
-            VkBool32* available{ &(availableVulkan12Features.samplerMirrorClampToEdge) };
-            for (uint32_t i{ 0 }; i < ((sizeof(VkPhysicalDeviceVulkan12Features) - sizeof(void*) - sizeof(VkStructureType)) / sizeof(VkBool32)) - 1; i++)
-            {
-                if (requested[i] && available[i])
-                {
-                    VkBool32* feature{ (&this->m_features.enabledVulkan12Features.samplerMirrorClampToEdge) + i };
-                    *feature = VK_TRUE;
-                    YGG_INFO("Requested Vulkan 1.2 Feature '{0}' is ACTIVE.", RenderUtil::VkDeviceFeatures12ToString(i));
-                }
-                else if (requested[i])
-                {
-                    YGG_WARN("Requested Vulkan 1.2 Feature '{0}' is NOT AVAILABLE.", RenderUtil::VkDeviceFeatures12ToString(i));
-                }
-            }
+            this->m_features.enabledVulkan12Features.pNext = nullptr;
         }
 
-        std::vector<const char*> enabledDeviceExtensions{};
-        enabledDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-
-        YGG_TRACE("Checking for enabled Vulkan Extensions...");
-
-        // TODO: query mesh shader support and usage
-        // if (hasMeshShaderSupport && useMeshShaders)
-        // {
-        enabledDeviceExtensions.push_back(VK_NV_MESH_SHADER_EXTENSION_NAME);
-        YGG_INFO("Requested Vulkan Extension '{0}' is ACTIVE.", VK_NV_MESH_SHADER_EXTENSION_NAME);
-        // }
+        QueryFeatures(hasMeshShaderSupport);
 
         VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -365,11 +471,6 @@ namespace Ygg
 
     void CGraphicsDevice::Destroy()
     {
-        WaitIdle();
-        for (auto it{ this->m_deletionQueue.rbegin() }; it != this->m_deletionQueue.rend(); it++)
-        {
-            (*it)();
-        }
         vkDestroyDevice(this->m_handle, nullptr);
     }
 
@@ -393,11 +494,6 @@ namespace Ygg
         return this->m_handle;
     }
 
-    void CGraphicsDevice::PushObjectDeletion(std::function<void()>&& mFunction)
-    {
-        this->m_deletionQueue.push_back(mFunction);
-    }
-
     VkCommandPool CGraphicsDevice::CreateCommandPool(VkCommandPoolCreateInfo* pCreateInfo, const char* name) const
     {
         VkCommandPool result{};
@@ -407,7 +503,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyCommandPool(VkCommandPool* pPool)
+    void CGraphicsDevice::DestroyCommandPool(VkCommandPool* pPool) const
     {
         RenderUtil::DestroyVkObject(pPool, vkDestroyCommandPool, this->m_handle);
     }
@@ -421,7 +517,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyBuffer(VkBuffer* pBuffer)
+    void CGraphicsDevice::DestroyBuffer(VkBuffer* pBuffer) const
     {
         RenderUtil::DestroyVkObject(pBuffer, vkDestroyBuffer, this->m_handle);
     }
@@ -435,7 +531,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyBufferView(VkBufferView* pBufferView)
+    void CGraphicsDevice::DestroyBufferView(VkBufferView* pBufferView) const
     {
         RenderUtil::DestroyVkObject(pBufferView, vkDestroyBufferView, this->m_handle);
     }
@@ -449,7 +545,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyImage(VkImage* pImage)
+    void CGraphicsDevice::DestroyImage(VkImage* pImage) const
     {
         RenderUtil::DestroyVkObject(pImage, vkDestroyImage, this->m_handle);
     }
@@ -463,7 +559,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyImageView(VkImageView* pImageView)
+    void CGraphicsDevice::DestroyImageView(VkImageView* pImageView) const
     {
         RenderUtil::DestroyVkObject(pImageView, vkDestroyImageView, this->m_handle);
     }
@@ -477,7 +573,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyPipeline(VkPipeline* pPipeline)
+    void CGraphicsDevice::DestroyPipeline(VkPipeline* pPipeline) const
     {
         RenderUtil::DestroyVkObject(pPipeline, vkDestroyPipeline, this->m_handle);
     }
@@ -500,7 +596,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyShaderModule(VkShaderModule* pShaderModule)
+    void CGraphicsDevice::DestroyShaderModule(VkShaderModule* pShaderModule) const
     {
         RenderUtil::DestroyVkObject(pShaderModule, vkDestroyShaderModule, this->m_handle);
     }
@@ -514,7 +610,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyPipelineCache(VkPipelineCache* pPipelineCache)
+    void CGraphicsDevice::DestroyPipelineCache(VkPipelineCache* pPipelineCache) const
     {
         RenderUtil::DestroyVkObject(pPipelineCache, vkDestroyPipelineCache, this->m_handle);
     }
@@ -528,7 +624,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroySampler(VkSampler* pSampler)
+    void CGraphicsDevice::DestroySampler(VkSampler* pSampler) const
     {
         RenderUtil::DestroyVkObject(pSampler, vkDestroySampler, this->m_handle);
     }
@@ -542,7 +638,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyFramebuffer(VkFramebuffer* pFramebuffer)
+    void CGraphicsDevice::DestroyFramebuffer(VkFramebuffer* pFramebuffer) const
     {
         RenderUtil::DestroyVkObject(pFramebuffer, vkDestroyFramebuffer, this->m_handle);
     }
@@ -556,7 +652,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyPipelineLayout(VkPipelineLayout* pPipelineLayout)
+    void CGraphicsDevice::DestroyPipelineLayout(VkPipelineLayout* pPipelineLayout) const
     {
         RenderUtil::DestroyVkObject(pPipelineLayout, vkDestroyPipelineLayout, this->m_handle);
     }
@@ -570,7 +666,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyRenderPass(VkRenderPass* pRenderPass)
+    void CGraphicsDevice::DestroyRenderPass(VkRenderPass* pRenderPass) const
     {
         RenderUtil::DestroyVkObject(pRenderPass, vkDestroyRenderPass, this->m_handle);
     }
@@ -584,7 +680,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroySemaphore(VkSemaphore* pSemaphore)
+    void CGraphicsDevice::DestroySemaphore(VkSemaphore* pSemaphore) const
     {
         RenderUtil::DestroyVkObject(pSemaphore, vkDestroySemaphore, this->m_handle);
     }
@@ -598,7 +694,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyFence(VkFence* pFence)
+    void CGraphicsDevice::DestroyFence(VkFence* pFence) const
     {
         RenderUtil::DestroyVkObject(pFence, vkDestroyFence, this->m_handle);
     }
@@ -612,7 +708,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyEvent(VkEvent* pEvent)
+    void CGraphicsDevice::DestroyEvent(VkEvent* pEvent) const
     {
         RenderUtil::DestroyVkObject(pEvent, vkDestroyEvent, this->m_handle);
     }
@@ -626,7 +722,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyQueryPool(VkQueryPool* pQueryPool)
+    void CGraphicsDevice::DestroyQueryPool(VkQueryPool* pQueryPool) const
     {
         RenderUtil::DestroyVkObject(pQueryPool, vkDestroyQueryPool, this->m_handle);
     }
@@ -640,42 +736,45 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroyDescriptorPool(VkDescriptorPool* pPool)
+    void CGraphicsDevice::DestroyDescriptorPool(VkDescriptorPool* pPool) const
     {
         RenderUtil::DestroyVkObject(pPool, vkDestroyDescriptorPool, this->m_handle);
     }
 
-    void CGraphicsDevice::BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset)
+    void CGraphicsDevice::BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) const
     {
         RenderUtil::VkCheck(vkBindBufferMemory(this->m_handle, buffer, memory, memoryOffset));
     }
 
-    void CGraphicsDevice::BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos)
+    void CGraphicsDevice::BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos) const
     {
         RenderUtil::VkCheck(vkBindBufferMemory2(this->m_handle, bindInfoCount, pBindInfos));
     }
 
-    void CGraphicsDevice::BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset)
+    void CGraphicsDevice::BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) const
     {
         RenderUtil::VkCheck(vkBindImageMemory(this->m_handle, image, memory, memoryOffset));
     }
 
-    void CGraphicsDevice::BindImageMemory2(uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
+    void CGraphicsDevice::BindImageMemory2(uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos) const
     {
         RenderUtil::VkCheck(vkBindImageMemory2(this->m_handle, bindInfoCount, pBindInfos));
     }
 
-    void CGraphicsDevice::FreeMemory(VkDeviceMemory memory)
+    void CGraphicsDevice::FreeMemory(VkDeviceMemory memory) const
     {
-        vkFreeMemory(this->m_handle, memory, nullptr);
+        if (memory != VK_NULL_HANDLE)
+        {
+            vkFreeMemory(this->m_handle, memory, nullptr);
+        }
     }
 
-    VkResult CGraphicsDevice::AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex)
+    VkResult CGraphicsDevice::AcquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pIndex) const
     {
         return vkAcquireNextImageKHR(this->m_handle, swapchain, timeout, semaphore, fence, pIndex);
     }
 
-    VkResult CGraphicsDevice::AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex)
+    VkResult CGraphicsDevice::AcquireNextImage2KHR(VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pIndex) const
     {
         return vkAcquireNextImage2KHR(this->m_handle, pAcquireInfo, pIndex);
     }
@@ -689,7 +788,7 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::DestroySwapchainKHR(VkSwapchainKHR* pSwapchain)
+    void CGraphicsDevice::DestroySwapchainKHR(VkSwapchainKHR* pSwapchain) const
     {
         RenderUtil::DestroyVkObject(pSwapchain, vkDestroySwapchainKHR, this->m_handle);
     }
@@ -712,12 +811,12 @@ namespace Ygg
         return result;
     }
 
-    void CGraphicsDevice::ResetCommandPool(VkCommandPool pool, VkCommandPoolResetFlags flags)
+    void CGraphicsDevice::ResetCommandPool(VkCommandPool pool, VkCommandPoolResetFlags flags) const
     {
         RenderUtil::VkCheck(vkResetCommandPool(this->m_handle, pool, flags));
     }
 
-    void CGraphicsDevice::ResetFence(VkFence fence)
+    void CGraphicsDevice::ResetFence(VkFence fence) const
     {
         RenderUtil::VkCheck(vkResetFences(this->m_handle, 1, &fence));
     }

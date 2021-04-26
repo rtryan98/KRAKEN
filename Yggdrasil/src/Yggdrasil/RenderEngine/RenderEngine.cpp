@@ -9,7 +9,7 @@ namespace Ygg
 {
     void CRenderEngine::InitPerFrameStruct()
     {
-        auto& device{ this->m_context.GetGraphicsDeviceNonConst() };
+        const auto& device{ this->m_context.GetGraphicsDevice() };
         const auto& screen{ this->m_context.GetScreen() };
 
         if (screen.GetData().swapchainImageCount >= 3)
@@ -39,16 +39,16 @@ namespace Ygg
             this->m_frames[i].acquireSemaphore = device.CreateSemaphore(
                 &semaphoreInfo,
                 std::string("Acquire Semaphore " + std::to_string(i)).c_str());
-            device.PushObjectDeletion(
-                [=]() mutable -> void {
+            PushObjectDeletion(
+                [=]() -> void {
                     device.DestroySemaphore(&this->m_frames[i].acquireSemaphore);
                 });
 
             this->m_frames[i].releaseSemaphore = device.CreateSemaphore(
                 &semaphoreInfo,
                 std::string("Release Semaphore " + std::to_string(i)).c_str());
-            device.PushObjectDeletion(
-                [=]() mutable -> void {
+            PushObjectDeletion(
+                [=]() -> void {
                     device.DestroySemaphore(&this->m_frames[i].releaseSemaphore);
                 });
 
@@ -59,8 +59,8 @@ namespace Ygg
                 &fenceInfo,
                 std::string("Swapchain Image Fence " + std::to_string(i)).c_str()
             );
-            device.PushObjectDeletion(
-                [=]() mutable -> void {
+            PushObjectDeletion(
+                [=]() -> void {
                     device.DestroyFence(&this->m_frames[i].imageAcquireFence);
                 });
 
@@ -71,8 +71,8 @@ namespace Ygg
                 &cmdPoolInfo,
                 std::string("Frame Command Pool " + std::to_string(i)).c_str()
             );
-            device.PushObjectDeletion(
-                [=]() mutable -> void {
+            PushObjectDeletion(
+                [=]() -> void {
                     device.DestroyCommandPool(&this->m_frames[i].cmdPool);
                 });
 
@@ -144,7 +144,17 @@ namespace Ygg
 
     void CRenderEngine::Shutdown()
     {
+        this->m_context.GetGraphicsDevice().WaitIdle();
+        for (auto it{ this->m_deletionQueue.rbegin() }; it != this->m_deletionQueue.rend(); it++)
+        {
+            (*it)();
+        }
         this->m_context.Destroy();
+    }
+
+    void CRenderEngine::PushObjectDeletion(std::function<void()>&& mFunction)
+    {
+        this->m_deletionQueue.push_back(mFunction);
     }
 
     const CGraphicsContext& CRenderEngine::GetGraphicsContext() const

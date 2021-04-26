@@ -9,12 +9,27 @@
 
 *C++17 / Vulkan 1.2.170 Windows-Only Game Engine with a heavy emphasis on open world terrain rendering.*
 
-## Requirements
+## Disclaimer
+This is a personal project to learn Vulkan, Graphics and modern technologies.
+Due to this, there will be no contributions from other persons.
+It makes use of many of Vulkan 1.2's core features so it is expected to have them available.
+
+The currently used Vulkan extensions are:
+* [`VK_NV_mesh_shader`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_NV_mesh_shader.html)
+* [`VK_KHR_8bit_storage`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_8bit_storage.html)
+
+Extensions are mandatory unless they are tagged to have a fallback implementation.
+The engine will terminate if an extension is not present and fallback path exists.
+Currently there are no fallback paths planned, nor is it planned to extend this renderer / engine to other operating systems.
+For every vendor extension used, if a cross vendor solution appears it will be replaced with that one.
+
+## Building
+### Build Requirements
 * CMake 3.18
 * Vulkan SDK 1.2.170.0 or higher
 * Visual Studio 2019
 
-## Building
+### Build Instructions
 * Go to scripts/
 * Run `GenerateVS2019.bat`
 * Open the `.sln`-file which was generated in `build/`.

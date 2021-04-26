@@ -2,6 +2,8 @@
 #include "Yggdrasil/RenderEngine/GraphicsContext.h"
 
 #include <vector>
+#include <deque>
+#include <functional>
 
 namespace Ygg
 {
@@ -12,6 +14,7 @@ namespace Ygg
         void Render();
         void Shutdown();
         const CGraphicsContext& GetGraphicsContext() const;
+        void PushObjectDeletion(std::function<void()>&& mFunction);
 
     private:
         void InitPerFrameStruct();
@@ -30,5 +33,6 @@ namespace Ygg
         std::vector<SPerFrame> m_frames{};
         uint32_t m_currentFrameInFlight{ 0 };
         uint32_t m_maxFramesInFlight{ 0 };
+        std::deque<std::function<void()>> m_deletionQueue;
     };
 }

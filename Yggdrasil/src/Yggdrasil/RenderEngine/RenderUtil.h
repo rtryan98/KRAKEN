@@ -22,10 +22,10 @@ namespace Ygg::RenderUtil
 
     void VkCheck(VkResult result);
 
-    void CreateDebugMessenger(VkInstance s_instance);
-    void DestroyDebugMessenger(VkInstance s_instance);
+    void CreateDebugMessenger(VkInstance instance);
+    void DestroyDebugMessenger(VkInstance instance);
 
-    void InitDebugExtensions(VkInstance s_instance);
+    void InitDebugExtensions(VkInstance instance);
     void SetVkObjectDebugName(VkDevice device, uint64_t handle, VkObjectType type, const char* name);
 }
 

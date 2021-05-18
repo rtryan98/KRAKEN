@@ -232,17 +232,17 @@ namespace Ygg::RenderUtil
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 
-    void LoadVkDebugUtilsFunctions(VkInstance s_instance)
+    void LoadVkDebugUtilsFunctions(VkInstance instance)
     {
-        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(s_instance, "vkCreateDebugUtilsMessengerEXT"));
-        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(s_instance, "vkDestroyDebugUtilsMessengerEXT"));
+        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
     }
 
-    void CreateDebugMessenger(VkInstance s_instance)
+    void CreateDebugMessenger(VkInstance instance)
     {
 #if YGG_USE_ASSERTS
         Ygg::CLogger::GetValidationLogger()->info("Enabled Vulkan Debug Messenger.");
-        LoadVkDebugUtilsFunctions(s_instance);
+        LoadVkDebugUtilsFunctions(instance);
 
         VkDebugUtilsMessengerCreateInfoEXT createInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
@@ -254,13 +254,13 @@ namespace Ygg::RenderUtil
         createInfo.pfnUserCallback = DebugCallback;
         createInfo.pUserData = nullptr;
 
-        VkCheck(vkCreateDebugUtilsMessengerEXT(s_instance, &createInfo, nullptr, &debugMessenger));
+        VkCheck(vkCreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger));
 #endif
     }
 
-    void DestroyDebugMessenger(VkInstance s_instance)
+    void DestroyDebugMessenger(VkInstance instance)
     {
-        vkDestroyDebugUtilsMessengerEXT(s_instance, debugMessenger, nullptr);
+        vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
 
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
@@ -268,12 +268,12 @@ namespace Ygg::RenderUtil
     PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT{};
     PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT{};
 
-    void InitDebugExtensions(VkInstance s_instance)
+    void InitDebugExtensions(VkInstance instance)
     {
-        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(s_instance, "vkSetDebugUtilsObjectNameEXT"));
-        vkCmdDebugMarkerBeginEXT = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerBeginEXT"));
-        vkCmdDebugMarkerEndEXT = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerEndEXT"));
-        vkCmdDebugMarkerInsertEXT = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetInstanceProcAddr(s_instance, "vkCmdDebugMarkerInsertEXT"));
+        vkSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
+        vkCmdDebugMarkerBeginEXT = reinterpret_cast<PFN_vkCmdDebugMarkerBeginEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT"));
+        vkCmdDebugMarkerEndEXT = reinterpret_cast<PFN_vkCmdDebugMarkerEndEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT"));
+        vkCmdDebugMarkerInsertEXT = reinterpret_cast<PFN_vkCmdDebugMarkerInsertEXT>(vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT"));
     }
 
     void SetVkObjectDebugName(VkDevice device, uint64_t handle, VkObjectType type, const char* name)

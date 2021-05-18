@@ -1,13 +1,32 @@
 #pragma once
+#include "Yggdrasil/RenderEngine/Shader/Shader.h"
+
 #include <spirv_cross/spirv_reflect.hpp>
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <initializer_list>
+
+namespace Ygg
+{
+    class CGraphicsDevice;
+}
 
 namespace Ygg::ShaderReflect
 {
     spirv_cross::Compiler GetReflection(const std::vector<uint32_t>& spirv);
 
-    void ReflectTesselation(const spirv_cross::Compiler& reflection);
+    // TODO: move that somewhere else?
+    VkPipeline CreateGraphicsPipeline(
+        const CGraphicsDevice& device,
+        VkPipelineCache cache,
+        VkRenderPass renderPass,
+        std::initializer_list<const SShader*> shaders
+        );
 
-    // TODO: reflection system
+    // TODO: move that somewhere else?
+    VkPipeline CreateComputePipeline(
+        const CGraphicsDevice& device,
+        VkPipelineCache cache,
+        const SShader* shader
+        );
 }

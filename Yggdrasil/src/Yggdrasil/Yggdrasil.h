@@ -1,3 +1,5 @@
+// Copyright 2021 Robert Ryan. See LICENCE.md.
+
 #pragma once
 #include "Yggdrasil/Common/Window/Window.h"
 

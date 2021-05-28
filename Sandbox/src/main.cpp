@@ -1,3 +1,5 @@
+// Copyright 2021 Robert Ryan. See LICENCE.md.
+
 #include <Yggdrasil/Yggdrasil.h>
 #include <Yggdrasil/Common/Window/Input.h>
 #include <cstdint>

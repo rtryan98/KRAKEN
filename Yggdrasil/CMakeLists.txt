@@ -15,7 +15,8 @@ endif (MSVC)
 target_include_directories(${YGG_ENGINE} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src")
 target_link_libraries(${YGG_ENGINE} PUBLIC spdlog)
 target_link_libraries(${YGG_ENGINE} PUBLIC Vulkan::Vulkan)
-target_link_libraries(${YGG_ENGINE} PUBLIC "$ENV{VULKAN_SDK}/Lib/glslang.lib")          # There should be another way to do this.
+target_link_libraries(${YGG_ENGINE} PUBLIC glslang)
+target_link_libraries(${YGG_ENGINE} PUBLIC SPIRV)
 target_link_libraries(${YGG_ENGINE} PUBLIC "$ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib") # It works on windows but it should change per platform.
 
 if(MSVC)

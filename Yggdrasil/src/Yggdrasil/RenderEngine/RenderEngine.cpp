@@ -4,6 +4,8 @@
 #include "Yggdrasil/RenderEngine/RenderEngine.h"
 #include "Yggdrasil/RenderEngine/GraphicsContext.h"
 #include "Yggdrasil/RenderEngine/RenderUtil.h"
+#include "Yggdrasil/RenderEngine/Shader/ShaderReflect.h"
+#include "Yggdrasil/RenderEngine/Shader/ShaderCompiler.h"
 
 #include <vulkan/vulkan.h>
 
@@ -90,11 +92,30 @@ namespace Ygg
     {
         this->m_context.Create();
         InitPerFrameStruct();
+        ShaderCompiler::Init();
+        this->m_descriptorSetLayoutCache.Init(this->m_context.GetGraphicsDevice());
+
+        // TODO: delete
+        ShaderReflect::SShaderWrapper vert{};
+        ShaderCompiler::CompileShaderFromFile("res/shader/test.vert", vert.spirv);
+        VkShaderModuleCreateInfo vertInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+        vertInfo.codeSize = vert.spirv.size() * sizeof(uint32_t);
+        vertInfo.pCode = vert.spirv.data();
+        vert.shader.module = this->m_context.GetGraphicsDevice().CreateShaderModule(&vertInfo);
+
+        ShaderReflect::SShaderWrapper frag{};
+        ShaderCompiler::CompileShaderFromFile("res/shader/test.frag", frag.spirv);
+        VkShaderModuleCreateInfo fragInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+        fragInfo.codeSize = frag.spirv.size() * sizeof(uint32_t);
+        fragInfo.pCode = frag.spirv.data();
+        frag.shader.module = this->m_context.GetGraphicsDevice().CreateShaderModule(&fragInfo);
+
+        SProgram program{ ShaderReflect::ParseProgram({ vert, frag }, this->m_descriptorSetLayoutCache, this->m_context.GetGraphicsDevice()) };
     }
 
     void CRenderEngine::Render()
     {
-        auto& device{ this->m_context.GetGraphicsDeviceNonConst() };
+        auto& device{ this->m_context.GetGraphicsDevice() };
         auto& screen{ this->m_context.GetScreen() };
         auto& frame { this->m_frames[m_currentFrameInFlight] };
 
@@ -147,6 +168,8 @@ namespace Ygg
     void CRenderEngine::Shutdown()
     {
         this->m_context.GetGraphicsDevice().WaitIdle();
+        ShaderCompiler::Free();
+        this->m_descriptorSetLayoutCache.Destroy();
         for (auto it{ this->m_deletionQueue.rbegin() }; it != this->m_deletionQueue.rend(); it++)
         {
             (*it)();

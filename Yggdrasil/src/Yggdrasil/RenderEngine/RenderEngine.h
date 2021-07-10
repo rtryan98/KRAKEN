@@ -2,6 +2,7 @@
 
 #pragma once
 #include "Yggdrasil/RenderEngine/GraphicsContext.h"
+#include "Yggdrasil/RenderEngine/Descriptor/DescriptorSetLayoutCache.h"
 
 #include <vector>
 #include <deque>
@@ -36,5 +37,6 @@ namespace Ygg
         uint32_t m_currentFrameInFlight{ 0 };
         uint32_t m_maxFramesInFlight{ 0 };
         std::deque<std::function<void()>> m_deletionQueue;
+        CDescriptorSetLayoutCache m_descriptorSetLayoutCache{};
     };
 }

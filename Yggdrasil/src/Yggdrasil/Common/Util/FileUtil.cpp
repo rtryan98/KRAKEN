@@ -8,7 +8,7 @@
 
 namespace Ygg::FileUtil
 {
-    std::string ReadFileAsString(std::string& filepath)
+    std::string ReadFileAsString(const std::string& filepath)
     {
         std::stringstream result{};
         std::ifstream input{};
@@ -28,7 +28,7 @@ namespace Ygg::FileUtil
         return result.str();
     }
 
-    const char* FileExtension(std::string& filepath)
+    const char* FileExtension(const std::string& filepath)
     {
         const uint32_t dot{ static_cast<uint32_t>(filepath.find('.')) };
         return (dot == std::string::npos)
@@ -36,7 +36,7 @@ namespace Ygg::FileUtil
             : filepath.substr(filepath.rfind('.') + 1).c_str();
     }
 
-    bool ReadFileAsBytecode(std::string& filepath, std::vector<uint32_t>& result)
+    bool ReadFileAsBytecode(const std::string& filepath, std::vector<uint32_t>& result)
     {
         std::ifstream input{ filepath, std::ios::ate | std::ios::binary };
         if (!input.is_open())

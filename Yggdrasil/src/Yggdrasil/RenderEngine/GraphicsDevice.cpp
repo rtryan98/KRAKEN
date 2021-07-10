@@ -8,7 +8,7 @@
 
 #include <vector>
 #include <iomanip>
-#include <vulkan/vk_enum_string_helper.h>
+#include <sstream>
 
 namespace Ygg
 {
@@ -21,6 +21,7 @@ namespace Ygg
     {
         VkBool32 result{};
         vkGetPhysicalDeviceSurfaceSupportKHR(this->m_data.handle, queueFamilyIndex, surface, &result);
+        VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_EXT;
         return result;
     }
 
@@ -793,6 +794,20 @@ namespace Ygg
     void CGraphicsDevice::DestroySwapchainKHR(VkSwapchainKHR* pSwapchain) const
     {
         RenderUtil::DestroyVkObject(pSwapchain, vkDestroySwapchainKHR, this->m_handle);
+    }
+
+    VkDescriptorSetLayout CGraphicsDevice::CreateDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo* pCreateInfo, const char* name) const
+    {
+        VkDescriptorSetLayout result{};
+        RenderUtil::VkCheck(vkCreateDescriptorSetLayout(this->m_handle, pCreateInfo, nullptr, &result));
+        YGG_VK_DEBUG_NAME(this->m_handle, result, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, name);
+        YGG_ASSERT(result);
+        return result;
+    }
+
+    void CGraphicsDevice::DestroyDescriptorSetLayout(VkDescriptorSetLayout* pSetLayout) const
+    {
+        RenderUtil::DestroyVkObject(pSetLayout, vkDestroyDescriptorSetLayout, this->m_handle);
     }
 
     void CGraphicsDevice::WaitIdle() const

@@ -78,6 +78,9 @@ namespace Ygg
         VkSwapchainKHR CreateSwapchainKHR(VkSwapchainCreateInfoKHR* pCreateInfo, const char* name = nullptr) const;
         void DestroySwapchainKHR(VkSwapchainKHR* pSwapchain) const;
 
+        VkDescriptorSetLayout CreateDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo* pCreateInfo, const char* name = nullptr) const;
+        void DestroyDescriptorSetLayout(VkDescriptorSetLayout* pSetLayout) const;
+
         void BindBufferMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) const;
         void BindBufferMemory2(uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos) const;
         void BindImageMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) const;

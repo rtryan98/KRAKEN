@@ -5,9 +5,9 @@
 #include "Yggdrasil/RenderEngine/Shader/DirStackFileIncluder.h"
 #include "Yggdrasil/Common/Util/FileUtil.h"
 
+#include <filesystem>
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
-#include <filesystem>
 
 namespace Ygg::ShaderCompiler
 {
@@ -211,6 +211,7 @@ namespace Ygg::ShaderCompiler
 
     void Link(glslang::TProgram& program, glslang::TShader& shader, EShMessages messages, const char* name = "Internal Shader")
     {
+        program.addShader(&shader);
         if (!program.link(messages))
         {
             YGG_WARN("Failed to link shader '{0}'.\nLog: '{1}'\nDebug Log: '{2}'",
@@ -280,11 +281,12 @@ namespace Ygg::ShaderCompiler
     bool CompileShaderFromFile(const char* filename, std::vector<uint32_t>& spirvResult)
     {
         std::string code{ FileUtil::ReadFileAsString(filename) };
-        EShLanguage lang{ FindLanguage(filename) };
+        EShLanguage lang{ FindLanguage(FileUtil::FileExtension(filename)) };
         ShaderType type{ ConvertEShLangToShaderType(lang) };
 
         std::string directory{ std::filesystem::path(filename).parent_path().string() };
 
+        YGG_TRACE("Compiling shader file '{0}'.", filename);
         return CompileShaderFromString(code.c_str(), type, spirvResult, directory.c_str());
     }
 
@@ -305,6 +307,7 @@ namespace Ygg::ShaderCompiler
         {
             includer.pushExternalLocalDirectory(includePath);
         }
+
         std::string preprocessedGlsl{};
         glslang::TProgram program{};
 
@@ -315,6 +318,7 @@ namespace Ygg::ShaderCompiler
         spv::SpvBuildLogger logger{};
         glslang::SpvOptions options{};
         options.disableOptimizer = false;
+
         glslang::GlslangToSpv(*program.getIntermediate(language), spirvResult, &logger, &options);
 
         return false;

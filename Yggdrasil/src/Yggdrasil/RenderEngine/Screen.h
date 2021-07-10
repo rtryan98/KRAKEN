@@ -40,10 +40,10 @@ namespace Ygg
             VkRenderPass swapchainRenderPass;
         } m_data{};
 
-        /// @brief non-owned GraphicsContext
+        /// @brief non-owned CGraphicsContext
         CGraphicsContext* a_pContext{};
 
-        /// @brief non-owned Window
+        /// @brief non-owned CWindow
         const CWindow* a_pWindow{};
     };
 }

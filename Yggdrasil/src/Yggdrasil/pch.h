@@ -3,6 +3,7 @@
 #pragma once
 #include "Yggdrasil/Base.h"
 
+#define VK_ENABLE_BETA_EXTENSIONS
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>

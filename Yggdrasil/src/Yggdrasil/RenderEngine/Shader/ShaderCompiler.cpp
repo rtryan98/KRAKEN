@@ -291,10 +291,10 @@ namespace Ygg::ShaderCompiler
         std::string directory{ std::filesystem::path(filename).parent_path().string() };
 
         YGG_TRACE("Compiling shader file '{0}'.", filename);
-        return CompileShaderFromString(code.c_str(), type, spirvResult, directory.c_str());
+        return CompileShaderFromString(code.c_str(), type, spirvResult, directory.c_str(), filename);
     }
 
-    bool CompileShaderFromString(const char* code, ShaderType type, std::vector<uint32_t>& spirvResult, const char* includePath)
+    bool CompileShaderFromString(const char* code, ShaderType type, std::vector<uint32_t>& spirvResult, const char* includePath, const char* name)
     {
         EShLanguage language{ ConvertShaderTypeToEShLanguage(type) };
 
@@ -315,9 +315,9 @@ namespace Ygg::ShaderCompiler
         std::string preprocessedGlsl{};
         glslang::TProgram program{};
 
-        Preprocess(shader, messages, preprocessedGlsl, includer);
-        Parse(shader, messages, preprocessedGlsl);
-        Link(program, shader, messages);
+        Preprocess(shader, messages, preprocessedGlsl, includer, (name == nullptr) ? "Unnamed Shader" : name);
+        Parse(shader, messages, preprocessedGlsl, (name == nullptr) ? "Unnamed Shader" : name);
+        Link(program, shader, messages, (name == nullptr) ? "Unnamed Shader" : name);
 
         spv::SpvBuildLogger logger{};
         glslang::SpvOptions options{};
@@ -349,7 +349,7 @@ namespace Ygg::ShaderCompiler
             VkShaderModuleCreateInfo createInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
             createInfo.codeSize = static_cast<uint32_t>(wrapper.shaders[i].spirv.size()) * sizeof(uint32_t);
             createInfo.pCode = wrapper.shaders[i].spirv.data();
-            wrapper.shaders[i].shader.module = device.CreateShaderModule(&createInfo);
+            result.shaders[i].module = device.CreateShaderModule(&createInfo);
         }
         result.descriptorUpdateTemplate = wrapper.program.descriptorUpdateTemplate;
         result.pipelineBindPoint = wrapper.program.pipelineBindPoint;

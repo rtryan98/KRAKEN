@@ -1,14 +1,11 @@
 #version 460 core
 
-layout(location = 0) in vec3 aPos;
-
-layout(binding = 0) uniform Camera
-{
-    mat4 proj;
-    mat4 view;
-} uCamera;
+vec2 arr[3] = vec2[]
+(
+    vec2(-0.5, -0.5), vec2(0.5, -0.5), vec2(0.0, 0.5)
+);
 
 void main()
 {
-    gl_Position = uCamera.proj * uCamera.view * vec4(aPos, 0.0);
+    gl_Position = vec4(arr[gl_VertexIndex], 0.0, 1.0);
 }

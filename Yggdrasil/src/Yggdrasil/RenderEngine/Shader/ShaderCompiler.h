@@ -32,7 +32,7 @@ namespace Ygg::ShaderCompiler
     void Free();
 
     bool CompileShaderFromFile(const char* filename, std::vector<uint32_t>& spirvResult);
-    bool CompileShaderFromString(const char* code, ShaderType type, std::vector<uint32_t>& spirvResult, const char* includePath = nullptr);
+    bool CompileShaderFromString(const char* code, ShaderType type, std::vector<uint32_t>& spirvResult, const char* includePath = nullptr, const char* name = nullptr);
 
     SProgram CompileAndReflectShadersFromFiles(const std::vector<const char*>& files, CDescriptorSetLayoutCache& descriptorSetLayoutCache, const CGraphicsDevice& device);
 }

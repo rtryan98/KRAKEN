@@ -12,56 +12,6 @@
 
 namespace Ygg::ShaderReflect
 {
-    // spirv_cross::Compiler GetReflection(const std::vector<uint32_t>& spirv)
-    // {
-    //     return spirv_cross::Compiler(spirv);
-    // }
-    // 
-    // VkShaderStageFlagBits ParseShaderStage(const spirv_cross::Compiler& reflection)
-    // {
-    //     switch (reflection.get_execution_model())
-    //     {
-    //     case spv::ExecutionModelVertex:
-    //         return VK_SHADER_STAGE_VERTEX_BIT;
-    //     case spv::ExecutionModelTessellationControl:
-    //         return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-    //     case spv::ExecutionModelTessellationEvaluation:
-    //         return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-    //     case spv::ExecutionModelGeometry:
-    //         return VK_SHADER_STAGE_GEOMETRY_BIT;
-    //     case spv::ExecutionModelFragment:
-    //         return VK_SHADER_STAGE_FRAGMENT_BIT;
-    //     case spv::ExecutionModelGLCompute:
-    //         return VK_SHADER_STAGE_COMPUTE_BIT;
-    //     case spv::ExecutionModelTaskNV:
-    //         return VK_SHADER_STAGE_TASK_BIT_NV;
-    //     case spv::ExecutionModelMeshNV:
-    //         return VK_SHADER_STAGE_MESH_BIT_NV;
-    //     case spv::ExecutionModelRayGenerationKHR:
-    //         return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-    //     case spv::ExecutionModelIntersectionKHR:
-    //         return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
-    //     case spv::ExecutionModelAnyHitKHR:
-    //         return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-    //     case spv::ExecutionModelClosestHitKHR:
-    //         return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-    //     case spv::ExecutionModelMissKHR:
-    //         return VK_SHADER_STAGE_MISS_BIT_KHR;
-    //     case spv::ExecutionModelCallableKHR:
-    //         return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
-    //     default:
-    //         YGG_WARN("Unknown shader execution model.");
-    //         return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-    //     }
-    // }
-    // 
-    // void ParseLocalGroupSize(const spirv_cross::Compiler& reflection, SProgram& program)
-    // {
-    //     program.localGroupSize.x = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 0);
-    //     program.localGroupSize.y = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 1);
-    //     program.localGroupSize.z = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 2);
-    // }
-
     struct SShaderResource
     {
         uint32_t binding;
@@ -104,26 +54,23 @@ namespace Ygg::ShaderReflect
         }
     };
 
-    struct SVkPushConstantRangeHash
-    {
+    using ADescriptorSetLayoutBindingSet = std::unordered_set<
+        VkDescriptorSetLayoutBinding,
+        SVkDescriptorSetLayoutBindingHash,
+        SVkDescriptorSetLayoutBindingEqualityOperator>;
 
-    };
+    using ASetLayoutMap = std::unordered_map<uint32_t, ADescriptorSetLayoutBindingSet>;
 
-    struct SVkPushConstantEqualityOperator
-    {
+    using ASetBindingShaderStageMap = std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>>;
 
-    };
-
-    /// @brief 
+    /// @brief Parses a single shader stage. Returns meta data required for the program in the unordered maps.
     /// @param spv SPIRV code
-    /// @param setMap Map of set of all bindings
-    /// @param setBindingShaderStages Map of Maps representing shader stages. [setNumber][bindingNumber] = shaderStage
+    /// @param setLayoutMap Map of set of all bindings
+    /// @param setBindingShaderStageMap Map of Maps representing shader stages. [setNumber][bindingNumber] = shaderStage
     void ParseStage(
-        SShaderReflectionWrapper shader,
-        std::unordered_map<uint32_t,std::unordered_set<VkDescriptorSetLayoutBinding,
-                SVkDescriptorSetLayoutBindingHash,
-                SVkDescriptorSetLayoutBindingEqualityOperator>>& setMap,
-        std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>>& setBindingShaderStages)
+        SShaderReflectionWrapper& shader,
+        ASetLayoutMap& setLayoutMap,
+        ASetBindingShaderStageMap& setBindingShaderStageMap)
     {
         SpvReflectShaderModule reflectModule{};
         if (spvReflectCreateShaderModule(static_cast<uint32_t>(shader.spirv.size()) * sizeof(uint32_t), shader.spirv.data(), &reflectModule) != SPV_REFLECT_RESULT_SUCCESS)
@@ -141,13 +88,13 @@ namespace Ygg::ShaderReflect
         {
             const SpvReflectDescriptorSet& reflectionSet{ *(sets[set]) };
 
-            if (setMap.find(reflectionSet.set) == setMap.end())
+            if (setLayoutMap.find(reflectionSet.set) == setLayoutMap.end())
             {
-                setMap[reflectionSet.set] = std::unordered_set<VkDescriptorSetLayoutBinding,
+                setLayoutMap[reflectionSet.set] = std::unordered_set<VkDescriptorSetLayoutBinding,
                         SVkDescriptorSetLayoutBindingHash,
                         SVkDescriptorSetLayoutBindingEqualityOperator>();
             }
-            auto& currentSet{ setMap[reflectionSet.set] };
+            auto& currentSet{ setLayoutMap[reflectionSet.set] };
             currentSet.reserve(reflectionSet.binding_count);
 
             for (uint32_t bindingNumber{ 0 }; bindingNumber < reflectionSet.binding_count; bindingNumber++)
@@ -165,12 +112,12 @@ namespace Ygg::ShaderReflect
 
                 currentSet.insert(resultBinding);
 
-                if (setBindingShaderStages.find(reflectionBinding.set) == setBindingShaderStages.end())
+                if (setBindingShaderStageMap.find(reflectionBinding.set) == setBindingShaderStageMap.end())
                 {
-                    setBindingShaderStages[reflectionBinding.set] = std::unordered_map<uint32_t, uint32_t>();
+                    setBindingShaderStageMap[reflectionBinding.set] = std::unordered_map<uint32_t, uint32_t>();
                 }
 
-                setBindingShaderStages[reflectionBinding.set][reflectionBinding.binding] |= static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
+                setBindingShaderStageMap[reflectionBinding.set][reflectionBinding.binding] |= static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
             }
         }
 
@@ -187,25 +134,21 @@ namespace Ygg::ShaderReflect
 
     void ParseProgram(CDescriptorSetLayoutCache& cache, SProgramReflectionWrapper& program, const CGraphicsDevice& device)
     {
-        std::unordered_map<uint32_t, std::unordered_set<
-                VkDescriptorSetLayoutBinding,
-                SVkDescriptorSetLayoutBindingHash,
-                SVkDescriptorSetLayoutBindingEqualityOperator>> setMap{};
-        std::unordered_map<uint32_t, std::unordered_map<
-                uint32_t, uint32_t>> setBindingShaderStages{};
+        ASetLayoutMap setLayoutMap{};
+        ASetBindingShaderStageMap setBindingShaderStageMap{};
 
-        for (const auto& shader : program.shaders)
+        for (auto& shader : program.shaders)
         {
-            ParseStage(shader, setMap, setBindingShaderStages);
+            ParseStage(shader, setLayoutMap, setBindingShaderStageMap);
         }
 
-        for (const auto& set : setMap)
+        for (const auto& set : setLayoutMap)
         {
             std::vector<VkDescriptorSetLayoutBinding> bindings{};
             for (const auto& descriptorSetLayoutBinding : set.second)
             {
                 VkDescriptorSetLayoutBinding binding = descriptorSetLayoutBinding;
-                binding.stageFlags = setBindingShaderStages[set.first][binding.binding];
+                binding.stageFlags = setBindingShaderStageMap[set.first][binding.binding];
                 bindings.push_back(binding);
             }
             VkDescriptorSetLayoutCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
@@ -220,6 +163,7 @@ namespace Ygg::ShaderReflect
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(program.program.setLayouts.size());
         pipelineLayoutCreateInfo.pSetLayouts = program.program.setLayouts.data();
+        // TODO: push constants
         // pipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(program.program.pushConstantRanges.size());
         // pipelineLayoutCreateInfo.pPushConstantRanges = program.program.pushConstantRanges.data();
         program.program.pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutCreateInfo);

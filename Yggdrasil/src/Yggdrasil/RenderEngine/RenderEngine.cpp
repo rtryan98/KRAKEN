@@ -11,6 +11,8 @@
 
 namespace Ygg
 {
+    SProgram program{};
+
     void CRenderEngine::InitPerFrameStruct()
     {
         const auto& device{ this->m_context.GetGraphicsDevice() };
@@ -95,8 +97,86 @@ namespace Ygg
         ShaderCompiler::Init();
         this->m_descriptorSetLayoutCache.Init(this->m_context.GetGraphicsDevice());
 
-        SProgram program{ ShaderCompiler::CompileAndReflectShadersFromFiles(
-            {"res/shader/test.vert", "res/shader/test.frag"}, this->m_descriptorSetLayoutCache, this->m_context.GetGraphicsDevice()) };
+        program = ShaderCompiler::CompileAndReflectShadersFromFiles(
+            {"res/shader/test.vert", "res/shader/test.frag"}, this->m_descriptorSetLayoutCache, this->m_context.GetGraphicsDevice());
+
+        VkGraphicsPipelineCreateInfo createInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
+
+        std::vector<VkPipelineShaderStageCreateInfo> stages{};
+        for (const SShader& shader : program.shaders)
+        {
+            VkPipelineShaderStageCreateInfo stageCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+            stageCreateInfo.stage = shader.stage;
+            stageCreateInfo.pName = "main";
+            stageCreateInfo.module = shader.module;
+            stageCreateInfo.pSpecializationInfo = nullptr; // TODO: add specialization constants
+            stages.push_back(stageCreateInfo);
+        }
+        createInfo.stageCount = static_cast<uint32_t>(stages.size());
+        createInfo.pStages = stages.data();
+
+        VkPipelineVertexInputStateCreateInfo vertexInputState{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+        createInfo.pVertexInputState = &vertexInputState;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+        inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        createInfo.pInputAssemblyState = &inputAssemblyState;
+
+        VkPipelineViewportStateCreateInfo viewportState{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
+        VkViewport viewport{};
+        viewport.width =  static_cast<float_t>(this->m_context.GetScreen().GetData().swapchainImageExtent.width);
+        viewport.height = -static_cast<float_t>(this->m_context.GetScreen().GetData().swapchainImageExtent.height);
+        viewport.y = static_cast<float_t>(this->m_context.GetScreen().GetData().swapchainImageExtent.height);
+        viewportState.viewportCount = 1;
+        viewportState.pViewports = &viewport;
+        VkRect2D scissor{};
+        scissor.extent = this->m_context.GetScreen().GetData().swapchainImageExtent;
+        scissor.offset = {0, 0};
+        viewportState.scissorCount = 1;
+        viewportState.pScissors = &scissor;
+        createInfo.pViewportState = &viewportState;
+
+        VkPipelineRasterizationStateCreateInfo rasterizationState{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
+        rasterizationState.depthClampEnable = VK_FALSE;
+        rasterizationState.rasterizerDiscardEnable = VK_FALSE;
+        rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterizationState.lineWidth = 1.0f;
+        createInfo.pRasterizationState = &rasterizationState;
+
+        VkPipelineMultisampleStateCreateInfo multisampleState{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
+        multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        createInfo.pMultisampleState = &multisampleState;
+
+        VkPipelineDepthStencilStateCreateInfo depthStencilState{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
+
+        VkPipelineColorBlendStateCreateInfo colorBlendState{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
+        VkPipelineColorBlendAttachmentState colorBlendAttachmentState{};
+        colorBlendAttachmentState.blendEnable = VK_FALSE;
+        colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+        colorBlendState.attachmentCount = 1;
+        colorBlendState.pAttachments = &colorBlendAttachmentState;
+        colorBlendState.logicOpEnable = VK_FALSE;
+        colorBlendState.logicOp = VK_LOGIC_OP_COPY;
+        colorBlendState.blendConstants[0] = 0.0f;
+        colorBlendState.blendConstants[1] = 0.0f;
+        colorBlendState.blendConstants[2] = 0.0f;
+        colorBlendState.blendConstants[3] = 0.0f;
+
+        createInfo.pColorBlendState = &colorBlendState;
+
+        createInfo.layout = program.pipelineLayout;
+
+        createInfo.renderPass = this->m_context.GetScreen().GetData().swapchainRenderPass;
+        program.pipeline = this->m_context.GetGraphicsDevice().CreateGraphicsPipeline(&createInfo);
     }
 
     void CRenderEngine::Render()
@@ -119,6 +199,10 @@ namespace Ygg
         RenderUtil::VkCheck(vkBeginCommandBuffer(frame.cmdBuffer, &beginInfo));
 
         screen.BeginSwapchainRenderPass(frame.cmdBuffer, imageIndex);
+
+        vkCmdBindPipeline(frame.cmdBuffer, program.pipelineBindPoint, program.pipeline);
+        vkCmdDraw(frame.cmdBuffer, 3, 1, 0, 0);
+
         vkCmdEndRenderPass(frame.cmdBuffer);
         RenderUtil::VkCheck(vkEndCommandBuffer(frame.cmdBuffer));
 

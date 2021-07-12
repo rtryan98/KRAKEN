@@ -28,6 +28,7 @@ namespace Ygg
 
     struct SProgram
     {
+        VkPipeline pipeline;
         VkPipelineBindPoint pipelineBindPoint;
         VkPipelineLayout pipelineLayout;
         VkDescriptorUpdateTemplate descriptorUpdateTemplate;

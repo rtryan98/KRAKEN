@@ -15,16 +15,7 @@ namespace Ygg
 
 namespace Ygg::ShaderReflect
 {
-    struct SShaderWrapper
-    {
-        std::vector<uint32_t> spirv;
-        SShader shader{};
-    };
-
-    SProgram ParseProgram(
-        std::initializer_list<std::reference_wrapper<SShaderWrapper>> shaders,
-        CDescriptorSetLayoutCache& setLayoutCache,
-        const CGraphicsDevice& device);
+    void ParseProgram(CDescriptorSetLayoutCache& cache, SProgramReflectionWrapper& program, const CGraphicsDevice& device);
 
     // TODO: move that somewhere else?
     VkPipeline CreateGraphicsPipeline(

@@ -4,3 +4,6 @@
 [submodule "vendor/glslang"]
 	path = vendor/glslang
 	url = https://github.com/KhronosGroup/glslang
+[submodule "vendor/spirv-reflect"]
+	path = vendor/spirv-reflect
+	url = https://github.com/KhronosGroup/SPIRV-Reflect

@@ -11,20 +11,6 @@ namespace Ygg
     {
         VkShaderModule module;
         VkShaderStageFlagBits stage;
-    };
-
-    struct SProgram
-    {
-        VkPipelineBindPoint pipelineBindPoint;
-        VkPipelineLayout pipelineLayout;
-
-        VkDescriptorSetLayout descriptorSetLayout[MAX_DESCIRPTOR_SET_LAYOUTS_PER_SHADER]
-        {
-            VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE
-        };
-        VkDescriptorUpdateTemplate descriptorUpdateTemplate;
-
-        VkShaderStageFlags pushConstantFlags;
 
         struct SLocalGroupSize
         {
@@ -32,5 +18,29 @@ namespace Ygg
             uint32_t y;
             uint32_t z;
         } localGroupSize;
+    };
+
+    struct SShaderReflectionWrapper
+    {
+        std::vector<uint32_t> spirv;
+        SShader shader;
+    };
+
+    struct SProgram
+    {
+        VkPipelineBindPoint pipelineBindPoint;
+        VkPipelineLayout pipelineLayout;
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate;
+        VkShaderStageFlags pushConstantFlags;
+
+        std::vector<VkDescriptorSetLayout> setLayouts;
+        std::vector<SShader> shaders;
+        std::vector<VkPushConstantRange> pushConstantRanges;
+    };
+
+    struct SProgramReflectionWrapper
+    {
+        std::vector<SShaderReflectionWrapper> shaders;
+        SProgram program;
     };
 }

@@ -95,22 +95,8 @@ namespace Ygg
         ShaderCompiler::Init();
         this->m_descriptorSetLayoutCache.Init(this->m_context.GetGraphicsDevice());
 
-        // TODO: delete
-        ShaderReflect::SShaderWrapper vert{};
-        ShaderCompiler::CompileShaderFromFile("res/shader/test.vert", vert.spirv);
-        VkShaderModuleCreateInfo vertInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-        vertInfo.codeSize = vert.spirv.size() * sizeof(uint32_t);
-        vertInfo.pCode = vert.spirv.data();
-        vert.shader.module = this->m_context.GetGraphicsDevice().CreateShaderModule(&vertInfo);
-
-        ShaderReflect::SShaderWrapper frag{};
-        ShaderCompiler::CompileShaderFromFile("res/shader/test.frag", frag.spirv);
-        VkShaderModuleCreateInfo fragInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-        fragInfo.codeSize = frag.spirv.size() * sizeof(uint32_t);
-        fragInfo.pCode = frag.spirv.data();
-        frag.shader.module = this->m_context.GetGraphicsDevice().CreateShaderModule(&fragInfo);
-
-        SProgram program{ ShaderReflect::ParseProgram({ vert, frag }, this->m_descriptorSetLayoutCache, this->m_context.GetGraphicsDevice()) };
+        SProgram program{ ShaderCompiler::CompileAndReflectShadersFromFiles(
+            {"res/shader/test.vert", "res/shader/test.frag"}, this->m_descriptorSetLayoutCache, this->m_context.GetGraphicsDevice()) };
     }
 
     void CRenderEngine::Render()

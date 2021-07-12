@@ -3,6 +3,11 @@
 #pragma once
 #include <vector>
 
+namespace Ygg
+{
+    class CGraphicsDevice;
+}
+
 namespace Ygg::ShaderCompiler
 {
     enum class ShaderType
@@ -28,4 +33,6 @@ namespace Ygg::ShaderCompiler
 
     bool CompileShaderFromFile(const char* filename, std::vector<uint32_t>& spirvResult);
     bool CompileShaderFromString(const char* code, ShaderType type, std::vector<uint32_t>& spirvResult, const char* includePath = nullptr);
+
+    SProgram CompileAndReflectShadersFromFiles(const std::vector<const char*>& files, CDescriptorSetLayoutCache& descriptorSetLayoutCache, const CGraphicsDevice& device);
 }

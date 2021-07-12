@@ -10,3 +10,5 @@ set_target_properties(HLSL GenericCodeGen glslang-default-resource-limits Machin
     OGLCompiler OSDependent SPIRV SPVRemapper spirv-remap glslangValidator glslang 
     PROPERTIES FOLDER vendor/glslang)
 set(ENABLE_CTEST ON)
+
+add_library(spirv-reflect "${CMAKE_SOURCE_DIR}/vendor/spirv-reflect/spirv_reflect.c" "${CMAKE_SOURCE_DIR}/vendor/spirv-reflect/spirv_reflect.h")

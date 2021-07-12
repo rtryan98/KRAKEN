@@ -1,8 +1,12 @@
 // Copyright 2021 Robert Ryan. See LICENCE.md.
 
 #include "Yggdrasil/pch.h"
+#include "Yggdrasil/RenderEngine/Shader/ShaderReflect.h"
 #include "Yggdrasil/RenderEngine/Shader/ShaderCompiler.h"
 #include "Yggdrasil/RenderEngine/Shader/DirStackFileIncluder.h"
+#include "Yggdrasil/RenderEngine/Shader/Shader.h"
+#include "Yggdrasil/RenderEngine/GraphicsDevice.h"
+#include "Yggdrasil/RenderEngine/Descriptor/DescriptorSetLayoutCache.h"
 #include "Yggdrasil/Common/Util/FileUtil.h"
 
 #include <filesystem>
@@ -322,5 +326,37 @@ namespace Ygg::ShaderCompiler
         glslang::GlslangToSpv(*program.getIntermediate(language), spirvResult, &logger, &options);
 
         return false;
+    }
+
+    SProgram CompileAndReflectShadersFromFiles(const std::vector<const char*>& files, CDescriptorSetLayoutCache& descriptorSetLayoutCache, const CGraphicsDevice& device)
+    {
+        SProgramReflectionWrapper wrapper{};
+        wrapper.shaders.resize(files.size());
+        for (uint32_t i{ 0 }; i < files.size(); i++)
+        {
+            if (CompileShaderFromFile(files[i], wrapper.shaders[i].spirv) != 0)
+                YGG_ERROR("Failed to compile shader '{0}'!", files[i]);
+
+        }
+        ShaderReflect::ParseProgram(descriptorSetLayoutCache, wrapper, device);
+
+        SProgram result{};
+        result.shaders.resize(wrapper.shaders.size());
+        for (uint32_t i{ 0 }; i < wrapper.shaders.size(); i++)
+        {
+            result.shaders[i] = wrapper.shaders[i].shader;
+
+            VkShaderModuleCreateInfo createInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+            createInfo.codeSize = static_cast<uint32_t>(wrapper.shaders[i].spirv.size()) * sizeof(uint32_t);
+            createInfo.pCode = wrapper.shaders[i].spirv.data();
+            wrapper.shaders[i].shader.module = device.CreateShaderModule(&createInfo);
+        }
+        result.descriptorUpdateTemplate = wrapper.program.descriptorUpdateTemplate;
+        result.pipelineBindPoint = wrapper.program.pipelineBindPoint;
+        result.pipelineLayout = wrapper.program.pipelineLayout;
+        result.pushConstantFlags = wrapper.program.pushConstantFlags;
+        result.setLayouts = wrapper.program.setLayouts;
+
+        return result;
     }
 }

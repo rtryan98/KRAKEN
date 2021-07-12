@@ -8,59 +8,59 @@
 #include <vulkan/vulkan.h>
 #include <unordered_map>
 #include <array>
-#include <spirv_cross/spirv_reflect.hpp>
+#include <spirv-reflect/spirv_reflect.h>
 
 namespace Ygg::ShaderReflect
 {
-    spirv_cross::Compiler GetReflection(const std::vector<uint32_t>& spirv)
-    {
-        return spirv_cross::Compiler(spirv);
-    }
-
-    VkShaderStageFlagBits ParseShaderStage(const spirv_cross::Compiler& reflection)
-    {
-        switch (reflection.get_execution_model())
-        {
-        case spv::ExecutionModelVertex:
-            return VK_SHADER_STAGE_VERTEX_BIT;
-        case spv::ExecutionModelTessellationControl:
-            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case spv::ExecutionModelTessellationEvaluation:
-            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case spv::ExecutionModelGeometry:
-            return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case spv::ExecutionModelFragment:
-            return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case spv::ExecutionModelGLCompute:
-            return VK_SHADER_STAGE_COMPUTE_BIT;
-        case spv::ExecutionModelTaskNV:
-            return VK_SHADER_STAGE_TASK_BIT_NV;
-        case spv::ExecutionModelMeshNV:
-            return VK_SHADER_STAGE_MESH_BIT_NV;
-        case spv::ExecutionModelRayGenerationKHR:
-            return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-        case spv::ExecutionModelIntersectionKHR:
-            return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
-        case spv::ExecutionModelAnyHitKHR:
-            return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-        case spv::ExecutionModelClosestHitKHR:
-            return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-        case spv::ExecutionModelMissKHR:
-            return VK_SHADER_STAGE_MISS_BIT_KHR;
-        case spv::ExecutionModelCallableKHR:
-            return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
-        default:
-            YGG_WARN("Unknown shader execution model.");
-            return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        }
-    }
-
-    void ParseLocalGroupSize(const spirv_cross::Compiler& reflection, SProgram& program)
-    {
-        program.localGroupSize.x = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 0);
-        program.localGroupSize.y = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 1);
-        program.localGroupSize.z = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 2);
-    }
+    // spirv_cross::Compiler GetReflection(const std::vector<uint32_t>& spirv)
+    // {
+    //     return spirv_cross::Compiler(spirv);
+    // }
+    // 
+    // VkShaderStageFlagBits ParseShaderStage(const spirv_cross::Compiler& reflection)
+    // {
+    //     switch (reflection.get_execution_model())
+    //     {
+    //     case spv::ExecutionModelVertex:
+    //         return VK_SHADER_STAGE_VERTEX_BIT;
+    //     case spv::ExecutionModelTessellationControl:
+    //         return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+    //     case spv::ExecutionModelTessellationEvaluation:
+    //         return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+    //     case spv::ExecutionModelGeometry:
+    //         return VK_SHADER_STAGE_GEOMETRY_BIT;
+    //     case spv::ExecutionModelFragment:
+    //         return VK_SHADER_STAGE_FRAGMENT_BIT;
+    //     case spv::ExecutionModelGLCompute:
+    //         return VK_SHADER_STAGE_COMPUTE_BIT;
+    //     case spv::ExecutionModelTaskNV:
+    //         return VK_SHADER_STAGE_TASK_BIT_NV;
+    //     case spv::ExecutionModelMeshNV:
+    //         return VK_SHADER_STAGE_MESH_BIT_NV;
+    //     case spv::ExecutionModelRayGenerationKHR:
+    //         return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+    //     case spv::ExecutionModelIntersectionKHR:
+    //         return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+    //     case spv::ExecutionModelAnyHitKHR:
+    //         return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+    //     case spv::ExecutionModelClosestHitKHR:
+    //         return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+    //     case spv::ExecutionModelMissKHR:
+    //         return VK_SHADER_STAGE_MISS_BIT_KHR;
+    //     case spv::ExecutionModelCallableKHR:
+    //         return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+    //     default:
+    //         YGG_WARN("Unknown shader execution model.");
+    //         return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+    //     }
+    // }
+    // 
+    // void ParseLocalGroupSize(const spirv_cross::Compiler& reflection, SProgram& program)
+    // {
+    //     program.localGroupSize.x = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 0);
+    //     program.localGroupSize.y = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 1);
+    //     program.localGroupSize.z = reflection.get_execution_mode_argument(spv::ExecutionModeLocalSize, 2);
+    // }
 
     struct SShaderResource
     {
@@ -84,196 +84,145 @@ namespace Ygg::ShaderReflect
         }
     };
 
-    void ParseStage(
-        const spirv_cross::Compiler& reflection,
-        std::array<std::unordered_map<SShaderResource, VkShaderStageFlags, SShaderResourceHash>, 4>& setResources,
-        SShader& shader
-        )
+    // The stageflags are ignored here because they wouldn't allow to combine the set layouts efficiently.
+    struct SVkDescriptorSetLayoutBindingHash
     {
-        const auto& resources{ reflection.get_shader_resources() };
-        const auto shaderStage{ ParseShaderStage(reflection) };
-        shader.stage = shaderStage;
+        std::size_t operator()(const VkDescriptorSetLayoutBinding& k) const
+        {
+            return static_cast<std::size_t>(k.binding) * ((k.descriptorCount << 2) ^ (k.descriptorType));
+        }
+    };
 
-        auto PushResource
-        { [&](SShaderResource& resource, uint32_t set) -> void
+    struct SVkDescriptorSetLayoutBindingEqualityOperator
+    {
+        bool operator()(const VkDescriptorSetLayoutBinding& a, const VkDescriptorSetLayoutBinding& b) const
+        {
+            return (a.binding == b.binding)
+                & (a.descriptorCount == b.descriptorCount)
+                & (a.descriptorType == b.descriptorType)
+                & (a.pImmutableSamplers == b.pImmutableSamplers);
+        }
+    };
+
+    struct SVkPushConstantRangeHash
+    {
+
+    };
+
+    struct SVkPushConstantEqualityOperator
+    {
+
+    };
+
+    /// @brief 
+    /// @param spv SPIRV code
+    /// @param setMap Map of set of all bindings
+    /// @param setBindingShaderStages Map of Maps representing shader stages. [setNumber][bindingNumber] = shaderStage
+    void ParseStage(
+        SShaderReflectionWrapper shader,
+        std::unordered_map<uint32_t,std::unordered_set<VkDescriptorSetLayoutBinding,
+                SVkDescriptorSetLayoutBindingHash,
+                SVkDescriptorSetLayoutBindingEqualityOperator>>& setMap,
+        std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>>& setBindingShaderStages)
+    {
+        SpvReflectShaderModule reflectModule{};
+        if (spvReflectCreateShaderModule(static_cast<uint32_t>(shader.spirv.size()) * sizeof(uint32_t), shader.spirv.data(), &reflectModule) != SPV_REFLECT_RESULT_SUCCESS)
+            YGG_WARN("Reflection of shader failed.");
+
+        uint32_t count{ 0 };
+        if (spvReflectEnumerateDescriptorSets(&reflectModule, &count, nullptr) != SPV_REFLECT_RESULT_SUCCESS)
+            YGG_WARN("Reflection descriptor set enumeration failed.");
+
+        std::vector<SpvReflectDescriptorSet*> sets(count);
+        if (spvReflectEnumerateDescriptorSets(&reflectModule, &count, sets.data()) != SPV_REFLECT_RESULT_SUCCESS)
+            YGG_WARN("Reflection descriptor set enumeration failed.");
+
+        for (uint32_t set{ 0 }; set < sets.size(); set++)
+        {
+            const SpvReflectDescriptorSet& reflectionSet{ *(sets[set]) };
+
+            if (setMap.find(reflectionSet.set) == setMap.end())
             {
-                auto location{ setResources[set].find(resource) };
-                if (location != setResources[set].end())
-                {
-                    setResources[set][resource] |= shaderStage;
-                }
-                else
-                {
-                    setResources[set].insert(std::make_pair(resource, shaderStage));
-                }
+                setMap[reflectionSet.set] = std::unordered_set<VkDescriptorSetLayoutBinding,
+                        SVkDescriptorSetLayoutBindingHash,
+                        SVkDescriptorSetLayoutBindingEqualityOperator>();
             }
-        };
+            auto& currentSet{ setMap[reflectionSet.set] };
+            currentSet.reserve(reflectionSet.binding_count);
 
-        auto GetResourceCount
-        { [&](SShaderResource& resource, const spirv_cross::SmallVector<uint32_t>& resourceArray) -> void
+            for (uint32_t bindingNumber{ 0 }; bindingNumber < reflectionSet.binding_count; bindingNumber++)
             {
-                if (resourceArray.empty())
+                const SpvReflectDescriptorBinding& reflectionBinding{ *(reflectionSet.bindings[bindingNumber]) };
+
+                VkDescriptorSetLayoutBinding resultBinding{};
+                resultBinding.binding = reflectionBinding.binding;
+                resultBinding.descriptorType = static_cast<VkDescriptorType>(reflectionBinding.descriptor_type);
+                resultBinding.descriptorCount = 1;
+                for (uint32_t dimension{ 0 }; dimension < reflectionBinding.array.dims_count; dimension++)
                 {
-                    resource.count = 1;
+                    resultBinding.descriptorCount *= reflectionBinding.array.dims[dimension];
                 }
-                else
+
+                currentSet.insert(resultBinding);
+
+                if (setBindingShaderStages.find(reflectionBinding.set) == setBindingShaderStages.end())
                 {
-                    resource.count = resourceArray[0];
+                    setBindingShaderStages[reflectionBinding.set] = std::unordered_map<uint32_t, uint32_t>();
                 }
-                // TODO: handle arrays of arrays?
+
+                setBindingShaderStages[reflectionBinding.set][reflectionBinding.binding] |= static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
             }
-        };
-
-        for (const auto& spirvRes : resources.uniform_buffers)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
         }
 
-        for (const auto& spirvRes : resources.storage_buffers)
+        if (reflectModule.entry_points != nullptr)
         {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
+            shader.shader.localGroupSize.x = reflectModule.entry_points->local_size.x;
+            shader.shader.localGroupSize.y = reflectModule.entry_points->local_size.y;
+            shader.shader.localGroupSize.z = reflectModule.entry_points->local_size.z;
         }
+        shader.shader.stage = static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
 
-        for (const auto& spirvRes : resources.sampled_images)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
-        }
-
-        for (const auto& spirvRes : resources.storage_images)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-
-            // Texel buffers are handled differently from the other types.
-            if (reflection.get_type(spirvRes.type_id).image.dim == spv::DimBuffer)
-            {
-                res.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-            }
-
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
-        }
-
-        for (const auto& spirvRes : resources.separate_samplers)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_SAMPLER;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
-        }
-
-        for (const auto& spirvRes : resources.separate_images)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-
-            // Texel buffers are handled differently from the other types.
-            if (reflection.get_type(spirvRes.type_id).image.dim == spv::DimBuffer)
-            {
-                res.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-            }
-
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
-        }
-
-        for (const auto& spirvRes : resources.acceleration_structures)
-        {
-            SShaderResource res{};
-            res.binding = reflection.get_decoration(spirvRes.id, spv::DecorationBinding);
-            res.type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-            GetResourceCount(res, reflection.get_type(spirvRes.id).array);
-
-            PushResource(res, reflection.get_decoration(spirvRes.id, spv::DecorationDescriptorSet));
-        }
-
-        // TODO: push constants
+        spvReflectDestroyShaderModule(&reflectModule);
     }
 
-    SProgram ParseProgram(
-        std::initializer_list<std::reference_wrapper<SShaderWrapper>> shaders,
-        CDescriptorSetLayoutCache& setLayoutCache,
-        const CGraphicsDevice& device)
+    void ParseProgram(CDescriptorSetLayoutCache& cache, SProgramReflectionWrapper& program, const CGraphicsDevice& device)
     {
-        std::array<std::unordered_map<SShaderResource, VkShaderStageFlags, SShaderResourceHash>, 4> setResources{};
-        for (const auto& shaderWrapperReference : shaders)
+        std::unordered_map<uint32_t, std::unordered_set<
+                VkDescriptorSetLayoutBinding,
+                SVkDescriptorSetLayoutBindingHash,
+                SVkDescriptorSetLayoutBindingEqualityOperator>> setMap{};
+        std::unordered_map<uint32_t, std::unordered_map<
+                uint32_t, uint32_t>> setBindingShaderStages{};
+
+        for (const auto& shader : program.shaders)
         {
-            const auto spirvShaderReflection{ GetReflection(shaderWrapperReference.get().spirv) };
-            ParseStage(spirvShaderReflection, setResources, shaderWrapperReference.get().shader);
+            ParseStage(shader, setMap, setBindingShaderStages);
         }
 
-        std::vector<VkDescriptorSetLayout> setLayouts{};
-        for (const auto& resourceMap : setResources)
+        for (const auto& set : setMap)
         {
-            std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
-            for (const auto& resource : resourceMap)
+            std::vector<VkDescriptorSetLayoutBinding> bindings{};
+            for (const auto& descriptorSetLayoutBinding : set.second)
             {
-                setLayoutBindings.push_back(
-                    {
-                        resource.first.binding,
-                        resource.first.type,
-                        resource.first.count,
-                        resource.second,
-                        nullptr
-                    });
+                VkDescriptorSetLayoutBinding binding = descriptorSetLayoutBinding;
+                binding.stageFlags = setBindingShaderStages[set.first][binding.binding];
+                bindings.push_back(binding);
             }
+            VkDescriptorSetLayoutCreateInfo createInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+            createInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+            createInfo.pBindings = bindings.data();
+            createInfo.flags = 0x0; // TODO: flags for sets, bindless
 
-            VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-            setLayoutCreateInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-            setLayoutCreateInfo.pBindings = setLayoutBindings.data();
-            setLayoutCreateInfo.flags = 0x0; // TODO: bindless?
-
-            setLayouts.push_back(setLayoutCache.CreateDescriptorSetLayout(&setLayoutCreateInfo));
+            VkDescriptorSetLayout layout{ cache.CreateDescriptorSetLayout(&createInfo) };
+            program.program.setLayouts.push_back(layout);
         }
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-        pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
-        pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 0; // TODO: push constants
-        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // TODO: push constants
-        pipelineLayoutCreateInfo.flags = 0x0;
-
-        // TODO: IMPORTANT: Create Cache for PipelineLayout
-        SProgram program{};
-
-        VkPipelineLayout pipelineLayout{ device.CreatePipelineLayout(&pipelineLayoutCreateInfo) };
-        program.pipelineLayout = pipelineLayout;
-
-        // TODO: derive update template
-        program.descriptorUpdateTemplate = VK_NULL_HANDLE;
-
-        // TODO: derive push constant flags
-        program.pushConstantFlags = 0x0;
-
-        // TODO: parse local group size
-        program.localGroupSize = {0, 0, 0};
-
-        program.descriptorSetLayout[0] = VK_NULL_HANDLE;
-        program.descriptorSetLayout[1] = VK_NULL_HANDLE;
-        program.descriptorSetLayout[2] = VK_NULL_HANDLE;
-        program.descriptorSetLayout[3] = VK_NULL_HANDLE;
-
-        for (uint32_t i{ 0 }; i < setLayouts.size(); i++)
-        {
-            program.descriptorSetLayout[i] = setLayouts[i];
-        }
-
-        return program;
+        pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(program.program.setLayouts.size());
+        pipelineLayoutCreateInfo.pSetLayouts = program.program.setLayouts.data();
+        // pipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(program.program.pushConstantRanges.size());
+        // pipelineLayoutCreateInfo.pPushConstantRanges = program.program.pushConstantRanges.data();
+        program.program.pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutCreateInfo);
     }
 
     VkPipeline CreateGraphicsPipeline(

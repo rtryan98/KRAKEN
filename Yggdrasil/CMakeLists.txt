@@ -13,11 +13,13 @@ if (MSVC)
 endif (MSVC)
 
 target_include_directories(${YGG_ENGINE} PUBLIC "${CMAKE_SOURCE_DIR}/Yggdrasil/src")
+target_include_directories(${YGG_ENGINE} PRIVATE "${CMAKE_SOURCE_DIR}/vendor")
 target_link_libraries(${YGG_ENGINE} PUBLIC spdlog)
 target_link_libraries(${YGG_ENGINE} PUBLIC Vulkan::Vulkan)
 target_link_libraries(${YGG_ENGINE} PUBLIC glslang)
 target_link_libraries(${YGG_ENGINE} PUBLIC SPIRV)
-target_link_libraries(${YGG_ENGINE} PUBLIC "$ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib") # It works on windows but it should change per platform.
+target_link_libraries(${YGG_ENGINE} PUBLIC spirv-reflect)
+# target_link_libraries(${YGG_ENGINE} PUBLIC "$ENV{VULKAN_SDK}/Lib/spirv-cross-core.lib") # It works on windows but it should change per platform.
 
 if(MSVC)
     target_compile_options(${YGG_ENGINE} PRIVATE "/W4" "/MP" "/std:c++17" "/WX" "/wd26812")

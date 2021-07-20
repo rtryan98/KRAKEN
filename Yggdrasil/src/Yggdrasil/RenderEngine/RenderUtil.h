@@ -10,7 +10,8 @@ namespace Ygg::RenderUtil
     template<typename T>
     void DestroyVkObject(T* handle, VKAPI_ATTR void(VKAPI_CALL* destroyFunction)(VkDevice, T, const VkAllocationCallbacks*), VkDevice device)
     {
-        if (handle != VK_NULL_HANDLE)
+        YGG_ASSERT(handle != nullptr);
+        if (*handle != VK_NULL_HANDLE)
         {
             destroyFunction(device, *handle, nullptr);
             *handle = VK_NULL_HANDLE;
